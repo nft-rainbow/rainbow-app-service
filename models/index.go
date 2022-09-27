@@ -33,9 +33,8 @@ func ConnectDB() {
 	db.AutoMigrate(&AdminConfig{})
 	db.AutoMigrate(&CustomMintConfig{})
 	db.AutoMigrate(&BindCFXAddress{})
-	db.AutoMigrate(&EasyMintConfig{})
 	db.AutoMigrate(&CustomMintCount{})
-	db.AutoMigrate(&EasyMintCount{})
+	db.AutoMigrate(&MintResult{})
 
 }
 

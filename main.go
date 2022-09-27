@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/gin-gonic/gin"
+	"github.com/nft-rainbow/discordbot-service/middlewares"
 	"github.com/nft-rainbow/discordbot-service/models"
 	"github.com/nft-rainbow/discordbot-service/routers"
 	"github.com/sirupsen/logrus"
@@ -24,11 +25,14 @@ func initConfig() {
 
 func init() {
 	initConfig()
-	var err error
-	s, err = discordgo.New("Bot " + viper.GetString("botToken"))
-	if err != nil {
-		log.Fatalf("Invalid bot parameters: %v", err)
-	}
+	middlewares.InitDiscordJwtMiddleware()
+	middlewares.InitRainbowJwtMiddleware()
+	//var err error
+	//s, err = discordgo.New("Bot " + viper.GetString("botToken"))
+	//if err != nil {
+	//	log.Fatalf("Invalid bot parameters: %v", err)
+	//}
+
 }
 
 func initGin() *gin.Engine {

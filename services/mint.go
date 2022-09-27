@@ -1,15 +1,14 @@
 package services
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/nft-rainbow/discordbot-service/models"
+	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/spf13/viper"
-	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -17,20 +16,22 @@ func CustomMintConfig(config *models.CustomMintConfig) error {
 	if config.MaxMintCount == 0 {
 		config.MaxMintCount = 1
 	}
+	config.Event = "customMint"
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
 		return  res.Error
 	}
-	return nil
-}
-
-func EasyMintMintConfig(config *models.EasyMintConfig) error {
-	if config.MaxMintCount == 0 {
-		config.MaxMintCount = 1
+	token, err := Login()
+	if err != nil {
+		return err
 	}
-	res := models.GetDB().Create(&config)
-	if res.Error != nil {
-		return  res.Error
+	info, err := GetContractInfo(config.ContractID, token)
+	if err != nil {
+		return err
+	}
+	_, err = addContractAdmin(*info.Address, "Bearer " + token)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -55,108 +56,62 @@ func CustomMint(req *models.MintReq) (*models.MintResp, error){
 	}
 
 	token, err := Login()
-	//token, err := models.FindBindingTokenById(req.UserID)
 	if err != nil {
 		return nil, err
 	}
 
-	metadataUri, err := createMetadata(token, config.FileUrl, config.Name, config.Description)
+	info, err := GetContractInfo(int32(config.ContractID), token)
 	if err != nil {
 		return nil, err
 	}
-
-	resp , err := sendCustomMintRequest(token, models.CustomMintDto{
-		models.ContractInfoDto{
-			Chain: viper.GetString("chainType"),
-			ContractType: config.ContractType,
-			ContractAddress: config.ContractAddress,
-		},
-		models.MintItemDto{
-			MintToAddress: tmp.UserAddress,
-			MetadataUri: metadataUri,
-		},
+	var contractType string
+	if *info.Type == 1 {
+		contractType = "erc721"
+	}else {
+		contractType = "erc1155"
+	}
+	var chainType string
+	if *info.ChainType == 1 {
+		chainType = "conflux_test"
+	}else {
+		chainType = "conflux_main"
+	}
+	uri := "https://dev.nftrainbow.xyz/assets/file/2/nft/86db42aac9db6dbead473d7d49e1eaa4d6e9fcb3be86684ee56c210bc284b551.png"
+	resp , err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
+		Chain: chainType,
+		ContractType: contractType,
+		ContractAddress: *info.Address,
+		MintToAddress: tmp.UserAddress,
+		MetadataUri: &uri,
 	})
 	if err != nil {
 		return nil, err
 	}
+
 	_, err = models.UpdateCustomCount(req.UserID, req.ChannelID)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp, err
-}
-
-func EasyMint(req *models.MintReq) (*models.MintResp, error) {
-	config, err := models.FindBindingEasyMintConfigById(req.ChannelID)
-	if err != nil {
-		return nil, err
-	}
-
-	ok, err := models.CheckEasyCount(req.UserID, req.ChannelID, config.MaxMintCount)
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, errors.New("This number of the NFTs the account minted has reached the maximum")
-	}
-
-	tmp, err := GetBindCFXAddress(req.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := Login()
-	//token, err := models.FindBindingTokenById(req.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := sendEasyMintRequest(token, models.EasyMintMetaDto{
-		Chain: viper.GetString("chainType"),
-		Name: config.Name,
-		Description: config.Description,
-		MintToAddress: tmp.UserAddress,
-		FileUrl: config.FileUrl,
+	err = models.StoreMintResult(models.MintResult{
+		UserID: req.UserID,
+		ContractID: *info.Id,
+		TokenID: resp.TokenID,
 	})
-	if err != nil {
-		return nil, err
-	}
-	_, err = models.UpdateEasyCount(req.UserID, req.ChannelID)
-	if err != nil {
-		return nil, err
-	}
 
 	return resp, err
 }
 
-func sendCustomMintRequest(token string, dto models.CustomMintDto) (*models.MintResp, error){
-	b, err := json.Marshal(dto)
+func sendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto) (*models.MintResp, error){
+	//configuration := openapiclient.NewConfiguration()
+	//apiClient := openapiclient.NewAPIClient(configuration)
+	fmt.Println("Start to mint")
+	resp, _, err := newClient().MintsApi.CustomMint(context.Background()).Authorization(token).CustomMintDto(dto).Execute()
 	if err != nil {
 		return nil, err
 	}
-
-
-	fmt.Println("Start to custom mint")
-	req, _ := http.NewRequest("POST", viper.GetString("host") + "v1/mints/", bytes.NewBuffer(b))
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer " + token)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return  nil, err
-	}
-
-	var tmp models.MintTask
-	content, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(content, &tmp)
-	if err != nil {
-		return nil, err
-	}
-	if tmp.ErrMessage != "" {
-		return nil, errors.New(tmp.ErrMessage)
-	}
-
-	id, err := getTokenId(tmp.ID, token)
+	fmt.Println(resp)
+	id, err := getTokenId(*resp.Id, token)
 	if err != nil {
 		return nil, err
 	}
@@ -166,144 +121,41 @@ func sendCustomMintRequest(token string, dto models.CustomMintDto) (*models.Mint
 		NFTAddress: viper.GetString("customMint.mintRespPrefix") +  dto.ContractAddress + "/" + id,
 		Contract: dto.ContractAddress,
 		TokenID: id,
-		Time: tmp.BaseModel.CreatedAt.String(),
+		Time: *resp.CreatedAt,
 	}
 
-	defer resp.Body.Close()
 	return res, nil
 }
 
-func sendEasyMintRequest(token string, dto models.EasyMintMetaDto) (*models.MintResp, error){
-	b, err := json.Marshal(dto)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println("Start to easy mint")
-	req, _ := http.NewRequest("POST", viper.GetString("host") + "v1/mints/easy/urls", bytes.NewBuffer(b))
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer " + token)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return  nil, err
-	}
-
-	var tmp models.MintTask
-	content, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(content, &tmp)
-	if err != nil {
-		return nil, err
-	}
-	if tmp.ErrMessage != "" {
-		return nil, errors.New(tmp.ErrMessage)
-	}
-	id, err := getTokenId(tmp.ID, token)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &models.MintResp{
-		UserAddress: dto.MintToAddress,
-		Contract: viper.GetString("easyMint.contract"),
-		NFTAddress: viper.GetString("easyMint.mintRespPrefix") + viper.GetString("easyMint.contract") + "/" + id,
-		TokenID: id,
-		Time: tmp.BaseModel.CreatedAt.String(),
-	}
-
-	defer resp.Body.Close()
-	return res, nil
-}
-
-func createMetadata(token, fileUrl, name, description string) (string, error) {
-	metadata := models.Metadata{
-		Name: name,
-		Description: description,
-		Image: fileUrl,
-	}
-	fmt.Println(metadata)
-
-	b, err := json.Marshal(metadata)
+func getTokenId(id int32, token string) (string, error) {
+	//configuration := openapiclient.NewConfiguration()
+	//apiClient := openapiclient.NewAPIClient(configuration)
+	fmt.Println("Start to get token Id")
+	resp, _, err := newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("Start to create metadata")
-	req, _ := http.NewRequest("POST", viper.GetString("host") + "v1/metadata/", bytes.NewBuffer(b))
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer " + token)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		panic(err)
-		return  "", err
-	}
-
-	var tmp models.CreateMetadataResponse
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	err = json.Unmarshal(content, &tmp)
-	if err != nil {
-		return "", err
-	}
-	if tmp.Message != "" {
-		return "", errors.New(tmp.Message)
-	}
-
-	return tmp.MetadataURI, nil
-}
-
-func getTokenId(id uint, token string) (string, error) {
-	t := models.MintTask{}
-	fmt.Println("Start to get token id")
-	for t.TokenId == "" && t.Status != 1{
-		req, err := http.NewRequest("GET", viper.GetString("host") + "v1/mints/" + strconv.Itoa(int(id)),nil)
-		if err != nil {
-			panic(err)
-		}
-		req.Header.Add("Content-Type", "application/json")
-		req.Header.Add("Authorization", "Bearer " + token)
-		resp, err := http.DefaultClient.Do(req)
+	for resp.TokenId == nil && *resp.Status != 1 {
+		resp, _, err = newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 		if err != nil {
 			return "", err
-		}
-		content, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return "", err
-		}
-
-		err = json.Unmarshal(content, &t)
-		if err != nil {
-			return "", err
-		}
-		if t.Error != "" {
-			return "", errors.New(t.Error)
 		}
 		time.Sleep(10 * time.Second)
 	}
-	return t.TokenId, nil
+	return *resp.TokenId, nil
 }
 
 func Login() (string, error) {
-	data := make(map[string]string)
-	data["app_id"] = viper.GetString("app.appId")
-	data["app_secret"] = viper.GetString("app.appSecret")
-	b, _ := json.Marshal(data)
 	fmt.Println("Start to login")
-	req, err := http.NewRequest("POST", viper.GetString("host") + "v1/login", bytes.NewBuffer(b))
-	if err != nil {
-		panic(err)
-	}
-	req.Header.Add("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return  "", err
-	}
-	content, err := ioutil.ReadAll(resp.Body)
-
+	resp, _, err := newClient().LoginApi.LoginApp(context.Background()).AppLoginInfo(openapiclient.MiddlewaresAppLogin{
+		AppId: viper.GetString("app.appId"),
+		AppSecret: viper.GetString("app.appSecret"),
+	}).Execute()
 	if err != nil {
 		return "", err
 	}
 	t := make(map[string]interface{})
-	err = json.Unmarshal(content, &t)
+	err = json.Unmarshal([]byte(resp), &t)
 	if err != nil {
 		return "", err
 	}
@@ -312,4 +164,28 @@ func Login() (string, error) {
 	}
 
 	return t["token"].(string), nil
+}
+
+func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, error){
+	//configuration := openapiclient.NewConfiguration()
+	//apiClient := openapiclient.NewAPIClient(configuration)
+	fmt.Println("Start to get contract information")
+	fmt.Println(token)
+	resp, _, err := newClient().ContractApi.GetContractInfo(context.Background(), id).Authorization("Bearer " + token).Execute()
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func newClient() *openapiclient.APIClient {
+	configuration := openapiclient.NewConfiguration()
+	configuration.HTTPClient = http.DefaultClient
+	configuration.Servers = openapiclient.ServerConfigurations{
+		{
+			URL: "https://dev.nftrainbow.xyz/v1",
+		},
+	}
+	apiClient := openapiclient.NewAPIClient(configuration)
+	return apiClient
 }

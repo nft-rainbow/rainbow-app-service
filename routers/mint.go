@@ -19,28 +19,6 @@ func customMintConfig(c *gin.Context) {
 	ginutils.RenderResp(c, "success", err)
 }
 
-func easyMintConfig(c *gin.Context) {
-	var config *models.EasyMintConfig
-	if err := c.ShouldBind(&config); err != nil {
-		ginutils.RenderRespError(c, err, discordbot_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-
-	err := services.EasyMintMintConfig(config)
-	ginutils.RenderResp(c, "success", err)
-}
-
-
-func handleEasyMint(c *gin.Context) {
-	var req *models.MintReq
-	if err := c.ShouldBind(&req); err != nil {
-		ginutils.RenderRespError(c, err, discordbot_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	resp, err := services.EasyMint(req)
-	ginutils.RenderResp(c, resp, err)
-}
-
 func handleCustomMint(c *gin.Context) {
 	var req *models.MintReq
 	if err := c.ShouldBind(&req); err != nil {
