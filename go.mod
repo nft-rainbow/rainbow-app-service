@@ -4,9 +4,11 @@ go 1.17
 
 require (
 	github.com/Conflux-Chain/go-conflux-sdk v1.4.2
+	github.com/appleboy/gin-jwt/v2 v2.9.0
 	github.com/bwmarrin/discordgo v0.26.1
 	github.com/ethereum/go-ethereum v1.10.15
 	github.com/gin-gonic/gin v1.8.1
+	github.com/nft-rainbow/rainbow-sdk-go v0.1.2-0.20220927080403-8159b6d99b69
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/viper v1.13.0
 	gorm.io/driver/mysql v1.3.6
@@ -14,7 +16,6 @@ require (
 )
 
 require (
-	github.com/appleboy/gin-jwt/v2 v2.9.0 // indirect
 	github.com/btcsuite/btcd v0.21.0-beta // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -37,7 +38,6 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/nft-rainbow/rainbow-sdk-go v0.1.2-0.20220927080403-8159b6d99b69 // indirect
 	github.com/openweb3/go-rpc-provider v0.2.2 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect

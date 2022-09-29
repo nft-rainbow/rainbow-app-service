@@ -1,10 +1,11 @@
 package routers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/nft-rainbow/discordbot-service/middlewares"
 	"github.com/nft-rainbow/discordbot-service/utils/ginutils"
-	"net/http"
 )
 
 func SetupRoutes(router *gin.Engine) {
@@ -12,21 +13,21 @@ func SetupRoutes(router *gin.Engine) {
 	discord := router.Group("/discord")
 	discord.POST("/login", middlewares.LoginHandler)
 
-	admin := discord.Group("/channel")
-	admin.Use(middlewares.OpenJwtAuthMiddleware.MiddlewareFunc())
-	{
-		admin.POST("/config/user", bindAdminConfig)
-		admin.GET("/:guild_id/channels", getChannelInfo)
-		admin.POST("/config/event", customMintConfig)
+	discord.GET("/:guild_id/channels", getChannelInfo)
 
+	projecter := discord.Group("/projecter")
+	projecter.Use(middlewares.OpenJwtAuthMiddleware.MiddlewareFunc())
+	{
+		projecter.POST("/", bindAdminConfig)
+		projecter.POST("/ativity", customMintConfig)
 	}
 
 	user := discord.Group("/user")
 	user.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		user.POST("/mint", handleCustomMint)
-		user.GET("/address/:user_id", getUserBindingAddress)
-		user.POST("/address", bindUserAddress)
+		user.GET("/:user_id", getUserBindingAddress)
+		user.POST("/", bindUserAddress)
 	}
 }
 
