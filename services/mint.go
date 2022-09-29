@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func CustomMintConfig(config *models.CustomMintConfig) error {
+func ActivityConfig(config *models.ActivityConfig) error {
 	if config.MaxMintCount == 0 {
 		config.MaxMintCount = 1
 	}
@@ -37,7 +37,7 @@ func CustomMintConfig(config *models.CustomMintConfig) error {
 }
 
 func CustomMint(req *models.MintReq) (*models.MintResp, error){
-	config, err := models.FindBindingCustomMintConfigById(req.ChannelID)
+	config, err := models.FindBindingActivityConfigById(req.ChannelID)
 	if err != nil {
 		return nil, err
 	}

@@ -19,14 +19,14 @@ func SetupRoutes(router *gin.Engine) {
 	projecter.Use(middlewares.OpenJwtAuthMiddleware.MiddlewareFunc())
 	{
 		projecter.POST("/", bindAdminConfig)
-		projecter.POST("/ativity", customMintConfig)
+		projecter.POST("/activity", activityConfig)
 	}
 
 	user := discord.Group("/user")
 	user.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		user.POST("/mint", handleCustomMint)
-		user.GET("/:user_id", getUserBindingAddress)
+		user.GET("/:user_id", getUser)
 		user.POST("/", bindUserAddress)
 	}
 }

@@ -31,7 +31,7 @@ func bindUserAddress(c *gin.Context) {
 
 }
 
-func getUserBindingAddress(c *gin.Context) {
+func getUser(c *gin.Context) {
 	userID := c.Param("user_id")
 	if userID == "" {
 		ginutils.RenderRespError(c, errors.New("empty userID"), discordbot_errors.ERR_INVALID_REQUEST_COMMON)

@@ -27,7 +27,7 @@ func FindBindingAddressById(id string) (*BindCFXAddress, error) {
 }
 
 func CheckCustomCount(id, channelId string, maxCount uint) (bool, error){
-	config, err := FindBindingCustomMintConfigById(channelId)
+	config, err := FindBindingActivityConfigById(channelId)
 	if err != nil {
 		return false, err
 	}
@@ -56,7 +56,7 @@ func UpdateCustomCount(id, channelId string) (*CustomMintCount, error){
 	}
 	db.Model(&item).Update("count", item.Count+1)
 
-	var t CustomMintConfig
+	var t ActivityConfig
 	err = db.Where("channel_id = ?", channelId).First(&t).Error
 	if err != nil {
 		return nil, err

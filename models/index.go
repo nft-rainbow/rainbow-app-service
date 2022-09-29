@@ -31,7 +31,7 @@ func ConnectDB() {
 
 	// Migrate the schema
 	db.AutoMigrate(&AdminConfig{})
-	db.AutoMigrate(&CustomMintConfig{})
+	db.AutoMigrate(&ActivityConfig{})
 	db.AutoMigrate(&BindCFXAddress{})
 	db.AutoMigrate(&CustomMintCount{})
 	db.AutoMigrate(&MintResult{})
