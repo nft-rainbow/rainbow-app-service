@@ -7,7 +7,7 @@ type AdminConfig struct {
 	GuildName string `gorm:"type:varchar(256)" json:"guild_name"`
 }
 
-type CustomMintConfig struct {
+type ActivityConfig struct {
 	BaseModel
 	ContractID int32 `gorm:"type:integer" json:"contract_id" binding:"required"`
 	ChannelID string `gorm:"type:varchar(256)" json:"channel_id" binding:"required"`
@@ -17,8 +17,8 @@ type CustomMintConfig struct {
 }
 
 
-func FindBindingCustomMintConfigById(id string) (*CustomMintConfig, error){
-	var item CustomMintConfig
+func FindBindingActivityConfigById(id string) (*ActivityConfig, error){
+	var item ActivityConfig
 	err := db.Where("channel_id = ?", id).First(&item).Error
 	return &item, err
 }

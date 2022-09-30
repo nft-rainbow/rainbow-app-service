@@ -8,14 +8,14 @@ import (
 	"github.com/nft-rainbow/discordbot-service/utils/ginutils"
 )
 
-func customMintConfig(c *gin.Context) {
-	var config *models.CustomMintConfig
+func activityConfig(c *gin.Context) {
+	var config *models.ActivityConfig
 	if err := c.ShouldBind(&config); err != nil {
 		ginutils.RenderRespError(c, err, discordbot_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
 
-	err := services.CustomMintConfig(config)
+	err := services.ActivityConfig(config)
 	ginutils.RenderResp(c, "success", err)
 }
 
