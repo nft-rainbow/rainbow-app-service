@@ -27,7 +27,7 @@ func FindBindingAddressById(id string) (*BindCFXAddress, error) {
 }
 
 func CheckCustomCount(id, channelId string, maxCount uint) (bool, error){
-	config, err := FindBindingActivityConfigById(channelId)
+	config, err := FindBindingActivityConfigByChannelId(channelId)
 	if err != nil {
 		return false, err
 	}

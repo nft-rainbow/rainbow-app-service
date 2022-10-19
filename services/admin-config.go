@@ -12,7 +12,16 @@ import (
 	"net/url"
 )
 
-func BindAdminConfig(config *models.AdminConfig) error{
+func BindAdminConfig(config *models.AdminConfig, id uint) error{
+	info, err := GetGuildInfo(config.GuildId)
+	if err != nil {
+		return err
+	}
+
+	config.GuildName = info.Name
+	config.AppId = int32(id)
+	config.RainbowUserId = int32(id)
+
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
 		return  res.Error
@@ -22,18 +31,40 @@ func BindAdminConfig(config *models.AdminConfig) error{
 
 func GetChannelInfo(guildId string) ([]*discordgo.Channel, error){
 	token := viper.GetString("botToken")
-	session, err := discordgo.New(token)
+	session, err := discordgo.New("Bot " + token)
+
 	if err != nil {
 		return nil, err
 	}
-	proxy, _ := url.Parse("http://0.0.0.0:7890")
+	proxy, _ := url.Parse(viper.GetString("proxy"))
+
 	tr := &http.Transport{
 		Proxy:           http.ProxyURL(proxy),
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	session.Client.Transport = tr
+
 	st, err := session.GuildChannels(guildId)
 
+	if err != nil {
+		return nil, err
+	}
+	return st, err
+}
+
+func GetGuildInfo(guildId string) (st *discordgo.Guild, err error){
+	token := viper.GetString("botToken")
+	session, err := discordgo.New("Bot " + token)
+	if err != nil {
+		return nil, err
+	}
+	proxy, _ := url.Parse(viper.GetString("proxy"))
+	tr := &http.Transport{
+		Proxy:           http.ProxyURL(proxy),
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	session.Client.Transport = tr
+	st, err = session.Guild(guildId)
 	if err != nil {
 		return nil, err
 	}

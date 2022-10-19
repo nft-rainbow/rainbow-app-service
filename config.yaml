@@ -5,12 +5,11 @@ mysql:
   user: root
   password: new-password
   db: discordBot
-host: https://dev.nftrainbow.xyz/
 app:
   appId: jeFLCP1T
   appSecret: sofoLyjrcwxcj6ec
 botToken: MTAwODczNzczODY2NjgwNzQxNg.GTER6T.4cNuhVz80DtwNvwIVOjNBphSX4VQfom072dNJY
-botAddress: cfxtest:aatbcjw7cnsc32bmsegya26z45sgbp23rep9h5vk4m
+botAddress: cfxtest:aarep2p1rcadt0j1x0gkybggfkk97uxwty45grxxt7
 chainType: conflux_test
 jwtKeys:
   openapi: jwt-openapi-key
@@ -22,5 +21,6 @@ customMint:
   contractType: erc721
   contractAddress: cfxtest:acga7snka187wnbdz5bt2pr9ugef21tc52gw7hrjr2
   mintRespPrefix: https://testnet.confluxscan.io/nft/
+proxy: http://172.31.192.1:7890
 
 

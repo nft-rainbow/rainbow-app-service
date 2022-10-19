@@ -54,6 +54,16 @@ func InitRainbowJwtMiddleware() {
 				"expire": time,
 			}, code)
 		},
+		PayloadFunc: func(data interface{}) jwt.MapClaims {
+			if v, ok := data.(*App); ok {
+				return jwt.MapClaims{
+					JwtIdentityKey: v.Id,
+					KYCTypeKey:     v.KycType,
+					AppUserIdKey:   v.AppUserId,
+				}
+			}
+			return jwt.MapClaims{}
+		},
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
 			id := claims[OpenJwtIdentityKey]

@@ -15,7 +15,8 @@ func bindAdminConfig(c *gin.Context) {
 		ginutils.RenderRespError(c, err, discordbot_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	err := services.BindAdminConfig(adminConfig)
+
+	err := services.BindAdminConfig(adminConfig, GetIdFromJwtClaim(c))
 	ginutils.RenderResp(c, "success", err)
 }
 

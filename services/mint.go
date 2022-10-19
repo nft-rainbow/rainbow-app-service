@@ -13,14 +13,6 @@ import (
 )
 
 func ActivityConfig(config *models.ActivityConfig) error {
-	if config.MaxMintCount == 0 {
-		config.MaxMintCount = 1
-	}
-	config.Event = "customMint"
-	res := models.GetDB().Create(&config)
-	if res.Error != nil {
-		return  res.Error
-	}
 	token, err := Login()
 	if err != nil {
 		return err
@@ -29,6 +21,16 @@ func ActivityConfig(config *models.ActivityConfig) error {
 	if err != nil {
 		return err
 	}
+	config.ContractType = *info.Type
+	config.Chain = *info.ChainType
+	config.AppId = *info.AppId
+	config.ContractAddress = *info.Address
+
+	res := models.GetDB().Create(&config)
+	if res.Error != nil {
+		return  res.Error
+	}
+
 	_, err = addContractAdmin(*info.Address, "Bearer " + token)
 	if err != nil {
 		return err
@@ -37,7 +39,7 @@ func ActivityConfig(config *models.ActivityConfig) error {
 }
 
 func CustomMint(req *models.MintReq) (*models.MintResp, error){
-	config, err := models.FindBindingActivityConfigById(req.ChannelID)
+	config, err := models.FindBindingActivityConfigByChannelId(req.ChannelID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,27 +62,23 @@ func CustomMint(req *models.MintReq) (*models.MintResp, error){
 		return nil, err
 	}
 
-	info, err := GetContractInfo(int32(config.ContractID), token)
-	if err != nil {
-		return nil, err
-	}
 	var contractType string
-	if *info.Type == 1 {
+	if config.ContractType == 1 {
 		contractType = "erc721"
 	}else {
 		contractType = "erc1155"
 	}
 	var chainType string
-	if *info.ChainType == 1 {
+	if config.Chain == 1 {
 		chainType = "conflux_test"
 	}else {
-		chainType = "conflux_main"
+		chainType = "conflux"
 	}
 	uri := "https://dev.nftrainbow.xyz/assets/file/2/nft/86db42aac9db6dbead473d7d49e1eaa4d6e9fcb3be86684ee56c210bc284b551.png"
 	resp , err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
 		Chain: chainType,
 		ContractType: contractType,
-		ContractAddress: *info.Address,
+		ContractAddress: config.ContractAddress,
 		MintToAddress: tmp.UserAddress,
 		MetadataUri: &uri,
 	})
@@ -95,7 +93,7 @@ func CustomMint(req *models.MintReq) (*models.MintResp, error){
 
 	err = models.StoreMintResult(models.MintResult{
 		UserID: req.UserID,
-		ContractID: *info.Id,
+		ContractID: config.ContractID,
 		TokenID: resp.TokenID,
 	})
 
@@ -170,7 +168,6 @@ func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, err
 	//configuration := openapiclient.NewConfiguration()
 	//apiClient := openapiclient.NewAPIClient(configuration)
 	fmt.Println("Start to get contract information")
-	fmt.Println(token)
 	resp, _, err := newClient().ContractApi.GetContractInfo(context.Background(), id).Authorization("Bearer " + token).Execute()
 	if err != nil {
 		return nil, err

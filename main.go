@@ -27,11 +27,6 @@ func init() {
 	initConfig()
 	middlewares.InitDiscordJwtMiddleware()
 	middlewares.InitRainbowJwtMiddleware()
-	//var err error
-	//s, err = discordgo.New("Bot " + viper.GetString("botToken"))
-	//if err != nil {
-	//	log.Fatalf("Invalid bot parameters: %v", err)
-	//}
 
 }
 
@@ -54,7 +49,7 @@ func main() {
 	}
 
 	address := fmt.Sprintf("0.0.0.0:%s", port)
-	logrus.Info("Discord-Bot-Service Start Listening and serving HTTP on ", address)
+	logrus.Info("Rainbow-App-Service Start Listening and serving HTTP on ", address)
 	err := app.Run(address)
 	if err != nil {
 		log.Panic(err)
