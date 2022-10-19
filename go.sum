@@ -400,6 +400,8 @@ github.com/nft-rainbow/rainbow-sdk-go v0.1.1 h1:VVWIQkiu6Y0CHLz8Z7fOCNQyf7e2TCSp
 github.com/nft-rainbow/rainbow-sdk-go v0.1.1/go.mod h1:1mHCFivf0s/qbst6LmaLmBeBpdcuFv8eTghctBI4Xok=
 github.com/nft-rainbow/rainbow-sdk-go v0.1.2-0.20220927080403-8159b6d99b69 h1:1c9kczzJmXHJLYRD1zgRxq+nPsW+1Hp5fPgsONyYep0=
 github.com/nft-rainbow/rainbow-sdk-go v0.1.2-0.20220927080403-8159b6d99b69/go.mod h1:1mHCFivf0s/qbst6LmaLmBeBpdcuFv8eTghctBI4Xok=
+github.com/nft-rainbow/rainbow-sdk-go v0.1.2 h1:vEkRhPcWM8+Mw07Wj7OPgs5CzQJwn1VgF+WL83rW3o8=
+github.com/nft-rainbow/rainbow-sdk-go v0.1.2/go.mod h1:1mHCFivf0s/qbst6LmaLmBeBpdcuFv8eTghctBI4Xok=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=

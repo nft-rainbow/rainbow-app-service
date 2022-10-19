@@ -8,7 +8,7 @@ require (
 	github.com/bwmarrin/discordgo v0.26.1
 	github.com/ethereum/go-ethereum v1.10.15
 	github.com/gin-gonic/gin v1.8.1
-	github.com/nft-rainbow/rainbow-sdk-go v0.1.2-0.20220927080403-8159b6d99b69
+	github.com/nft-rainbow/rainbow-sdk-go v0.1.2
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/viper v1.13.0
 	gorm.io/driver/mysql v1.3.6

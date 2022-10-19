@@ -43,7 +43,7 @@ func InitDiscordJwtMiddleware() {
 				return "", jwt.ErrMissingLoginValues
 			}
 
-			resp, err := models.FindBindingActivityConfigById(mintConfig.ChannelID)
+			resp, err := models.FindBindingActivityConfigByChannelId(mintConfig.ChannelID)
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
