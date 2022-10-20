@@ -40,7 +40,7 @@ func InitDiscordJwtMiddleware() {
 		Authenticator: func(c *gin.Context) (interface{}, error) {
 			var mintConfig models.MintReq
 			if err := c.ShouldBind(&mintConfig); err != nil {
-				return "", jwt.ErrMissingLoginValues
+				return "", discordbot_errors.ERR_INVALID_REQUEST_COMMON
 			}
 
 			resp, err := models.FindBindingActivityConfigByChannelId(mintConfig.ChannelID)

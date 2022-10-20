@@ -10,16 +10,10 @@ app:
   appSecret: sofoLyjrcwxcj6ec
 botToken: MTAwODczNzczODY2NjgwNzQxNg.GTER6T.4cNuhVz80DtwNvwIVOjNBphSX4VQfom072dNJY
 botAddress: cfxtest:aarep2p1rcadt0j1x0gkybggfkk97uxwty45grxxt7
-chainType: conflux_test
 jwtKeys:
   openapi: jwt-openapi-key
   discord: jwt-discord-key
 customMint:
-  fileUrl: https://dev.nftrainbow.xyz/assets/file/2/nft/86db42aac9db6dbead473d7d49e1eaa4d6e9fcb3be86684ee56c210bc284b551.png
-  name: ChainIDE
-  description: ChainIDE
-  contractType: erc721
-  contractAddress: cfxtest:acga7snka187wnbdz5bt2pr9ugef21tc52gw7hrjr2
   mintRespPrefix: https://testnet.confluxscan.io/nft/
 proxy: http://172.31.192.1:7890
 
