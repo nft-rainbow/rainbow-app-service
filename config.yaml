@@ -8,13 +8,13 @@ mysql:
 app:
   appId: jeFLCP1T
   appSecret: sofoLyjrcwxcj6ec
-botToken: MTAwODczNzczODY2NjgwNzQxNg.GTER6T.4cNuhVz80DtwNvwIVOjNBphSX4VQfom072dNJY
+discordBotToken: MTAwODczNzczODY2NjgwNzQxNg.GTER6T.4cNuhVz80DtwNvwIVOjNBphSX4VQfom072dNJY
 botAddress: cfxtest:aarep2p1rcadt0j1x0gkybggfkk97uxwty45grxxt7
 jwtKeys:
   openapi: jwt-openapi-key
-  discord: jwt-discord-key
 customMint:
   mintRespPrefix: https://testnet.confluxscan.io/nft/
 proxy: http://172.31.192.1:7890
+advertise: Powered by NFTRainbow
 
 

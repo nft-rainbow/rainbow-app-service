@@ -2,17 +2,14 @@ package services
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
-	"github.com/nft-rainbow/discordbot-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/spf13/viper"
-	"net/http"
-	"net/url"
 )
 
-func BindAdminConfig(config *models.AdminConfig, id uint) error{
+func BindProjectorConfig(config *models.AdminConfig, id uint) error{
 	info, err := GetGuildInfo(config.GuildId)
 	if err != nil {
 		return err
@@ -30,21 +27,7 @@ func BindAdminConfig(config *models.AdminConfig, id uint) error{
 }
 
 func GetChannelInfo(guildId string) ([]*discordgo.Channel, error){
-	token := viper.GetString("botToken")
-	session, err := discordgo.New("Bot " + token)
-
-	if err != nil {
-		return nil, err
-	}
-	proxy, _ := url.Parse(viper.GetString("proxy"))
-
-	tr := &http.Transport{
-		Proxy:           http.ProxyURL(proxy),
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	session.Client.Transport = tr
-
-	st, err := session.GuildChannels(guildId)
+	st, err := GetSession().GuildChannels(guildId)
 
 	if err != nil {
 		return nil, err
@@ -53,18 +36,7 @@ func GetChannelInfo(guildId string) ([]*discordgo.Channel, error){
 }
 
 func GetGuildInfo(guildId string) (st *discordgo.Guild, err error){
-	token := viper.GetString("botToken")
-	session, err := discordgo.New("Bot " + token)
-	if err != nil {
-		return nil, err
-	}
-	proxy, _ := url.Parse(viper.GetString("proxy"))
-	tr := &http.Transport{
-		Proxy:           http.ProxyURL(proxy),
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	session.Client.Transport = tr
-	st, err = session.Guild(guildId)
+	st, err = GetSession().Guild(guildId)
 	if err != nil {
 		return nil, err
 	}

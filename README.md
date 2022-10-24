@@ -1,7 +1,7 @@
 # Rainbow-App-Service
 Rainbow-app-service is a middle layer between the bot service and the rainbow-api.   
 
-## Run the project
+## Run
 In this project, the bot can be seen as an account in the [Rainbow](https://nftrainbow.cn/). 
 In this sense, it is needed to generate the corresponding account and the bot application. 
 

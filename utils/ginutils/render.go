@@ -1,7 +1,7 @@
 package ginutils
 
 import (
-	discordbot_errors "github.com/nft-rainbow/discordbot-service/discordbot-errors"
+	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"net/http"
 	"runtime/debug"
 
@@ -38,16 +38,16 @@ func RenderRespOK(c *gin.Context, data interface{}, httpStatusCode ...int) {
 
 // rainbowErrorCode 有值时，message 为 err message，如果 err 为 rainbow error, 则 status code 与 code 都来自 err, 否则来自rainbowErrorCode
 // 否则 message 为 err message，status code 与 code 为 ERR_INTERNAL_SERVER_COMMON
-func RenderRespError(c *gin.Context, err error, rainbowErrorCode ...discordbot_errors.DiscordBotError) {
+func RenderRespError(c *gin.Context, err error, rainbowErrorCode ...appService_errors.RainbowAppServiceError) {
 	c.Error(err)
 	c.Set("error_stack", string(debug.Stack()))
 
-	if re, ok := err.(discordbot_errors.DiscordBotError); ok {
+	if re, ok := err.(appService_errors.RainbowAppServiceError); ok {
 		re.RenderJSON(c)
 		return
 	}
 
-	_rainbowErrorCode := discordbot_errors.ERR_INTERNAL_SERVER_COMMON
+	_rainbowErrorCode := appService_errors.ERR_INTERNAL_SERVER_COMMON
 
 	if len(rainbowErrorCode) > 0 {
 		_rainbowErrorCode = rainbowErrorCode[0]

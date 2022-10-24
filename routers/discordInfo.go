@@ -2,8 +2,8 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/nft-rainbow/discordbot-service/services"
-	"github.com/nft-rainbow/discordbot-service/utils/ginutils"
+	"github.com/nft-rainbow/rainbow-app-service/services"
+	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
 
 func getChannelInfo(c *gin.Context) {

@@ -1,4 +1,4 @@
-module github.com/nft-rainbow/discordbot-service
+module github.com/nft-rainbow/rainbow-app-service
 
 go 1.17
 

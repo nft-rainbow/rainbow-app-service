@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/nft-rainbow/discordbot-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/spf13/viper"
 	"net/http"
@@ -38,28 +38,39 @@ func ActivityConfig(config *models.ActivityConfig) error {
 	return nil
 }
 
-func CustomMint(req *models.MintReq) (*models.MintResp, error){
+func HandleCustomMint(userId, channelId string) (*openapiclient.ModelsMintTask, string, int32, error){
+	req := models.MintReq{
+		UserID: userId,
+		ChannelID: channelId,
+	}
+
+	resp, token, contractId, err := customMint(&req)
+
+	return resp, token, contractId, err
+}
+
+func customMint(req *models.MintReq) (*openapiclient.ModelsMintTask, string, int32, error){
 	config, err := models.FindBindingActivityConfigByChannelId(req.ChannelID)
 	if err != nil {
-		return nil, err
+		return nil, "", 0, err
 	}
 
 	ok, err := models.CheckCustomCount(req.UserID, req.ChannelID, config.MaxMintCount)
 	if err != nil {
-		return nil, err
+		return nil, "", 0, err
 	}
 	if !ok {
-		return nil, errors.New("This number of the NFTs the account minted has reached the maximum")
+		return nil, "", 0, errors.New("This number of the NFTs the account minted has reached the maximum")
 	}
 
 	tmp, err := GetBindCFXAddress(req.UserID)
 	if err != nil {
-		return nil, err
+		return nil, "", 0, err
 	}
 
 	token, err := Login()
 	if err != nil {
-		return nil, err
+		return nil, "", 0, err
 	}
 
 	var contractType string
@@ -74,33 +85,47 @@ func CustomMint(req *models.MintReq) (*models.MintResp, error){
 	}else {
 		chainType = "conflux"
 	}
-	uri := "https://dev.nftrainbow.xyz/assets/file/2/nft/86db42aac9db6dbead473d7d49e1eaa4d6e9fcb3be86684ee56c210bc284b551.png"
 	resp , err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
 		Chain: chainType,
 		ContractType: contractType,
 		ContractAddress: config.ContractAddress,
-		MintToAddress: tmp.UserAddress,
-		MetadataUri: &uri,
+		MintToAddress: tmp.CFXAddress,
+		MetadataUri: &config.MetadataURI,
 	})
+	if err != nil {
+		return nil, "", 0, err
+	}
+
+	return resp, token, config.ContractID, err
+}
+
+func GenMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32)(*models.MintResp, error){
+	tokenId, err := getTokenId(id, "Bearer " + token)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = models.UpdateCustomCount(req.UserID, req.ChannelID)
+	res := &models.MintResp{
+		UserAddress: userAddress,
+		NFTAddress: viper.GetString("customMint.mintRespPrefix") +  contractAddress + "/" + tokenId,
+		Contract: contractAddress,
+		TokenID: tokenId,
+		Time: createTime,
+	}
+	_, err = models.UpdateCustomCount(userID, channelID)
 	if err != nil {
 		return nil, err
 	}
 
 	err = models.StoreMintResult(models.MintResult{
-		UserID: req.UserID,
-		ContractID: config.ContractID,
-		TokenID: resp.TokenID,
+		UserID: userID,
+		ContractID: contractId,
+		TokenID: tokenId,
 	})
-
-	return resp, err
+	return res, nil
 }
 
-func sendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto) (*models.MintResp, error){
+func sendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto) (*openapiclient.ModelsMintTask, error){
 	//configuration := openapiclient.NewConfiguration()
 	//apiClient := openapiclient.NewAPIClient(configuration)
 	fmt.Println("Start to mint")
@@ -108,21 +133,8 @@ func sendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(resp)
-	id, err := getTokenId(*resp.Id, token)
-	if err != nil {
-		return nil, err
-	}
 
-	res := &models.MintResp{
-		UserAddress: dto.MintToAddress,
-		NFTAddress: viper.GetString("customMint.mintRespPrefix") +  dto.ContractAddress + "/" + id,
-		Contract: dto.ContractAddress,
-		TokenID: id,
-		Time: *resp.CreatedAt,
-	}
-
-	return res, nil
+	return resp, nil
 }
 
 func getTokenId(id int32, token string) (string, error) {

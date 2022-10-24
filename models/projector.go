@@ -21,6 +21,7 @@ type ActivityConfig struct {
 	ContractType int32 `gorm:"type:int" json:"contract_type"`
 	ContractAddress string `gorm:"type:string" json:"contract_address"`
 	Chain    int32   `gorm:"type:int" json:"chain_type"`
+	MetadataURI string `gorm:"type:string" json:"metadata_uri"`
 }
 
 type ActivityQueryResult struct {

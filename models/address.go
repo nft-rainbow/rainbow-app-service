@@ -4,13 +4,13 @@ import "errors"
 
 type BindCFXAddress struct {
 	BaseModel
-	UserId string `gorm:"type:varchar(256)" json:"user_id" binding:"required"`
-	UserAddress string `gorm:"type:varchar(256)" json:"user_address" binding:"required"`
+	DiscordId string `gorm:"type:varchar(256)" json:"discord_id" binding:"required"`
+	CFXAddress string `gorm:"type:varchar(256)" json:"cfx_address" binding:"required"`
 }
 
 type GetBindCFXAddressResp struct{
 	CFXAddress string `json:"cfx_address"`
-	UserId string `json:"user_id"`
+	DiscordId string `json:"discord_id"`
 }
 
 type CustomMintCount struct {
@@ -20,9 +20,9 @@ type CustomMintCount struct {
 	Count uint `gorm:"type:integer" json:"count" binding:"required"`
 }
 
-func FindBindingAddressById(id string) (*BindCFXAddress, error) {
+func FindBindingCFXAddressById(id string) (*BindCFXAddress, error) {
 	var item BindCFXAddress
-	err := db.Where("user_id = ?", id).First(&item).Error
+	err := db.Where("discord_id = ?", id).First(&item).Error
 	return &item, err
 }
 

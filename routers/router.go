@@ -5,35 +5,27 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/nft-rainbow/discordbot-service/middlewares"
-	"github.com/nft-rainbow/discordbot-service/utils/ginutils"
+	"github.com/nft-rainbow/rainbow-app-service/middlewares"
+	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
 
 func SetupRoutes(router *gin.Engine) {
 	router.GET("/", indexEndpoint)
 	discord := router.Group("/discord")
-	discord.POST("/login", middlewares.LoginHandler)
 
 	discord.GET("/:guild_id/channels", getChannelInfo)
 
-	projecter := discord.Group("/projecter")
-	projecter.Use(middlewares.OpenJwtAuthMiddleware.MiddlewareFunc())
+	projector := discord.Group("/projector")
+	projector.Use(middlewares.OpenJwtAuthMiddleware.MiddlewareFunc())
 	{
-		projecter.POST("/", bindAdminConfig)
-		projecter.GET("/", getProjecterList)
-		projecter.GET("/:id", getProjecter)
-		projecter.POST("/activity", activityConfig)
-		projecter.GET("/activity", getActivityList)
-		projecter.GET("/activity/:id", getActivity)
+		projector.POST("/", bindProjectorConfig)
+		projector.GET("/", getProjectorList)
+		projector.GET("/:id", getProjector)
+		projector.POST("/activity", activityConfig)
+		projector.GET("/activity", getActivityList)
+		projector.GET("/activity/:id", getActivity)
 	}
 
-	user := discord.Group("/user")
-	user.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
-	{
-		user.POST("/mint", handleCustomMint)
-		user.GET("/:user_id", getUser)
-		user.POST("/", bindUserAddress)
-	}
 }
 
 func indexEndpoint(c *gin.Context) {

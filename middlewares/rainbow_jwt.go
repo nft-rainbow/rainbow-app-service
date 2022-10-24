@@ -4,8 +4,8 @@ import (
 	"errors"
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-	discordbot_errors "github.com/nft-rainbow/discordbot-service/discordbot-errors"
-	"github.com/nft-rainbow/discordbot-service/utils/ginutils"
+	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
+	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"runtime/debug"
@@ -22,11 +22,6 @@ const (
 )
 
 var OpenJwtIdentityKey = "id"
-
-type appLogin struct {
-	AppId     string `form:"app_id" json:"app_id" binding:"required"`
-	AppSecret string `form:"app_secret" json:"app_secret" binding:"required"`
-}
 
 type App struct {
 	Id        uint
@@ -57,7 +52,7 @@ func InitRainbowJwtMiddleware() {
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if v, ok := data.(*App); ok {
 				return jwt.MapClaims{
-					JwtIdentityKey: v.Id,
+					OpenJwtIdentityKey: v.Id,
 					KYCTypeKey:     v.KycType,
 					AppUserIdKey:   v.AppUserId,
 				}
@@ -69,17 +64,6 @@ func InitRainbowJwtMiddleware() {
 			id := claims[OpenJwtIdentityKey]
 			return uint(id.(float64))
 		},
-		Authenticator: func(c *gin.Context) (interface{}, error) {
-			var loginVals appLogin
-			if err := c.ShouldBind(&loginVals); err != nil {
-				return "", jwt.ErrMissingLoginValues
-			}
-			appId := loginVals.AppId
-
-			return &App{
-				AppId:     appId,
-			}, nil
-		},
 		RefreshResponse: func(c *gin.Context, code int, message string, time time.Time) {
 			ginutils.RenderRespOK(c, gin.H{
 				"token":  message,
@@ -87,7 +71,7 @@ func InitRainbowJwtMiddleware() {
 			}, code)
 		},
 		Unauthorized: func(c *gin.Context, code int, message string) {
-			ginutils.RenderRespError(c, errors.New(message), discordbot_errors.DiscordBotError(discordbot_errors.GetDiscordBotOthersErrCode(code)))
+			ginutils.RenderRespError(c, errors.New(message), appService_errors.RainbowAppServiceError(appService_errors.GetAppServiceOthersErrCode(code)))
 		},
 		TokenLookup:   "header: Authorization",
 		TokenHeadName: "Bearer",
