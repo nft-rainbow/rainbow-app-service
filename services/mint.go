@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func ActivityConfig(config *models.ActivityConfig) error {
+func DiscordActivityConfig(config *models.DiscordActivityConfig) error {
 	token, err := Login()
 	if err != nil {
 		return err
@@ -38,24 +38,55 @@ func ActivityConfig(config *models.ActivityConfig) error {
 	return nil
 }
 
-func HandleCustomMint(userId, channelId string) (*openapiclient.ModelsMintTask, string, int32, error){
+func DoDoActivityConfig(config *models.DoDoActivityConfig) error {
+	token, err := Login()
+	if err != nil {
+		return err
+	}
+	info, err := GetContractInfo(config.ContractID, token)
+	if err != nil {
+		return err
+	}
+	config.ContractType = *info.Type
+	config.Chain = *info.ChainType
+	config.AppId = *info.AppId
+	config.ContractAddress = *info.Address
+
+	res := models.GetDB().Create(&config)
+	if res.Error != nil {
+		return  res.Error
+	}
+
+	_, err = addContractAdmin(*info.Address, "Bearer " + token)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func HandleCustomMint(userId, channelId, platform string) (*openapiclient.ModelsMintTask, string, int32, error){
 	req := models.MintReq{
 		UserID: userId,
 		ChannelID: channelId,
 	}
-
-	resp, token, contractId, err := customMint(&req)
-
-	return resp, token, contractId, err
+	if platform == "dodo" {
+		resp, token, contractId, err := dodoCustomMint(&req)
+		return resp, token, contractId, err
+	}else if platform == "discord" {
+		resp, token, contractId, err := discordCustomMint(&req)
+		return resp, token, contractId, err
+	}else {
+		return nil, "", 0, nil
+	}
 }
 
-func customMint(req *models.MintReq) (*openapiclient.ModelsMintTask, string, int32, error){
-	config, err := models.FindBindingActivityConfigByChannelId(req.ChannelID)
+func dodoCustomMint(req *models.MintReq) (*openapiclient.ModelsMintTask, string, int32, error){
+	config, err := models.FindBindingDoDoActivityConfigByChannelId(req.ChannelID)
 	if err != nil {
 		return nil, "", 0, err
 	}
 
-	ok, err := models.CheckCustomCount(req.UserID, req.ChannelID, config.MaxMintCount)
+	ok, err := models.CheckDoDoCustomCount(req.UserID, req.ChannelID, config.MaxMintCount)
 	if err != nil {
 		return nil, "", 0, err
 	}
@@ -63,7 +94,7 @@ func customMint(req *models.MintReq) (*openapiclient.ModelsMintTask, string, int
 		return nil, "", 0, errors.New("This number of the NFTs the account minted has reached the maximum")
 	}
 
-	tmp, err := GetBindCFXAddress(req.UserID)
+	cfxAddress, err := GetDoDoBindCFXAddress(req.UserID)
 	if err != nil {
 		return nil, "", 0, err
 	}
@@ -89,7 +120,7 @@ func customMint(req *models.MintReq) (*openapiclient.ModelsMintTask, string, int
 		Chain: chainType,
 		ContractType: contractType,
 		ContractAddress: config.ContractAddress,
-		MintToAddress: tmp.CFXAddress,
+		MintToAddress: cfxAddress,
 		MetadataUri: &config.MetadataURI,
 	})
 	if err != nil {
@@ -99,7 +130,58 @@ func customMint(req *models.MintReq) (*openapiclient.ModelsMintTask, string, int
 	return resp, token, config.ContractID, err
 }
 
-func GenMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32)(*models.MintResp, error){
+
+func discordCustomMint(req *models.MintReq) (*openapiclient.ModelsMintTask, string, int32, error){
+	config, err := models.FindBindingDiscordActivityConfigByChannelId(req.ChannelID)
+	if err != nil {
+		return nil, "", 0, err
+	}
+
+	ok, err := models.CheckDiscordCustomCount(req.UserID, req.ChannelID, config.MaxMintCount)
+	if err != nil {
+		return nil, "", 0, err
+	}
+	if !ok {
+		return nil, "", 0, errors.New("This number of the NFTs the account minted has reached the maximum")
+	}
+
+	cfxAddress, err := GetDiscordBindCFXAddress(req.UserID)
+	if err != nil {
+		return nil, "", 0, err
+	}
+
+	token, err := Login()
+	if err != nil {
+		return nil, "", 0, err
+	}
+
+	var contractType string
+	if config.ContractType == 1 {
+		contractType = "erc721"
+	}else {
+		contractType = "erc1155"
+	}
+	var chainType string
+	if config.Chain == 1 {
+		chainType = "conflux_test"
+	}else {
+		chainType = "conflux"
+	}
+	resp , err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
+		Chain: chainType,
+		ContractType: contractType,
+		ContractAddress: config.ContractAddress,
+		MintToAddress: cfxAddress,
+		MetadataUri: &config.MetadataURI,
+	})
+	if err != nil {
+		return nil, "", 0, err
+	}
+
+	return resp, token, config.ContractID, err
+}
+
+func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32)(*models.MintResp, error){
 	tokenId, err := getTokenId(id, "Bearer " + token)
 	if err != nil {
 		return nil, err
@@ -112,7 +194,33 @@ func GenMintRes(token, createTime, contractAddress, userAddress, userID, channel
 		TokenID: tokenId,
 		Time: createTime,
 	}
-	_, err = models.UpdateCustomCount(userID, channelID)
+	_, err = models.UpdateDiscordCustomCount(userID, channelID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = models.StoreMintResult(models.MintResult{
+		UserID: userID,
+		ContractID: contractId,
+		TokenID: tokenId,
+	})
+	return res, nil
+}
+
+func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32)(*models.MintResp, error){
+	tokenId, err := getTokenId(id, "Bearer " + token)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &models.MintResp{
+		UserAddress: userAddress,
+		NFTAddress: viper.GetString("customMint.mintRespPrefix") +  contractAddress + "/" + tokenId,
+		Contract: contractAddress,
+		TokenID: tokenId,
+		Time: createTime,
+	}
+	_, err = models.UpdateDoDoCustomCount(userID, channelID)
 	if err != nil {
 		return nil, err
 	}

@@ -15,7 +15,6 @@ import (
 	"os/signal"
 )
 
-
 func initConfig() {
 	viper.SetConfigName("config")             // name of config file (without extension)
 	viper.SetConfigType("yaml")               // REQUIRED if the config file does not have the extension in the name
@@ -76,8 +75,24 @@ func initDiscordBot() {
 	<-stop
 }
 
+func initDoDoBot(){
+	ws := services.InitInstance()
+	fmt.Println("Start to connect")
+
+	err := ws.Connect()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Start to listen")
+	err = ws.Listen()
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
 	models.ConnectDB()
+	go initDoDoBot()
 	go initGin()
 
 	initDiscordBot()

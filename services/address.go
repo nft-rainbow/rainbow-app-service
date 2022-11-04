@@ -5,7 +5,7 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 )
 
-func bindCFXAddress(req *models.BindCFXAddress) error{
+func bindCFXAddressWithDiscord(req *models.BindCFXWithDiscord) error{
 	res := models.GetDB().Create(&req)
 	if res.Error != nil {
 		return  res.Error
@@ -13,25 +13,48 @@ func bindCFXAddress(req *models.BindCFXAddress) error{
 	return nil
 }
 
-func GetBindCFXAddress(userID string) (*models.BindCFXAddress, error) {
-	resp, err := models.FindBindingCFXAddressById(userID)
-	if err != nil {
-		return nil, err
+func bindCFXAddressWithDoDo(req *models.BindCFXWithDoDo) error{
+	res := models.GetDB().Create(&req)
+	if res.Error != nil {
+		return  res.Error
 	}
-	return resp, nil
+	return nil
 }
 
-func HandleBindCfxAddress(userId, userAddress string) error{
-	_, err := utils.CheckCfxAddress(utils.CONFLUX_TEST, userAddress)
+func GetDoDoBindCFXAddress(userID string) (string, error) {
+	resp, err := models.FindDoDoBindingCFXAddressById(userID)
+	if err != nil {
+		return "", err
+	}
+	return resp.CFXAddress, nil
+}
+
+func GetDiscordBindCFXAddress(userID string) (string, error) {
+	resp, err := models.FindDiscordBindingCFXAddressById(userID)
+	if err != nil {
+		return "", err
+	}
+	return resp.CFXAddress, nil
+}
+
+func HandleBindCfxAddress(userId, userAddress, platform string) error{
+	var err error
+	_, err = utils.CheckCfxAddress(utils.CONFLUX_TEST, userAddress)
 	if err != nil {
 		return err
 	}
-	dto := models.BindCFXAddress{
-		DiscordId: userId,
-		CFXAddress: userAddress,
-	}
 
-	err = bindCFXAddress(&dto)
+	if platform == "discord" {
+		err = bindCFXAddressWithDiscord(&models.BindCFXWithDiscord{
+			DiscordId: userId,
+			CFXAddress: userAddress,
+		})
+	}else if platform == "dodo"{
+		err = bindCFXAddressWithDoDo(&models.BindCFXWithDoDo{
+			DoDoId: userId,
+			CFXAddress: userAddress,
+		})
+	}
 	if err != nil {
 		return err
 	}

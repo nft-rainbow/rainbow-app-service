@@ -12,18 +12,31 @@ import (
 func SetupRoutes(router *gin.Engine) {
 	router.GET("/", indexEndpoint)
 	discord := router.Group("/discord")
+	dodo := router.Group("/dodo")
 
-	discord.GET("/:guild_id/channels", getChannelInfo)
+	discord.GET("/:guild_id/channels", getDiscordChannelInfo)
+	dodo.GET("/:island_id/channels", getDoDoChannelInfo)
 
-	projector := discord.Group("/projector")
-	projector.Use(middlewares.OpenJwtAuthMiddleware.MiddlewareFunc())
+	discordProjector := discord.Group("/projector")
+	discordProjector.Use(middlewares.OpenJwtAuthMiddleware.MiddlewareFunc())
 	{
-		projector.POST("/", bindProjectorConfig)
-		projector.GET("/", getProjectorList)
-		projector.GET("/:id", getProjector)
-		projector.POST("/activity", activityConfig)
-		projector.GET("/activity", getActivityList)
-		projector.GET("/activity/:id", getActivity)
+		discordProjector.POST("/", bindDiscordProjectorConfig)
+		discordProjector.GET("/", getDiscordProjectorList)
+		discordProjector.GET("/:id", getDiscordProjector)
+		discordProjector.POST("/activity", discordActivityConfig)
+		discordProjector.GET("/activity", getDiscordActivityList)
+		discordProjector.GET("/activity/:id", getDiscordActivity)
+	}
+
+	dodoProject := dodo.Group("/projector")
+	dodoProject.Use(middlewares.OpenJwtAuthMiddleware.MiddlewareFunc())
+	{
+		discordProjector.POST("/", bindDoDoProjectorConfig)
+		discordProjector.GET("/", getDoDoProjectorList)
+		discordProjector.GET("/:id", getDoDoProjector)
+		discordProjector.POST("/activity", dodoActivityConfig)
+		discordProjector.GET("/activity", getDoDoActivityList)
+		discordProjector.GET("/activity/:id", getDoDoActivity)
 	}
 
 }
