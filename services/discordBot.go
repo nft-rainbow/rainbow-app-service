@@ -77,7 +77,7 @@ var (
 					},
 				})
 
-				resp, token, contactId, err := HandleCustomMint(i.Interaction.Member.User.ID, i.ChannelID)
+				resp, token, contactId, err := HandleCustomMint(i.Interaction.Member.User.ID, i.ChannelID, "discord")
 				if err != nil {
 					s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 						Embeds: failMessageEmbed(err.Error()),
@@ -88,7 +88,7 @@ var (
 					Content: fmt.Sprintf("Create mint task successfully. The correspding transaction hash is %s", *resp.Hash),
 				})
 
-				res, err := GenMintRes(token, resp.GetCreatedAt(), resp.GetContract(), resp.GetMintTo(),  i.Interaction.Member.User.ID, i.ChannelID, resp.GetId(), contactId)
+				res, err := GenDiscordMintRes(token, resp.GetCreatedAt(), resp.GetContract(), resp.GetMintTo(),  i.Interaction.Member.User.ID, i.ChannelID, resp.GetId(), contactId)
 				if err != nil {
 					s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 						Embeds: failMessageEmbed(err.Error()),
@@ -108,14 +108,14 @@ var (
 			var err error
 			switch options[0].Name {
 			case "conflux":
-				startFlag = "Start to bind address."
+				startFlag = "Start to bind cfx address."
 				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
 					Data: &discordgo.InteractionResponseData{
 						Content: startFlag,
 					},
 				})
-				err = HandleBindCfxAddress(i.Interaction.Member.User.ID, userAddress)
+				err = HandleBindCfxAddress(i.Interaction.Member.User.ID, userAddress, "discord")
 			}
 			if err != nil {
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
@@ -133,14 +133,14 @@ var (
 			startFlag := ""
 			switch options[0].Name {
 			case "conflux":
-				startFlag = "Start to bind address."
+				startFlag = "Start to get binding cfx address."
 				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
 					Data: &discordgo.InteractionResponseData{
 						Content: startFlag,
 					},
 				})
-				resp, err := GetBindCFXAddress(i.Interaction.Member.User.ID)
+				resp, err := GetDiscordBindCFXAddress(i.Interaction.Member.User.ID)
 				if err != nil {
 					s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 						Embeds: failMessageEmbed(err.Error()),
@@ -148,7 +148,7 @@ var (
 					return
 				}
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-					Content: resp.CFXAddress,
+					Content: resp,
 				})
 			}
 		},

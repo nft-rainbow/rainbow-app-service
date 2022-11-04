@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	dodoModel "github.com/dodo-open/dodo-open-go/model"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/spf13/viper"
 )
 
-func BindProjectorConfig(config *models.AdminConfig, id uint) error{
-	info, err := GetGuildInfo(config.GuildId)
+func BindDiscordProjectorConfig(config *models.DiscordAdminConfig, id uint) error{
+	info, err := GetDiscordGuildInfo(config.GuildId)
 	if err != nil {
 		return err
 	}
@@ -26,7 +27,24 @@ func BindProjectorConfig(config *models.AdminConfig, id uint) error{
 	return nil
 }
 
-func GetChannelInfo(guildId string) ([]*discordgo.Channel, error){
+func BindDoDoProjectorConfig(config *models.DoDoAdminConfig, id uint) error{
+	info, err := GetDoDoIslandInfo(config.IslandId)
+	if err != nil {
+		return err
+	}
+
+	config.IslandName = info.IslandName
+	config.AppId = int32(id)
+	config.RainbowUserId = int32(id)
+
+	res := models.GetDB().Create(&config)
+	if res.Error != nil {
+		return  res.Error
+	}
+	return nil
+}
+
+func GetDiscordChannelInfo(guildId string) ([]*discordgo.Channel, error){
 	st, err := GetSession().GuildChannels(guildId)
 
 	if err != nil {
@@ -35,12 +53,33 @@ func GetChannelInfo(guildId string) ([]*discordgo.Channel, error){
 	return st, err
 }
 
-func GetGuildInfo(guildId string) (st *discordgo.Guild, err error){
+func GetDoDoChannelInfo(islandId string) ([]*dodoModel.ChannelElement, error){
+	st, err := (*GetInstance()).GetChannelList(context.Background(), &dodoModel.GetChannelListReq{
+		IslandId: islandId,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return st, err
+}
+
+func GetDiscordGuildInfo(guildId string) (st *discordgo.Guild, err error){
 	st, err = GetSession().Guild(guildId)
 	if err != nil {
 		return nil, err
 	}
 	return st, err
+}
+
+func GetDoDoIslandInfo(islandId string) (st *dodoModel.GetIslandInfoRsp, err error){
+	info, err := (*GetInstance()).GetIslandInfo(context.Background(), &dodoModel.GetIslandInfoReq{
+		IslandId: islandId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return info, err
 }
 
 func addContractAdmin(contract, token string) (*openapiclient.ServicesSendTxResp, error){

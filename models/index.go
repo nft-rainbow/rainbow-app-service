@@ -30,9 +30,12 @@ func ConnectDB() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&AdminConfig{})
-	db.AutoMigrate(&ActivityConfig{})
-	db.AutoMigrate(&BindCFXAddress{})
+	db.AutoMigrate(&DiscordAdminConfig{})
+	db.AutoMigrate(&DoDoAdminConfig{})
+	db.AutoMigrate(&DiscordActivityConfig{})
+	db.AutoMigrate(&DoDoActivityConfig{})
+	db.AutoMigrate(&BindCFXWithDiscord{})
+	db.AutoMigrate(&BindCFXWithDoDo{})
 	db.AutoMigrate(&CustomMintCount{})
 	db.AutoMigrate(&MintResult{})
 

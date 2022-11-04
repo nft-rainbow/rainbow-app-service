@@ -6,8 +6,14 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
 
-func getChannelInfo(c *gin.Context) {
+func getDiscordChannelInfo(c *gin.Context) {
 	guildId := c.Param("guild_id")
-	resp, err := services.GetChannelInfo(guildId)
+	resp, err := services.GetDiscordChannelInfo(guildId)
+	ginutils.RenderResp(c, resp, err)
+}
+
+func getDoDoChannelInfo(c *gin.Context) {
+	islandId := c.Param("island_id")
+	resp, err := services.GetDoDoChannelInfo(islandId)
 	ginutils.RenderResp(c, resp, err)
 }
