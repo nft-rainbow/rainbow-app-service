@@ -33,14 +33,7 @@ func InitInstance() websocket.Client {
 				}
 
 				if strings.Contains(messageBody.Content, "/claim custom") {
-					contents := strings.Split(messageBody.Content, " ")
-					if len(contents) < 3 {
-						_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-							ChannelId: data.ChannelId,
-							MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoId, "The input is wrong")},
-						})
-						return nil
-					}
+					//contents := strings.Split(messageBody.Content, " ")
 					resp, token, contactId, err := HandleCustomMint(data.DodoId, data.ChannelId, "dodo")
 					if err != nil{
 						processErrorMessage(&instance, data, err.Error())
@@ -49,7 +42,7 @@ func InitInstance() websocket.Client {
 
 					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
 						ChannelId: data.ChannelId,
-						MessageBody: &model.CardMessage{Content: fmt.Sprintf("<@!%s> Create mint task successfully. The correspding transaction hash is %s", data.DodoId, *resp.Hash)},
+						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> Create mint task successfully. The correspding transaction hash is %s", data.DodoId, *resp.Hash)},
 					})
 
 					res, err := GenDoDoMintRes(token, resp.GetCreatedAt(), resp.GetContract(), resp.GetMintTo(),  data.DodoId, data.ChannelId, resp.GetId(), contactId)
@@ -60,7 +53,7 @@ func InitInstance() websocket.Client {
 
 					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
 						ChannelId: data.ChannelId,
-						MessageBody: &model.CardMessage{Content: fmt.Sprintf("<@!%s> Congratulate on minting NFT for %s successfully. Check this link to view it: %s \n  %s", data.DodoId, res.UserAddress, res.NFTAddress, viper.GetString("advertise"))},
+						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> Congratulate on minting NFT for %s successfully. Check this link to view it: %s \n  %s", data.DodoId, res.UserAddress, res.NFTAddress, viper.GetString("advertise"))},
 					})
 					return nil
 				}else if strings.Contains(messageBody.Content, "/bind CFX") {
@@ -84,7 +77,7 @@ func InitInstance() websocket.Client {
 
 					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
 						ChannelId: data.ChannelId,
-						MessageBody: &model.CardMessage{Content: fmt.Sprintf("success!", data.DodoId)},
+						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> success!", data.DodoId)},
 					})
 					return nil
 
@@ -96,7 +89,7 @@ func InitInstance() websocket.Client {
 					}
 					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
 						ChannelId: data.ChannelId,
-						MessageBody: &model.CardMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoId, resp)},
+						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoId, resp)},
 					})
 					return nil
 				}
