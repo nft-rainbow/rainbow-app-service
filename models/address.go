@@ -10,18 +10,8 @@ type BindCFXWithDiscord struct {
 
 type BindCFXWithDoDo struct {
 	BaseModel
-	DoDoId string `gorm:"type:varchar(256)" json:"dodo_id" binding:"required"`
+	DoDoId string `gorm:"type:varchar(256)" json:"do_do_id" binding:"required"`
 	CFXAddress string `gorm:"type:varchar(256)" json:"cfx_address" binding:"required"`
-}
-
-type GetDoDoBindCFX struct{
-	CFXAddress string `json:"cfx_address"`
-	DoDoId string `json:"dodo_id"`
-}
-
-type GetDiscordCFX struct{
-	CFXAddress string `json:"cfx_address"`
-	DiscordId string `json:"discord_id"`
 }
 
 type CustomMintCount struct {
