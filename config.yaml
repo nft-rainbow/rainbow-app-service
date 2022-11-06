@@ -17,7 +17,7 @@ jwtKeys:
   openapi: jwt-openapi-key
 customMint:
   mintRespPrefix: https://testnet.confluxscan.io/nft/
-proxy: http://172.31.192.1:7890
+proxy: http://0.0.0.0:7890
 advertise: Powered by NFTRainbow
 
 

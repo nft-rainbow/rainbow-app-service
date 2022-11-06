@@ -39,7 +39,7 @@ func FindDiscordBindingCFXAddressById(id string) (*BindCFXWithDiscord, error) {
 
 func FindDoDoBindingCFXAddressById(id string) (*BindCFXWithDoDo, error) {
 	var item BindCFXWithDoDo
-	err := db.Where("dodo_id = ?", id).First(&item).Error
+	err := db.Where("do_do_id = ?", id).First(&item).Error
 	return &item, err
 }
 

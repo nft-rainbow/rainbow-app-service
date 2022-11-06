@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 )
@@ -51,12 +54,19 @@ func initGin() {
 func initDiscordBot() {
 	var err error
 	s := services.InitSession()
+	proxy, _ := url.Parse(viper.GetString("proxy"))
+
+	tr := &http.Transport{
+		Proxy:           http.ProxyURL(proxy),
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	s.Client.Transport =tr
+	s.Dialer.Proxy = http.ProxyURL(proxy)
 
 	err = s.Open()
 	if err != nil {
 		panic(err)
 	}
-
 
 	log.Println("Adding commands...")
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(services.Commands))

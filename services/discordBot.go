@@ -1,14 +1,11 @@
 package services
 
 import (
-	"crypto/tls"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/spf13/viper"
 	"log"
-	"net/http"
-	"net/url"
 )
 
 var s *discordgo.Session
@@ -239,17 +236,12 @@ func failMessageEmbed(message string) []*discordgo.MessageEmbed{
 
 func InitSession()*discordgo.Session {
 	var err error
-	proxy, _ := url.Parse(viper.GetString("proxy"))
 
 	s, err = discordgo.New("Bot " + viper.GetString("discordBotToken"))
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
-	tr := &http.Transport{
-		Proxy:           http.ProxyURL(proxy),
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	s.Client.Transport =tr
+
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if h, ok := CommandHandlers[i.ApplicationCommandData().Name]; ok {
 			h(s, i)
