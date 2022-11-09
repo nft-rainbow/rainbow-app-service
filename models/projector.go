@@ -2,7 +2,7 @@ package models
 
 type DiscordAdminConfig struct {
 	BaseModel
-	AppId int32 `gorm:"index" json:"app_id"`
+	AppId int32 `gorm:"index" json:"app_id" binding:"required"`
 	GuildId string `gorm:"type:varchar(256)" json:"guild_id" binding:"required"`
 	GuildName string `gorm:"type:varchar(256)" json:"guild_name"`
 	RainbowUserId int32 `gorm:"type:integer" json:"rainbow_user_id"`

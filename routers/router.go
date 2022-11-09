@@ -18,7 +18,7 @@ func SetupRoutes(router *gin.Engine) {
 	dodo.GET("/:island_id/channels", getDoDoChannelInfo)
 
 	dodoProject := dodo.Group("/projector")
-	dodoProject.Use(middlewares.OpenJwtAuthMiddleware.MiddlewareFunc())
+	dodoProject.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		dodoProject.POST("/", bindDoDoProjectorConfig)
 		dodoProject.GET("/", getDoDoProjectorList)
@@ -29,7 +29,7 @@ func SetupRoutes(router *gin.Engine) {
 	}
 
 	discordProjector := discord.Group("/projector")
-	discordProjector.Use(middlewares.OpenJwtAuthMiddleware.MiddlewareFunc())
+	discordProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		discordProjector.POST("/", bindDiscordProjectorConfig)
 		discordProjector.GET("/", getDiscordProjectorList)
@@ -38,9 +38,6 @@ func SetupRoutes(router *gin.Engine) {
 		discordProjector.GET("/activity", getDiscordActivityList)
 		discordProjector.GET("/activity/:id", getDiscordActivity)
 	}
-
-
-
 }
 
 func indexEndpoint(c *gin.Context) {
@@ -78,5 +75,5 @@ func GetPagination(c *gin.Context) (*Pagination, error) {
 }
 
 func GetIdFromJwtClaim(c *gin.Context) uint {
-	return c.GetUint(middlewares.OpenJwtIdentityKey)
+	return c.GetUint(middlewares.JwtIdentityKey)
 }

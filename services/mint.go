@@ -2,9 +2,9 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/spf13/viper"
@@ -12,11 +12,7 @@ import (
 	"time"
 )
 
-func DiscordActivityConfig(config *models.DiscordActivityConfig) error {
-	token, err := Login()
-	if err != nil {
-		return err
-	}
+func DiscordActivityConfig(config *models.DiscordActivityConfig, token string) error {
 	info, err := GetContractInfo(config.ContractID, token)
 	if err != nil {
 		return err
@@ -31,18 +27,10 @@ func DiscordActivityConfig(config *models.DiscordActivityConfig) error {
 		return  res.Error
 	}
 
-	_, err = addContractAdmin(*info.Address, "Bearer " + token)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
-func DoDoActivityConfig(config *models.DoDoActivityConfig) error {
-	token, err := Login()
-	if err != nil {
-		return err
-	}
+func DoDoActivityConfig(config *models.DoDoActivityConfig, token string) error {
 	info, err := GetContractInfo(config.ContractID, token)
 	if err != nil {
 		return err
@@ -57,10 +45,6 @@ func DoDoActivityConfig(config *models.DoDoActivityConfig) error {
 		return  res.Error
 	}
 
-	_, err = addContractAdmin(*info.Address, "Bearer " + token)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -99,11 +83,7 @@ func dodoCustomMint(req *models.MintReq) (*openapiclient.ModelsMintTask, string,
 		return nil, "", 0, err
 	}
 
-	token, err := Login()
-	if err != nil {
-		return nil, "", 0, err
-	}
-
+	token, _ := middlewares.GenerateDoDoOpenJWT(req.ChannelID)
 	var contractType string
 	if config.ContractType == 1 {
 		contractType = "erc721"
@@ -150,10 +130,7 @@ func discordCustomMint(req *models.MintReq) (*openapiclient.ModelsMintTask, stri
 		return nil, "", 0, err
 	}
 
-	token, err := Login()
-	if err != nil {
-		return nil, "", 0, err
-	}
+	token, _ := middlewares.GenerateDiscordOpenJWT(req.ChannelID)
 
 	var contractType string
 	if config.ContractType == 1 {
@@ -263,32 +240,11 @@ func getTokenId(id int32, token string) (string, error) {
 	return *resp.TokenId, nil
 }
 
-func Login() (string, error) {
-	fmt.Println("Start to login")
-	resp, _, err := newClient().LoginApi.LoginApp(context.Background()).AppLoginInfo(openapiclient.MiddlewaresAppLogin{
-		AppId: viper.GetString("app.appId"),
-		AppSecret: viper.GetString("app.appSecret"),
-	}).Execute()
-	if err != nil {
-		return "", err
-	}
-	t := make(map[string]interface{})
-	err = json.Unmarshal([]byte(resp), &t)
-	if err != nil {
-		return "", err
-	}
-	if t["code"] != nil {
-		return "", errors.New(t["message"].(string))
-	}
-
-	return t["token"].(string), nil
-}
-
 func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, error){
 	//configuration := openapiclient.NewConfiguration()
 	//apiClient := openapiclient.NewAPIClient(configuration)
 	fmt.Println("Start to get contract information")
-	resp, _, err := newClient().ContractApi.GetContractInfo(context.Background(), id).Authorization("Bearer " + token).Execute()
+	resp, _, err := newClient().ContractApi.GetContractInfo(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
 		return nil, err
 	}

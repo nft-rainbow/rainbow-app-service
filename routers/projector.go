@@ -15,8 +15,9 @@ func discordActivityConfig(c *gin.Context) {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
+	authToken := c.GetHeader("Authorization")
 
-	err := services.DiscordActivityConfig(config)
+	err := services.DiscordActivityConfig(config, authToken)
 	ginutils.RenderResp(c, "success", err)
 }
 
@@ -26,8 +27,9 @@ func dodoActivityConfig(c *gin.Context) {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
+	authToken := c.GetHeader("Authorization")
 
-	err := services.DoDoActivityConfig(config)
+	err := services.DoDoActivityConfig(config, authToken)
 	ginutils.RenderResp(c, "success", err)
 }
 

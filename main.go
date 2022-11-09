@@ -31,6 +31,7 @@ func initConfig() {
 func init() {
 	initConfig()
 	middlewares.InitRainbowJwtMiddleware()
+	middlewares.InitDashboardJwtMiddleware()
 }
 
 func initGin() {
