@@ -9,7 +9,6 @@ discordBotToken: MTAwODczNzczODY2NjgwNzQxNg.GTER6T.4cNuhVz80DtwNvwIVOjNBphSX4VQf
 dodoBot:
   clientId: 78090178
   tokenId: NzgwOTAxNzg.0qcX77-9.sKRfWBHzGpvgZaHBoFp_4oDjixM0leJ5H1EmDEdjofw
-botAddress: cfxtest:aarep2p1rcadt0j1x0gkybggfkk97uxwty45grxxt7
 jwtKeys:
   openapi: jwt-openapi-key
   dashboard: jwt-dashboard-key

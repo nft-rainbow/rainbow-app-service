@@ -2,7 +2,6 @@
 Rainbow-app-service is a middle layer between the bot service and the rainbow-api.   
 
 ## Run
-In this project, the bot can be seen as an account in the [Rainbow](https://nftrainbow.cn/). 
 In this sense, it is needed to generate the corresponding account and the bot application. 
 
 
@@ -11,15 +10,13 @@ In this sense, it is needed to generate the corresponding account and the bot ap
 vim config.yaml
 ````
 
-2. Replace the `app_id`, `app_secret` with your bot account's
-   
-3. Replace the `botAddress` with your bot address. This address can get from the [NFTRainbow](https://console.nftrainbow.cn/)
+2. Replace the `discordBotToken` with your own discord bot. The botToken can be generated from [Discord Application](https://discord.com/developers/applications/)
 
-4. Replace the `botToken` with your own bot. The botToken can generate from [Discord Application](https://discord.com/developers/applications/)
+3. Replace the `clientId` and `tokenId` with your own dodo bot. The botToken can be generated from [DoDo Application](https://doker.imdodo.com/login)
 
-5. This project requires the proxy. Replace the `proxy` with your own proxy configuration.
+3. This project requires the proxy. Replace the `proxy` with your own proxy configuration.
 
-6. Run the project.
+4. Run the project.
 ````
 go run main.go
 ````
