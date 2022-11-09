@@ -99,8 +99,15 @@ func GenerateDiscordOpenJWT(channelId string) (string, error){
 		return "", err
 	}
 
+	kycType, err := getKycType(config.RainbowUserId)
+	if err != nil {
+		return "", err
+	}
+
 	data := &App{
 		Id: uint(config.AppId),
+		KycType: kycType,
+		AppUserId: uint(config.RainbowUserId),
 	}
 
 	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
@@ -120,8 +127,15 @@ func GenerateDoDoOpenJWT(channelId string) (string, error){
 		return "", err
 	}
 
+	kycType, err := getKycType(config.RainbowUserId)
+	if err != nil {
+		return "", err
+	}
+
 	data := &App{
 		Id: uint(config.AppId),
+		KycType: kycType,
+		AppUserId: uint(config.RainbowUserId),
 	}
 
 	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
