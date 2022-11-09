@@ -5,9 +5,6 @@ mysql:
   user: root
   password: new-password
   db: rainbowApp
-app:
-  appId: jeFLCP1T
-  appSecret: sofoLyjrcwxcj6ec
 discordBotToken: MTAwODczNzczODY2NjgwNzQxNg.GTER6T.4cNuhVz80DtwNvwIVOjNBphSX4VQfom072dNJY
 dodoBot:
   clientId: 78090178
@@ -15,6 +12,7 @@ dodoBot:
 botAddress: cfxtest:aarep2p1rcadt0j1x0gkybggfkk97uxwty45grxxt7
 jwtKeys:
   openapi: jwt-openapi-key
+  dashboard: jwt-dashboard-key
 customMint:
   mintRespPrefix: https://testnet.confluxscan.io/nft/
 proxy: http://0.0.0.0:7890

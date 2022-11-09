@@ -9,6 +9,7 @@ import (
 func getDiscordChannelInfo(c *gin.Context) {
 	guildId := c.Param("guild_id")
 	resp, err := services.GetDiscordChannelInfo(guildId)
+
 	ginutils.RenderResp(c, resp, err)
 }
 

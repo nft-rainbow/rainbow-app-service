@@ -2,12 +2,9 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"github.com/bwmarrin/discordgo"
 	dodoModel "github.com/dodo-open/dodo-open-go/model"
 	"github.com/nft-rainbow/rainbow-app-service/models"
-	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
-	"github.com/spf13/viper"
 )
 
 func BindDiscordProjectorConfig(config *models.DiscordAdminConfig, id uint) error{
@@ -17,7 +14,6 @@ func BindDiscordProjectorConfig(config *models.DiscordAdminConfig, id uint) erro
 	}
 
 	config.GuildName = info.Name
-	config.AppId = int32(id)
 	config.RainbowUserId = int32(id)
 
 	res := models.GetDB().Create(&config)
@@ -34,7 +30,6 @@ func BindDoDoProjectorConfig(config *models.DoDoAdminConfig, id uint) error{
 	}
 
 	config.IslandName = info.IslandName
-	config.AppId = int32(id)
 	config.RainbowUserId = int32(id)
 
 	res := models.GetDB().Create(&config)
@@ -80,15 +75,4 @@ func GetDoDoIslandInfo(islandId string) (st *dodoModel.GetIslandInfoRsp, err err
 		return nil, err
 	}
 	return info, err
-}
-
-func addContractAdmin(contract, token string) (*openapiclient.ServicesSendTxResp, error){
-	fmt.Println("Start to add contract admin")
-	//configuration := openapiclient.NewConfiguration()
-	//apiClient := openapiclient.NewAPIClient(configuration)
-	resp, _, err := newClient().ContractApi.UpdateContractAdmin(context.Background(), contract).Authorization(token).AdminInfo(*openapiclient.NewServicesContractAdminUpdateDto(viper.GetString("botAddress"))).Execute()
-	if err != nil {
-		return nil, err
-	}
-	return resp, err
 }
