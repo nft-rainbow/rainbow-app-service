@@ -34,7 +34,7 @@ func FindDoDoBindingCFXAddressById(id string) (*BindCFXWithDoDo, error) {
 }
 
 func CheckDiscordCustomCount(id, channelId string, maxCount uint) (bool, error){
-	config, err := FindBindingDiscordActivityConfigByChannelId(channelId)
+	config, err := FindBindingDiscordCustomActivityConfigByChannelId(channelId)
 	if err != nil {
 		return false, err
 	}
@@ -56,7 +56,7 @@ func CheckDiscordCustomCount(id, channelId string, maxCount uint) (bool, error){
 }
 
 func CheckDoDoCustomCount(id, channelId string, maxCount uint) (bool, error){
-	config, err := FindBindingDoDoActivityConfigByChannelId(channelId)
+	config, err := FindBindingDoDoCustomActivityConfigByChannelId(channelId)
 	if err != nil {
 		return false, err
 	}
@@ -85,7 +85,7 @@ func UpdateDiscordCustomCount(id, channelId string) (*CustomMintCount, error){
 	}
 	db.Model(&item).Update("count", item.Count+1)
 
-	var t DiscordActivityConfig
+	var t DiscordCustomActivityConfig
 	err = db.Where("channel_id = ?", channelId).First(&t).Error
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func UpdateDoDoCustomCount(id, channelId string) (*CustomMintCount, error){
 	}
 	db.Model(&item).Update("count", item.Count+1)
 
-	var t DoDoActivityConfig
+	var t DoDoCustomActivityConfig
 	err = db.Where("channel_id = ?", channelId).First(&t).Error
 	if err != nil {
 		return nil, err

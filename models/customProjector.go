@@ -1,22 +1,28 @@
 package models
 
-type DiscordAdminConfig struct {
+type DiscordCustomProjectorConfig struct {
 	BaseModel
 	AppId int32 `gorm:"index" json:"app_id" binding:"required"`
 	GuildId string `gorm:"type:varchar(256)" json:"guild_id" binding:"required"`
 	GuildName string `gorm:"type:varchar(256)" json:"guild_name"`
 	RainbowUserId int32 `gorm:"type:integer" json:"rainbow_user_id"`
+	ProjectorName string `gorm:"type:string" json:"projector_name" binding:"required"`
+	Description string `gorm:"type:string" json:"description" binding:"required"`
+	ChainType string `gorm:"type:string" json:"chain_type" binding:"required"`
 }
 
-type DoDoAdminConfig struct {
+type DoDoCustomProjectorConfig struct {
 	BaseModel
-	AppId int32 `gorm:"index" json:"app_id"`
+	AppId int32 `gorm:"index" json:"app_id" binding:"required"`
 	IslandId string `gorm:"type:varchar(256)" json:"island_id" binding:"required"`
 	IslandName string `gorm:"type:varchar(256)" json:"island_name"`
 	RainbowUserId int32 `gorm:"type:integer" json:"rainbow_user_id"`
+	ProjectorName string `gorm:"type:string" json:"projector_name" binding:"required"`
+	Description string `gorm:"type:string" json:"description" binding:"required"`
+	ChainType string `gorm:"type:string" json:"chain_type" binding:"required"`
 }
 
-type DiscordActivityConfig struct {
+type DiscordCustomActivityConfig struct {
 	BaseModel
 	ContractID int32 `gorm:"type:integer" json:"contract_id" binding:"required"`
 	ChannelID string `gorm:"type:varchar(256)" json:"channel_id" binding:"required"`
@@ -32,7 +38,7 @@ type DiscordActivityConfig struct {
 	MetadataURI string `gorm:"type:string" json:"metadata_uri"`
 }
 
-type DoDoActivityConfig struct {
+type DoDoCustomActivityConfig struct {
 	BaseModel
 	ContractID int32 `gorm:"type:integer" json:"contract_id" binding:"required"`
 	ChannelID string `gorm:"type:varchar(256)" json:"channel_id" binding:"required"`
@@ -50,63 +56,75 @@ type DoDoActivityConfig struct {
 
 type DiscordActivityQueryResult struct {
 	Count int64       `json:"count"`
-	Items []*DiscordActivityConfig `json:"items"`
+	Items []*DiscordCustomActivityConfig `json:"items"`
 }
 
 type DoDoActivityQueryResult struct {
 	Count int64       `json:"count"`
-	Items []*DoDoActivityConfig `json:"items"`
+	Items []*DoDoCustomActivityConfig `json:"items"`
 }
 
-type DiscordAdminConfigQueryResult struct {
+type DiscordCustomProjectorConfigQueryResult struct {
 	Count int64       `json:"count"`
-	Items []*DiscordAdminConfig `json:"items"`
+	Items []*DiscordCustomProjectorConfig `json:"items"`
 }
 
-type DoDoAdminConfigQueryResult struct {
+type DoDoCustomProjectorConfigQueryResult struct {
 	Count int64       `json:"count"`
-	Items []*DoDoAdminConfig `json:"items"`
+	Items []*DoDoCustomProjectorConfig `json:"items"`
 }
 
-func FindBindingDiscordActivityConfigByChannelId(id string) (*DiscordActivityConfig, error){
-	var item DiscordActivityConfig
+func FindBindingDiscordCustomActivityConfigByChannelId(id string) (*DiscordCustomActivityConfig, error){
+	var item DiscordCustomActivityConfig
 	err := db.Where("channel_id = ?", id).First(&item).Error
 	return &item, err
 }
 
-func FindBindingDoDoActivityConfigByChannelId(id string) (*DoDoActivityConfig, error){
-	var item DoDoActivityConfig
+func FindBindingDoDoCustomActivityConfigByChannelId(id string) (*DoDoCustomActivityConfig, error){
+	var item DoDoCustomActivityConfig
 	err := db.Where("channel_id = ?", id).First(&item).Error
 	return &item, err
 }
 
-func FindBindingDiscordConfigById(id int) (*DiscordAdminConfig, error) {
-	var item DiscordAdminConfig
+func FindBindingDiscordConfigById(id int) (*DiscordCustomProjectorConfig, error) {
+	var item DiscordCustomProjectorConfig
 	err := db.Where("id = ?", id).First(&item).Error
 	return &item, err
 }
 
-func FindBindingDoDoConfigById(id int) (*DoDoAdminConfig, error) {
-	var item DoDoAdminConfig
+func FindBindingDiscordConfigByUserId(id int) (*DiscordCustomProjectorConfig, error) {
+	var item DiscordCustomProjectorConfig
+	err := db.Where("rainbow_user_id = ?", id).First(&item).Error
+	return &item, err
+}
+
+func FindBindingDoDoConfigById(id int) (*DoDoCustomProjectorConfig, error) {
+	var item DoDoCustomProjectorConfig
 	err := db.Where("id = ?", id).First(&item).Error
 	return &item, err
 }
 
-func FindBindingDiscordActivityConfigById(id int) (*DiscordActivityConfig, error){
-	var item DiscordActivityConfig
+func FindBindingDoDoConfigByUserId(id int) (*DoDoCustomProjectorConfig, error) {
+	var item DoDoCustomProjectorConfig
+	err := db.Where("rainbow_user_id = ?", id).First(&item).Error
+	return &item, err
+}
+
+func FindBindingDiscordCustomActivityConfigById(id int) (*DiscordCustomActivityConfig, error){
+	var item DiscordCustomActivityConfig
 	err := db.Where("id = ?", id).First(&item).Error
 	return &item, err
 }
 
-func FindBindingDoDoActivityConfigById(id int) (*DoDoActivityConfig, error){
-	var item DoDoActivityConfig
+func FindBindingDoDoCustomActivityConfigById(id int) (*DoDoCustomActivityConfig, error){
+	var item DoDoCustomActivityConfig
 	err := db.Where("id = ?", id).First(&item).Error
 	return &item, err
 }
 
 func FindAndCountDiscordActivity(id uint, offset int, limit int) (*DiscordActivityQueryResult, error) {
-	var items []*DiscordActivityConfig
-	cond := &DiscordActivityConfig{}
+	var items []*DiscordCustomActivityConfig
+	cond := &DiscordCustomActivityConfig{}
 	cond.AppId = int32(id)
 
 	var count int64
@@ -122,8 +140,8 @@ func FindAndCountDiscordActivity(id uint, offset int, limit int) (*DiscordActivi
 }
 
 func FindAndCountDoDoActivity(id uint, offset int, limit int) (*DoDoActivityQueryResult, error) {
-	var items []*DoDoActivityConfig
-	cond := &DoDoActivityConfig{}
+	var items []*DoDoCustomActivityConfig
+	cond := &DoDoCustomActivityConfig{}
 	cond.AppId = int32(id)
 
 	var count int64
@@ -138,9 +156,9 @@ func FindAndCountDoDoActivity(id uint, offset int, limit int) (*DoDoActivityQuer
 	return &DoDoActivityQueryResult{count, items}, nil
 }
 
-func FindAndCountDiscordAdminConfig(id uint, offset int, limit int) (*DiscordAdminConfigQueryResult, error) {
-	var items []*DiscordAdminConfig
-	cond := &DiscordAdminConfig{}
+func FindAndCountDiscordCustomProjectorConfig(id uint, offset int, limit int) (*DiscordCustomProjectorConfigQueryResult, error) {
+	var items []*DiscordCustomProjectorConfig
+	cond := &DiscordCustomProjectorConfig{}
 	cond.RainbowUserId = int32(id)
 
 	var count int64
@@ -152,12 +170,12 @@ func FindAndCountDiscordAdminConfig(id uint, offset int, limit int) (*DiscordAdm
 		return nil, err
 	}
 
-	return &DiscordAdminConfigQueryResult{count, items}, nil
+	return &DiscordCustomProjectorConfigQueryResult{count, items}, nil
 }
 
-func FindAndCountDoDoAdminConfig(id uint, offset int, limit int) (*DoDoAdminConfigQueryResult, error) {
-	var items []*DoDoAdminConfig
-	cond := &DoDoAdminConfig{}
+func FindAndCountDoDoCustomProjectorConfig(id uint, offset int, limit int) (*DoDoCustomProjectorConfigQueryResult, error) {
+	var items []*DoDoCustomProjectorConfig
+	cond := &DoDoCustomProjectorConfig{}
 	cond.RainbowUserId = int32(id)
 
 	var count int64
@@ -169,6 +187,5 @@ func FindAndCountDoDoAdminConfig(id uint, offset int, limit int) (*DoDoAdminConf
 		return nil, err
 	}
 
-	return &DoDoAdminConfigQueryResult{count, items}, nil
+	return &DoDoCustomProjectorConfigQueryResult{count, items}, nil
 }
-

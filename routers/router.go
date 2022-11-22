@@ -11,32 +11,47 @@ import (
 
 func SetupRoutes(router *gin.Engine) {
 	router.GET("/", indexEndpoint)
-	discord := router.Group("/discord")
-	dodo := router.Group("/dodo")
+	custom := router.Group("/custom")
+	poap := router.Group("/poap")
 
+	discord := custom.Group("/discord")
+	dodo := custom.Group("/dodo")
 	discord.GET("/:guild_id/channels", getDiscordChannelInfo)
 	dodo.GET("/:island_id/channels", getDoDoChannelInfo)
 
-	dodoProject := dodo.Group("/projector")
-	dodoProject.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	dodoCustomProject := dodo.Group("/projector")
+	dodoCustomProject.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		dodoProject.POST("/", bindDoDoProjectorConfig)
-		dodoProject.GET("/", getDoDoProjectorList)
-		dodoProject.GET("/:id", getDoDoProjector)
-		dodoProject.POST("/activity", dodoActivityConfig)
-		dodoProject.GET("/activity", getDoDoActivityList)
-		dodoProject.GET("/activity/:id", getDoDoActivity)
+		dodoCustomProject.POST("/", bindDoDoCustomProjectorConfig)
+		dodoCustomProject.GET("/", getDoDoCustomProjectorList)
+		dodoCustomProject.GET("/:id", getDoDoCustomProjector)
+		dodoCustomProject.POST("/activity", dodoCustomActivityConfig)
+		dodoCustomProject.GET("/activity", getDoDoCustomActivityList)
+		dodoCustomProject.GET("/activity/:id", getDoDoCustomActivity)
 	}
 
-	discordProjector := discord.Group("/projector")
-	discordProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	discordCustomProjector := discord.Group("/projector")
+	discordCustomProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		discordProjector.POST("/", bindDiscordProjectorConfig)
-		discordProjector.GET("/", getDiscordProjectorList)
-		discordProjector.GET("/:id", getDiscordProjector)
-		discordProjector.POST("/activity", discordActivityConfig)
-		discordProjector.GET("/activity", getDiscordActivityList)
-		discordProjector.GET("/activity/:id", getDiscordActivity)
+		discordCustomProjector.POST("/", bindDiscordCustomProjectorConfig)
+		discordCustomProjector.GET("/", getDiscordCustomProjectorList)
+		discordCustomProjector.GET("/:id", getDiscordCustomProjector)
+		discordCustomProjector.POST("/activity", discordCustomActivityConfig)
+		discordCustomProjector.GET("/activity", getDiscordCustomActivityList)
+		discordCustomProjector.GET("/activity/:id", getDiscordCustomActivity)
+	}
+
+	poapProjector := poap.Group("/projector")
+	poapProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	{
+		poapProjector.POST("/activity", POAPActivityConfig)
+		poapProjector.POST("/mint/csv", POAPCSVMint)
+		poapProjector.POST("/mint/h5", POAPH5Mint)
+		poapProjector.POST("/", POAPProjectorConfig)
+		poapProjector.GET("/activity", getPOAPActivityList)
+		poapProjector.GET("/activity/:id", getPOAPActivity)
+		poapProjector.GET("/", getPOAPProjectorList)
+		poapProjector.GET("/:id", getPOAPProjector)
 	}
 }
 

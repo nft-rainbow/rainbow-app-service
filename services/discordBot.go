@@ -152,7 +152,7 @@ var (
 	}
 )
 
-func successfulMessageEmbed(resp *models.MintResp) []*discordgo.MessageEmbed{
+func successfulMessageEmbed(resp *models.CustomMintResp) []*discordgo.MessageEmbed{
 	embeds := []*discordgo.MessageEmbed{
 		&discordgo.MessageEmbed{
 			Type: discordgo.EmbedTypeRich,

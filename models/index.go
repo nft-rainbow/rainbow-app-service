@@ -30,15 +30,17 @@ func ConnectDB() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&DiscordAdminConfig{})
-	db.AutoMigrate(&DoDoAdminConfig{})
-	db.AutoMigrate(&DiscordActivityConfig{})
-	db.AutoMigrate(&DoDoActivityConfig{})
+	db.AutoMigrate(&DiscordCustomProjectorConfig{})
+	db.AutoMigrate(&DoDoCustomProjectorConfig{})
+	db.AutoMigrate(&DiscordCustomActivityConfig{})
+	db.AutoMigrate(&DoDoCustomActivityConfig{})
 	db.AutoMigrate(&BindCFXWithDiscord{})
 	db.AutoMigrate(&BindCFXWithDoDo{})
 	db.AutoMigrate(&CustomMintCount{})
-	db.AutoMigrate(&MintResult{})
-
+	db.AutoMigrate(&CustomMintResult{})
+	db.AutoMigrate(&POAPResult{})
+	db.AutoMigrate(&POAPProjectorConfig{})
+	db.AutoMigrate(&POAPActivityConfig{})
 }
 
 func GetDB() *gorm.DB {

@@ -9,31 +9,51 @@ import (
 	"strconv"
 )
 
-func discordActivityConfig(c *gin.Context) {
-	var config *models.DiscordActivityConfig
+func bindDiscordCustomProjectorConfig(c *gin.Context) {
+	var adminConfig *models.DiscordCustomProjectorConfig
+	if err := c.ShouldBind(&adminConfig); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+
+	err := services.BindDiscordProjectorConfig(adminConfig, GetIdFromJwtClaim(c))
+	ginutils.RenderResp(c, "success", err)
+}
+
+func bindDoDoCustomProjectorConfig(c *gin.Context) {
+	var adminConfig *models.DoDoCustomProjectorConfig
+	if err := c.ShouldBind(&adminConfig); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+
+	err := services.BindDoDoProjectorConfig(adminConfig, GetIdFromJwtClaim(c))
+	ginutils.RenderResp(c, "success", err)
+}
+
+func discordCustomActivityConfig(c *gin.Context) {
+	var config *models.DiscordCustomActivityConfig
 	if err := c.ShouldBind(&config); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	authToken := c.GetHeader("Authorization")
 
-	err := services.DiscordActivityConfig(config, authToken)
+	err := services.DiscordCustomActivityConfig(config, GetIdFromJwtClaim(c))
 	ginutils.RenderResp(c, "success", err)
 }
 
-func dodoActivityConfig(c *gin.Context) {
-	var config *models.DoDoActivityConfig
+func dodoCustomActivityConfig(c *gin.Context) {
+	var config *models.DoDoCustomActivityConfig
 	if err := c.ShouldBind(&config); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	authToken := c.GetHeader("Authorization")
 
-	err := services.DoDoActivityConfig(config, authToken)
+	err := services.DoDoCustomActivityConfig(config, GetIdFromJwtClaim(c))
 	ginutils.RenderResp(c, "success", err)
 }
 
-func getDiscordActivityList(c *gin.Context) {
+func getDiscordCustomActivityList(c *gin.Context) {
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
@@ -43,7 +63,7 @@ func getDiscordActivityList(c *gin.Context) {
 	ginutils.RenderResp(c, mints, err)
 }
 
-func getDoDoActivityList(c *gin.Context) {
+func getDoDoCustomActivityList(c *gin.Context) {
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
@@ -53,48 +73,47 @@ func getDoDoActivityList(c *gin.Context) {
 	ginutils.RenderResp(c, mints, err)
 }
 
-func getDiscordActivity(c *gin.Context) {
+func getDiscordCustomActivity(c *gin.Context) {
 	activityId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	item, err := models.FindBindingDiscordActivityConfigById(activityId)
+	item, err := models.FindBindingDiscordCustomActivityConfigById(activityId)
 	ginutils.RenderResp(c, item, err)
 }
 
-func getDoDoActivity(c *gin.Context) {
+func getDoDoCustomActivity(c *gin.Context) {
 	activityId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	item, err := models.FindBindingDoDoActivityConfigById(activityId)
+	item, err := models.FindBindingDoDoCustomActivityConfigById(activityId)
 	ginutils.RenderResp(c, item, err)
 }
 
-func getDiscordProjectorList(c *gin.Context){
+func getDiscordCustomProjectorList(c *gin.Context){
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
 		return
 	}
-	mints, err := models.FindAndCountDiscordAdminConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
+	mints, err := models.FindAndCountDiscordCustomProjectorConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
 	ginutils.RenderResp(c, mints, err)
 }
 
-func getDoDoProjectorList(c *gin.Context){
+func getDoDoCustomProjectorList(c *gin.Context){
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
 		return
 	}
-	mints, err := models.FindAndCountDoDoAdminConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
+	mints, err := models.FindAndCountDoDoCustomProjectorConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
 	ginutils.RenderResp(c, mints, err)
 }
 
-
-func getDiscordProjector(c *gin.Context){
+func getDiscordCustomProjector(c *gin.Context){
 	ProjectorId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
@@ -104,7 +123,7 @@ func getDiscordProjector(c *gin.Context){
 	ginutils.RenderResp(c, item, err)
 }
 
-func getDoDoProjector(c *gin.Context){
+func getDoDoCustomProjector(c *gin.Context){
 	ProjectorId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)

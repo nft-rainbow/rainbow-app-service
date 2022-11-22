@@ -51,3 +51,25 @@ func ContractTypeByName(name string) (ContractType, error) {
 		return 0, fmt.Errorf("unknown contract type: %s", name)
 	}
 }
+
+func ContractTypeByTypeId(contractType uint)(string, error){
+	switch contractType {
+	case 1:
+		return ERC721, nil
+	case 2:
+		return ERC1155, nil
+	default:
+		return "", fmt.Errorf("unknown contract type")
+	}
+}
+
+func ChainTypeByTypeId(chainType uint)(string, error){
+	switch chainType {
+	case 1:
+		return CONFLUX_TEST, nil
+	case 1029:
+		return CONFLUX, nil
+	default:
+		return "", fmt.Errorf("unknown chain type")
+	}
+}
