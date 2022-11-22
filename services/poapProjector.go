@@ -65,7 +65,7 @@ func HandlePOAPCSVMint(records [][]string, req *POAPRequest) ([]openapiclient.Mo
 		return nil, err
 	}
 
-	if config.StartedTime != -1 && config.EndedTime != -1 && time.Now().Unix() < config.StartedTime  || time.Now().Unix() > config.EndedTime {
+	if config.StartedTime != -1 && config.EndedTime != -1 && (time.Now().Unix() < config.StartedTime  || time.Now().Unix() > config.EndedTime) {
 		return nil, fmt.Errorf("The activity has already expired or has not been started")
 	}
 
