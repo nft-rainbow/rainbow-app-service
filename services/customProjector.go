@@ -8,7 +8,7 @@ import (
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 )
 
-func BindDiscordProjectorConfig(config *models.DiscordCustomProjectorConfig, id uint) error{
+func BindDiscordProjectConfig(config *models.DiscordCustomProjectConfig, id uint) error{
 	info, err := GetDiscordGuildInfo(config.GuildId)
 	if err != nil {
 		return err
@@ -24,7 +24,7 @@ func BindDiscordProjectorConfig(config *models.DiscordCustomProjectorConfig, id 
 	return nil
 }
 
-func BindDoDoProjectorConfig(config *models.DoDoCustomProjectorConfig, id uint) error{
+func BindDoDoProjectConfig(config *models.DoDoCustomProjectConfig, id uint) error{
 	info, err := GetDoDoIslandInfo(config.IslandId)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func HandleCustomMint(userId, channelId, platform string) (*openapiclient.Models
 }
 
 func dodoCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask, string, int32, error){
-	config, err := models.FindBindingDoDoCustomActivityConfigByChannelId(req.ChannelID)
+	config, err := models.FindDoDoCustomActivityConfigByChannelId(req.ChannelID)
 	if err != nil {
 		return nil, "", 0, err
 	}
@@ -144,7 +144,7 @@ func dodoCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask, s
 }
 
 func discordCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask, string, int32, error){
-	config, err := models.FindBindingDiscordCustomActivityConfigByChannelId(req.ChannelID)
+	config, err := models.FindDiscordCustomActivityConfigByChannelId(req.ChannelID)
 	if err != nil {
 		return nil, "", 0, err
 	}

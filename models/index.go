@@ -30,8 +30,8 @@ func ConnectDB() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&DiscordCustomProjectorConfig{})
-	db.AutoMigrate(&DoDoCustomProjectorConfig{})
+	db.AutoMigrate(&DiscordCustomProjectConfig{})
+	db.AutoMigrate(&DoDoCustomProjectConfig{})
 	db.AutoMigrate(&DiscordCustomActivityConfig{})
 	db.AutoMigrate(&DoDoCustomActivityConfig{})
 	db.AutoMigrate(&BindCFXWithDiscord{})
@@ -39,7 +39,6 @@ func ConnectDB() {
 	db.AutoMigrate(&CustomMintCount{})
 	db.AutoMigrate(&CustomMintResult{})
 	db.AutoMigrate(&POAPResult{})
-	db.AutoMigrate(&POAPProjectorConfig{})
 	db.AutoMigrate(&POAPActivityConfig{})
 }
 

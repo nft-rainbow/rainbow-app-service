@@ -70,7 +70,6 @@ func HandleBindCfxAddress(userId, userAddress, platform string) error{
 	return nil
 }
 
-
 func GetDiscordChannelInfo(guildId string) ([]*discordgo.Channel, error){
 	st, err := GetSession().GuildChannels(guildId)
 

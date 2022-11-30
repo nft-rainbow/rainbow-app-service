@@ -1,22 +1,13 @@
 package models
 
-
-type POAPProjectorConfig struct {
-	BaseModel
-	AppId int32 `gorm:"index" json:"app_id" binding:"required"`
-	RainbowUserId int32 `gorm:"type:integer" json:"rainbow_user_id"`
-	ProjectorName string `gorm:"type:string" json:"projector_name" binding:"required"`
-	Description string `gorm:"type:string" json:"description" binding:"required"`
-	ChainType string `gorm:"type:string" json:"chain_type" binding:"required"`
-}
-
 type POAPActivityConfig struct {
 	BaseModel
+	H5Config
 	ContractID int32 `gorm:"type:integer" json:"contract_id" binding:"required"`
 	Amount int32 `gorm:"type:integer" json:"amount" binding:"required"`
 	Name string `gorm:"type:string" json:"name" binding:"required"`
 	Description string `gorm:"type:string" json:"description" binding:"required"`
-	AppId int32 `gorm:"index" json:"app_id"`
+	AppId int32 `gorm:"index" json:"app_id" binding:"required"`
 	ContractType int32 `gorm:"type:int" json:"contract_type"`
 	ContractAddress string `gorm:"type:string" json:"contract_address"`
 	Chain    int32   `gorm:"type:int" json:"chain_type"`
@@ -25,6 +16,22 @@ type POAPActivityConfig struct {
 	Command string `gorm:"type:string" json:"command"`
 	EndedTime int64 `gorm:"type:integer" json:"end_time"`
 	StartedTime int64 `gorm:"type:integer" json:"start_time"`
+	RainbowUserId int32 `gorm:"type:integer" json:"rainbow_user_id"`
+}
+
+type H5Config struct {
+	Link string `gorm:"type:string" json:"link"`
+	Title string `gorm:"type:string" json:"title"`
+	TitleSize int32 `gorm:"type:integer" json:"title_size"`
+	TitleColor int32 `gorm:"type:integer" json:"title_color"`
+	Content string `gorm:"type:string" json:"content"`
+	ContentSize int32 `gorm:"type:integer" json:"content_size"`
+	ContentColor int32 `gorm:"type:integer" json:"content_color"`
+	ClaimButtonColor int32 `gorm:"type:integer" json:"claim_button_color"`
+	ButtonWordColor int32 `gorm:"type:integer" json:"button_word_color"`
+	LogoURL string `gorm:"type:string" json:"logo_url"`
+	PCPicURL string `gorm:"type:string" json:"pc_picture_url"`
+	MobilePicURL string `gorm:"type:string" json:"mobile_picture_url"`
 }
 
 type POAPActivityQueryResult struct {
@@ -32,32 +39,9 @@ type POAPActivityQueryResult struct {
 	Items []*POAPActivityConfig `json:"items"`
 }
 
-type POAPProjectorConfigQueryResult struct {
-	Count int64       `json:"count"`
-	Items []*POAPProjectorConfig `json:"items"`
-}
-
 func FindPOAPActivityConfig(name string, contractId int32) (*POAPActivityConfig, error){
 	var item POAPActivityConfig
 	err := db.Where("name = ?", name).Where("contract_id = ?", contractId).First(&item).Error
-	return &item, err
-}
-
-func FindPOAPConfigById(id int) (*POAPProjectorConfig, error) {
-	var item POAPProjectorConfig
-	err := db.Where("id = ?", id).First(&item).Error
-	return &item, err
-}
-
-func FindPOAPConfigByAppId(id int) (*POAPProjectorConfig, error) {
-	var item POAPProjectorConfig
-	err := db.Where("app_id = ?", id).First(&item).Error
-	return &item, err
-}
-
-func FindPOAPConfigByUserId(id int) (*POAPProjectorConfig, error) {
-	var item POAPProjectorConfig
-	err := db.Where("rainbow_user_id = ?", id).First(&item).Error
 	return &item, err
 }
 
@@ -82,21 +66,4 @@ func FindAndCountPOAPActivity(id uint, offset int, limit int) (*POAPActivityQuer
 	}
 
 	return &POAPActivityQueryResult{count, items}, nil
-}
-
-func FindAndCountPOAPProjectorConfig(id uint, offset int, limit int) (*POAPProjectorConfigQueryResult, error) {
-	var items []*POAPProjectorConfig
-	cond := &POAPProjectorConfig{}
-	cond.RainbowUserId = int32(id)
-
-	var count int64
-	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
-		return nil, err
-	}
-
-	if err := db.Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
-		return nil, err
-	}
-
-	return &POAPProjectorConfigQueryResult{count, items}, nil
 }

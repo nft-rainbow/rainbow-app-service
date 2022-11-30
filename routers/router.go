@@ -1,6 +1,8 @@
 package routers
 
 import (
+	swaggerFiles "github.com/swaggo/files"
+	gs "github.com/swaggo/gin-swagger"
 	"net/http"
 	"strconv"
 
@@ -11,6 +13,7 @@ import (
 
 func SetupRoutes(router *gin.Engine) {
 	router.GET("/", indexEndpoint)
+	router.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
 	custom := router.Group("/custom")
 	poap := router.Group("/poap")
 
@@ -22,10 +25,10 @@ func SetupRoutes(router *gin.Engine) {
 	dodoCustomProject := dodo.Group("/projector")
 	dodoCustomProject.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		dodoCustomProject.POST("/", bindDoDoCustomProjectorConfig)
-		dodoCustomProject.GET("/", getDoDoCustomProjectorList)
-		dodoCustomProject.GET("/:id", getDoDoCustomProjector)
-		dodoCustomProject.POST("/activity", dodoCustomActivityConfig)
+		dodoCustomProject.POST("/", setDoDoCustomProjectConfig)
+		dodoCustomProject.GET("/", getDoDoCustomProjectList)
+		dodoCustomProject.GET("/:id", getDoDoCustomProject)
+		dodoCustomProject.POST("/activity", setDoDoCustomActivityConfig)
 		dodoCustomProject.GET("/activity", getDoDoCustomActivityList)
 		dodoCustomProject.GET("/activity/:id", getDoDoCustomActivity)
 	}
@@ -33,25 +36,21 @@ func SetupRoutes(router *gin.Engine) {
 	discordCustomProjector := discord.Group("/projector")
 	discordCustomProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		discordCustomProjector.POST("/", bindDiscordCustomProjectorConfig)
-		discordCustomProjector.GET("/", getDiscordCustomProjectorList)
-		discordCustomProjector.GET("/:id", getDiscordCustomProjector)
-		discordCustomProjector.POST("/activity", discordCustomActivityConfig)
+		discordCustomProjector.POST("/", setDiscordCustomProjectConfig)
+		discordCustomProjector.GET("/", getDiscordCustomProjectList)
+		discordCustomProjector.GET("/:id", getDiscordCustomProject)
+		discordCustomProjector.POST("/activity", setDiscordCustomActivityConfig)
 		discordCustomProjector.GET("/activity", getDiscordCustomActivityList)
 		discordCustomProjector.GET("/activity/:id", getDiscordCustomActivity)
 	}
 
-	poapProjector := poap.Group("/projector")
-	poapProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		poapProjector.POST("/activity", POAPActivityConfig)
-		poapProjector.POST("/mint/csv", POAPCSVMint)
-		poapProjector.POST("/mint/h5", POAPH5Mint)
-		poapProjector.POST("/", POAPProjectorConfig)
-		poapProjector.GET("/activity", getPOAPActivityList)
-		poapProjector.GET("/activity/:id", getPOAPActivity)
-		poapProjector.GET("/", getPOAPProjectorList)
-		poapProjector.GET("/:id", getPOAPProjector)
+		poap.POST("/activity", setPOAPActivityConfig)
+		poap.POST("/mint/csv", poapMintByCSV)
+		poap.POST("/mint/h5", poapMintByH5)
+		poap.GET("/activity", getPOAPActivityList)
+		poap.GET("/activity/:id", getPOAPActivity)
 	}
 }
 

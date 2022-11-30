@@ -34,7 +34,7 @@ func FindDoDoBindingCFXAddressById(id string) (*BindCFXWithDoDo, error) {
 }
 
 func CheckDiscordCustomCount(id, channelId string, maxCount uint) (bool, error){
-	config, err := FindBindingDiscordCustomActivityConfigByChannelId(channelId)
+	config, err := FindDiscordCustomActivityConfigByChannelId(channelId)
 	if err != nil {
 		return false, err
 	}
@@ -56,7 +56,7 @@ func CheckDiscordCustomCount(id, channelId string, maxCount uint) (bool, error){
 }
 
 func CheckDoDoCustomCount(id, channelId string, maxCount uint) (bool, error){
-	config, err := FindBindingDoDoCustomActivityConfigByChannelId(channelId)
+	config, err := FindDoDoCustomActivityConfigByChannelId(channelId)
 	if err != nil {
 		return false, err
 	}

@@ -101,6 +101,16 @@ func initDoDoBot(){
 	}
 }
 
+// @title       Rainbow-APP-Service
+// @version     1.0
+// @description The responses of the open api in swagger focus on the data field rather than the code and the message fields
+
+// @license.name Apache 2.0
+// @license.url  http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host     127.0.0.1:8080
+// @BasePath /v1
+// @schemes  http https
 func main() {
 	models.ConnectDB()
 	go initDoDoBot()

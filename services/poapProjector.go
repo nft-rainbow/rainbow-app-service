@@ -18,20 +18,11 @@ type POAPRequest struct {
 	Command string `json:"command"`
 }
 
-func POAPProjectorConfig(config *models.POAPProjectorConfig, id uint) error{
-	config.RainbowUserId = int32(id)
-
-	res := models.GetDB().Create(&config)
-	if res.Error != nil {
-		return  res.Error
-	}
-	return nil
-}
-
 func POAPActivityConfig(config *models.POAPActivityConfig, id uint) error {
-	token, err := middlewares.GenPOAPOpenJWTByRainbowUserId(id)
+	config.RainbowUserId = int32(id)
+	token, err := middlewares.GenPOAPOpenJWTByRainbowUserId(*config)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if !config.IsCommandNeeded && config.Command == ""{

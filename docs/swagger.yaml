@@ -1,0 +1,1230 @@
+basePath: /v1
+definitions:
+  appService_errors.RainbowAppServiceErrorDetailInfo:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  discordgo.Channel:
+    properties:
+      application_id:
+        description: ApplicationID of the DM creator Zeroed if guild channel or not
+          a bot user
+        type: string
+      bitrate:
+        description: The bitrate of the channel, if it is a voice channel.
+        type: integer
+      guild_id:
+        description: |-
+          The ID of the guild to which the channel belongs, if it is in a guild.
+          Else, this ID is empty (e.g. DM channels).
+        type: string
+      icon:
+        description: Icon of the group DM channel.
+        type: string
+      id:
+        description: The ID of the channel.
+        type: string
+      last_message_id:
+        description: |-
+          The ID of the last message sent in the channel. This is not
+          guaranteed to be an ID of a valid message.
+        type: string
+      last_pin_timestamp:
+        description: |-
+          The timestamp of the last pinned message in the channel.
+          nil if the channel has no pinned messages.
+        type: string
+      member_count:
+        description: An approximate count of users in a thread, stops counting at
+          50
+        type: integer
+      message_count:
+        description: An approximate count of messages in a thread, stops counting
+          at 50
+        type: integer
+      name:
+        description: The name of the channel.
+        type: string
+      nsfw:
+        description: Whether the channel is marked as NSFW.
+        type: boolean
+      owner_id:
+        description: ID of the creator of the group DM or thread
+        type: string
+      parent_id:
+        description: The ID of the parent channel, if the channel is under a category.
+          For threads - id of the channel thread was created in.
+        type: string
+      permission_overwrites:
+        description: A list of permission overwrites present for the channel.
+        items:
+          $ref: '#/definitions/discordgo.PermissionOverwrite'
+        type: array
+      position:
+        description: The position of the channel, used for sorting in client.
+        type: integer
+      rate_limit_per_user:
+        description: |-
+          Amount of seconds a user has to wait before sending another message or creating another thread (0-21600)
+          bots, as well as users with the permission manage_messages or manage_channel, are unaffected
+        type: integer
+      recipients:
+        description: The recipients of the channel. This is only populated in DM channels.
+        items:
+          $ref: '#/definitions/discordgo.User'
+        type: array
+      thread_member:
+        $ref: '#/definitions/discordgo.ThreadMember'
+        description: Thread member object for the current user, if they have joined
+          the thread, only included on certain API endpoints
+        type: object
+      thread_metadata:
+        $ref: '#/definitions/discordgo.ThreadMetadata'
+        description: Thread-specific fields not needed by other channels
+        type: object
+      topic:
+        description: The topic of the channel.
+        type: string
+      type:
+        description: The type of the channel.
+        type: integer
+      user_limit:
+        description: The user limit of the voice channel.
+        type: integer
+    type: object
+  discordgo.PermissionOverwrite:
+    properties:
+      allow:
+        example: "0"
+        type: string
+      deny:
+        example: "0"
+        type: string
+      id:
+        type: string
+      type:
+        type: integer
+    type: object
+  discordgo.ThreadMember:
+    properties:
+      flags:
+        description: Any user-thread settings, currently only used for notifications
+        type: integer
+      id:
+        description: The id of the thread
+        type: string
+      join_timestamp:
+        description: The time the current user last joined the thread
+        type: string
+      user_id:
+        description: The id of the user
+        type: string
+    type: object
+  discordgo.ThreadMetadata:
+    properties:
+      archive_timestamp:
+        description: Timestamp when the thread's archive status was last changed,
+          used for calculating recent activity
+        type: string
+      archived:
+        description: Whether the thread is archived
+        type: boolean
+      auto_archive_duration:
+        description: 'Duration in minutes to automatically archive the thread after
+          recent activity, can be set to: 60, 1440, 4320, 10080'
+        type: integer
+      invitable:
+        description: Whether non-moderators can add other non-moderators to a thread;
+          only available on private threads
+        type: boolean
+      locked:
+        description: Whether the thread is locked; when a thread is locked, only users
+          with MANAGE_THREADS can unarchive it
+        type: boolean
+    type: object
+  discordgo.User:
+    properties:
+      accent_color:
+        description: User's banner color, encoded as an integer representation of
+          hexadecimal color code
+        type: integer
+      avatar:
+        description: |-
+          The hash of the user's avatar. Use Session.UserAvatar
+          to retrieve the avatar itself.
+        type: string
+      banner:
+        description: The hash of the user's banner image.
+        type: string
+      bot:
+        description: Whether the user is a bot.
+        type: boolean
+      discriminator:
+        description: The discriminator of the user (4 numbers after name).
+        type: string
+      email:
+        description: |-
+          The email of the user. This is only present when
+          the application possesses the email scope for the user.
+        type: string
+      flags:
+        description: |-
+          The flags on a user's account.
+          Only available when the request is authorized via a Bearer token.
+        type: integer
+      id:
+        description: The ID of the user.
+        type: string
+      locale:
+        description: The user's chosen language option.
+        type: string
+      mfa_enabled:
+        description: Whether the user has multi-factor authentication enabled.
+        type: boolean
+      premium_type:
+        description: |-
+          The type of Nitro subscription on a user's account.
+          Only available when the request is authorized via a Bearer token.
+        type: integer
+      public_flags:
+        description: |-
+          The public flags on a user's account.
+          This is a combination of bit masks; the presence of a certain flag can
+          be checked by performing a bitwise AND between this int and the flag.
+        type: integer
+      system:
+        description: Whether the user is an Official Discord System user (part of
+          the urgent message system).
+        type: boolean
+      token:
+        description: |-
+          The token of the user. This is only present for
+          the user represented by the current session.
+        type: string
+      username:
+        description: The user's username.
+        type: string
+      verified:
+        description: Whether the user's email is verified.
+        type: boolean
+    type: object
+  gorm.DeletedAt:
+    $ref: '#/definitions/sql.NullTime'
+  model.ChannelElement:
+    properties:
+      channelId:
+        description: 频道号
+        type: string
+      channelName:
+        description: 频道名称
+        type: string
+      channelType:
+        description: 频道类型，1：文字频道，2：语音频道，4：帖子频道，5：链接频道，6：资料频道
+        type: integer
+      defaultFlag:
+        description: 默认频道标识，0：否，1：是
+        type: integer
+      groupId:
+        description: 分组ID
+        type: string
+      groupName:
+        description: 分组名称
+        type: string
+    type: object
+  models.DiscordActivityQueryResult:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.DiscordCustomActivityConfig'
+        type: array
+    type: object
+  models.DiscordCustomActivityConfig:
+    properties:
+      amount:
+        type: integer
+      app_id:
+        type: integer
+      chain_type:
+        type: integer
+      channel_id:
+        type: string
+      contract_address:
+        type: string
+      contract_id:
+        type: integer
+      contract_type:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+        type: object
+      description:
+        type: string
+      event:
+        type: string
+      id:
+        type: integer
+      max_mint_count:
+        type: integer
+      metadata_uri:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - amount
+    - channel_id
+    - contract_id
+    - description
+    - event
+    - max_mint_count
+    - name
+    type: object
+  models.DiscordCustomProjectConfig:
+    properties:
+      Project_name:
+        type: string
+      app_id:
+        type: integer
+      chain_type:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+        type: object
+      description:
+        type: string
+      guild_id:
+        type: string
+      guild_name:
+        type: string
+      id:
+        type: integer
+      rainbow_user_id:
+        type: integer
+      updated_at:
+        type: string
+    required:
+    - Project_name
+    - app_id
+    - chain_type
+    - description
+    - guild_id
+    type: object
+  models.DiscordCustomProjectConfigQueryResult:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.DiscordCustomProjectConfig'
+        type: array
+    type: object
+  models.DoDoActivityQueryResult:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.DoDoCustomActivityConfig'
+        type: array
+    type: object
+  models.DoDoCustomActivityConfig:
+    properties:
+      amount:
+        type: integer
+      app_id:
+        type: integer
+      chain_type:
+        type: integer
+      channel_id:
+        type: string
+      contract_address:
+        type: string
+      contract_id:
+        type: integer
+      contract_type:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+        type: object
+      description:
+        type: string
+      event:
+        type: string
+      id:
+        type: integer
+      max_mint_count:
+        type: integer
+      metadata_uri:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - amount
+    - channel_id
+    - contract_id
+    - description
+    - event
+    - max_mint_count
+    - name
+    type: object
+  models.DoDoCustomProjectConfig:
+    properties:
+      Project_name:
+        type: string
+      app_id:
+        type: integer
+      chain_type:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+        type: object
+      description:
+        type: string
+      id:
+        type: integer
+      island_id:
+        type: string
+      island_name:
+        type: string
+      rainbow_user_id:
+        type: integer
+      updated_at:
+        type: string
+    required:
+    - Project_name
+    - app_id
+    - chain_type
+    - description
+    - island_id
+    type: object
+  models.DoDoCustomProjectConfigQueryResult:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.DoDoCustomProjectConfig'
+        type: array
+    type: object
+  models.POAPActivityConfig:
+    properties:
+      amount:
+        type: integer
+      app_id:
+        type: integer
+      button_word_color:
+        type: integer
+      chain_type:
+        type: integer
+      claim_button_color:
+        type: integer
+      command:
+        type: string
+      content:
+        type: string
+      content_color:
+        type: integer
+      content_size:
+        type: integer
+      contract_address:
+        type: string
+      contract_id:
+        type: integer
+      contract_type:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+        type: object
+      description:
+        type: string
+      end_time:
+        type: integer
+      id:
+        type: integer
+      is_command_needed:
+        type: boolean
+      link:
+        type: string
+      logo_url:
+        type: string
+      metadata_uri:
+        type: string
+      mobile_picture_url:
+        type: string
+      name:
+        type: string
+      pc_picture_url:
+        type: string
+      rainbow_user_id:
+        type: integer
+      start_time:
+        type: integer
+      title:
+        type: string
+      title_color:
+        type: integer
+      title_size:
+        type: integer
+      updated_at:
+        type: string
+    required:
+    - amount
+    - app_id
+    - contract_id
+    - description
+    - metadata_uri
+    - name
+    type: object
+  models.POAPActivityQueryResult:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.POAPActivityConfig'
+        type: array
+    type: object
+  rainbowsdk.GormDeletedAt:
+    properties:
+      additionalProperties:
+        additionalProperties: true
+        type: object
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  rainbowsdk.ModelsMintTask:
+    properties:
+      additionalProperties:
+        additionalProperties: true
+        type: object
+      amount:
+        type: integer
+      app_id:
+        type: integer
+      chain_id:
+        type: integer
+      chain_type:
+        type: integer
+      contract:
+        type: string
+      contract_type:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/rainbowsdk.GormDeletedAt'
+        type: object
+      error:
+        type: string
+      hash:
+        type: string
+      id:
+        type: integer
+      mint_to:
+        type: string
+      mint_type:
+        type: integer
+      status:
+        description: 0-pending, 1-success, 2-failed
+        type: integer
+      token_id:
+        type: string
+      token_uri:
+        type: string
+      tx_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  services.POAPRequest:
+    properties:
+      command:
+        type: string
+      contract_id:
+        type: integer
+      name:
+        type: string
+      user_address:
+        type: string
+    required:
+    - contract_id
+    - name
+    type: object
+  sql.NullTime:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+host: api.nftrainbow.cn
+info:
+  contact: {}
+  description: The responses of the open api in swagger focus on the data field rather
+    than the code and the message fields
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Rainbow-APP-Service
+  version: "1.0"
+paths:
+  /custom/discord/{guild_id}/channels:
+    get:
+      description: Get Discord Channel detail info
+      operationId: GetDiscordChannelDetail
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: guild_id
+        in: path
+        name: guild_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/discordgo.Channel'
+            type: array
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Discord Channel detail
+      tags:
+      - CustomMint
+  /custom/discord/activity/{id}:
+    get:
+      description: Get Discord custom Activity detail info
+      operationId: GetDiscordCustomActivityDetail
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DiscordCustomActivityConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Discord custom Activity detail
+      tags:
+      - CustomMint
+  /custom/discord/projector/:
+    get:
+      description: Get Discord custom project list
+      operationId: GetDiscordCustomProjectList
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DiscordCustomProjectConfigQueryResult'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Discord custom project list
+      tags:
+      - CustomMint
+    post:
+      description: Set Discord custom project config
+      operationId: SetDiscordCustomProjectConfig
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: discord_custom_project_dto
+        in: body
+        name: discord_custom_project_dto
+        required: true
+        schema:
+          $ref: '#/definitions/models.DiscordCustomProjectConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Set Discord custom project
+      tags:
+      - CustomMint
+  /custom/discord/projector/{id}:
+    get:
+      description: Get DoDo custom project detail info
+      operationId: GetDoDoCustomProjectDetail
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DoDoCustomProjectConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get DoDo custom project detail
+      tags:
+      - CustomMint
+  /custom/discord/projector/activity:
+    get:
+      description: Get Discord custom Activity list
+      operationId: GetDiscordCustomActivityList
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DiscordActivityQueryResult'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Discord custom Activity list
+      tags:
+      - CustomMint
+    post:
+      description: Set Discord custom Activity config
+      operationId: SetDiscordCustomActivityConfig
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: discord_custom_activity_dto
+        in: body
+        name: discord_custom_activity_dto
+        required: true
+        schema:
+          $ref: '#/definitions/models.DiscordCustomActivityConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Set Discord custom Activity
+      tags:
+      - CustomMint
+  /custom/dodo/{island_id}/channels:
+    get:
+      description: Get DoDo Channel detail info
+      operationId: GetDoDoChannelDetail
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: island_id
+        in: path
+        name: island_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ChannelElement'
+            type: array
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: DoDo Channel detail
+      tags:
+      - CustomMint
+  /custom/dodo/activity/{id}:
+    get:
+      description: Get DoDo custom Activity detail info
+      operationId: GetDoDoCustomActivityDetail
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DoDoCustomActivityConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get DoDo custom Activity detail
+      tags:
+      - CustomMint
+  /custom/dodo/projector/:
+    get:
+      description: Get DoDo custom project list
+      operationId: GetDoDoCustomProjectList
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DoDoCustomProjectConfigQueryResult'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get DoDo custom project list
+      tags:
+      - CustomMint
+    post:
+      description: Set DoDo custom project config
+      operationId: SetDoDoCustomProjectConfig
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: discord_custom_project_dto
+        in: body
+        name: discord_custom_project_dto
+        required: true
+        schema:
+          $ref: '#/definitions/models.DoDoCustomProjectConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Set DoDo custom project
+      tags:
+      - CustomMint
+  /custom/dodo/projector/activity:
+    get:
+      description: Get DoDo custom Activity list
+      operationId: GetDoDoCustomActivityList
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DoDoActivityQueryResult'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get DoDo custom Activity list
+      tags:
+      - CustomMint
+    post:
+      description: Set DoDo custom Activity config
+      operationId: SetDoDoCustomActivityConfig
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: dodo_custom_activity_dto
+        in: body
+        name: dodo_custom_activity_dto
+        required: true
+        schema:
+          $ref: '#/definitions/models.DoDoCustomActivityConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Set DoDo custom Activity
+      tags:
+      - CustomMint
+  /poap/mint/activity:
+    get:
+      description: Get POAP Activity detail info
+      operationId: GetPOAPActivityDetail
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.POAPActivityConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get POAP Activity detail
+      tags:
+      - POAP
+    post:
+      description: Set POAP Activity
+      operationId: SetPOAPActivity
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: poap_activity_config
+        in: body
+        name: poap_activity_config
+        required: true
+        schema:
+          $ref: '#/definitions/models.POAPActivityConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Set POAP Activity
+      tags:
+      - POAP
+  /poap/mint/activity/{id}:
+    get:
+      description: Get POAP Activity list
+      operationId: GetPOAPActivityList
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.POAPActivityQueryResult'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get POAP Activity list
+      tags:
+      - POAP
+  /poap/mint/csv:
+    post:
+      consumes:
+      - multipart/form-data
+      description: POAP Mint By CSV file
+      operationId: POAPMintByCSV
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: uploaded csv file
+        in: formData
+        name: list
+        required: true
+        type: file
+      - description: activity name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: contract id
+        in: formData
+        name: contract_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/rainbowsdk.ModelsMintTask'
+            type: array
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: POAP Mint By CSV
+      tags:
+      - POAP
+  /poap/mint/h5:
+    post:
+      description: POAP Mint By H5
+      operationId: POAPMintByH5
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: poap_h5_mint_dto
+        in: body
+        name: poap_h5_mint_dto
+        required: true
+        schema:
+          $ref: '#/definitions/services.POAPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rainbowsdk.ModelsMintTask'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: POAP Mint By H5
+      tags:
+      - POAP
+schemes:
+- http
+- https
+swagger: "2.0"
