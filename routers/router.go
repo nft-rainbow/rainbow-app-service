@@ -47,8 +47,8 @@ func SetupRoutes(router *gin.Engine) {
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		poap.POST("/activity", setPOAPActivityConfig)
-		poap.POST("/mint/csv", poapMintByCSV)
-		poap.POST("/mint/h5", poapMintByH5)
+		poap.POST("/csv", poapMintByCSV)
+		poap.POST("/h5", poapMintByH5)
 		poap.GET("/activity", getPOAPActivityList)
 		poap.GET("/activity/:id", getPOAPActivity)
 	}
