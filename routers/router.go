@@ -47,10 +47,13 @@ func SetupRoutes(router *gin.Engine) {
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		poap.POST("/activity", setPOAPActivityConfig)
-		poap.POST("/csv", poapMintByCSV)
+		poap.POST("/activity/h5", setPOAPH5Config)
+		poap.POST("/csv/:activity_id", poapMintByCSV)
 		poap.POST("/h5", poapMintByH5)
 		poap.GET("/activity", getPOAPActivityList)
 		poap.GET("/activity/:id", getPOAPActivity)
+		poap.GET("/activity/result/:activity_id", getPOAPAResultList)
+		poap.GET("/activity/result/:activity_id/:id", getPOAPAResult)
 	}
 }
 

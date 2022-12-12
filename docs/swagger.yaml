@@ -422,19 +422,13 @@ definitions:
           $ref: '#/definitions/models.DoDoCustomProjectConfig'
         type: array
     type: object
-  models.POAPActivityConfig:
+  models.H5Config:
     properties:
-      amount:
-        type: integer
-      app_id:
+      activity_id:
         type: integer
       button_word_color:
         type: integer
-      chain_type:
-        type: integer
       claim_button_color:
-        type: integer
-      command:
         type: string
       content:
         type: string
@@ -442,6 +436,42 @@ definitions:
         type: integer
       content_size:
         type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+        type: object
+      id:
+        type: integer
+      link:
+        type: string
+      logo_url:
+        type: string
+      mobile_picture_url:
+        type: string
+      pc_picture_url:
+        type: string
+      title:
+        type: string
+      title_color:
+        type: integer
+      title_size:
+        type: integer
+      updated_at:
+        type: string
+    required:
+    - link
+    type: object
+  models.POAPActivityConfig:
+    properties:
+      amount:
+        type: integer
+      app_id:
+        type: integer
+      chain_type:
+        type: integer
+      command:
+        type: string
       contract_address:
         type: string
       contract_id:
@@ -461,27 +491,13 @@ definitions:
         type: integer
       is_command_needed:
         type: boolean
-      link:
-        type: string
-      logo_url:
-        type: string
       metadata_uri:
         type: string
-      mobile_picture_url:
-        type: string
       name:
-        type: string
-      pc_picture_url:
         type: string
       rainbow_user_id:
         type: integer
       start_time:
-        type: integer
-      title:
-        type: string
-      title_color:
-        type: integer
-      title_size:
         type: integer
       updated_at:
         type: string
@@ -500,6 +516,40 @@ definitions:
       items:
         items:
           $ref: '#/definitions/models.POAPActivityConfig'
+        type: array
+    type: object
+  models.POAPResult:
+    properties:
+      activity_id:
+        type: integer
+      address:
+        type: string
+      contract_id:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+        type: object
+      id:
+        type: integer
+      token_id:
+        type: string
+      tx_id:
+        type: integer
+      updated_at:
+        type: string
+    required:
+    - address
+    - contract_id
+    type: object
+  models.POAPResultQueryResult:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.POAPResult'
         type: array
     type: object
   rainbowsdk.GormDeletedAt:
@@ -559,17 +609,14 @@ definitions:
     type: object
   services.POAPRequest:
     properties:
-      command:
-        type: string
-      contract_id:
+      activity_id:
         type: integer
-      name:
+      command:
         type: string
       user_address:
         type: string
     required:
-    - contract_id
-    - name
+    - activity_id
     type: object
   sql.NullTime:
     properties:
@@ -579,7 +626,7 @@ definitions:
         description: Valid is true if Time is not NULL
         type: boolean
     type: object
-host: api.nftrainbow.cn
+host: 127.0.0.1:8080
 info:
   contact: {}
   description: The responses of the open api in swagger focus on the data field rather
@@ -1031,77 +1078,7 @@ paths:
       summary: Set DoDo custom Activity
       tags:
       - CustomMint
-  /poap/mint/activity:
-    get:
-      description: Get POAP Activity detail info
-      operationId: GetPOAPActivityDetail
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.POAPActivityConfig'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Get POAP Activity detail
-      tags:
-      - POAP
-    post:
-      description: Set POAP Activity
-      operationId: SetPOAPActivity
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: poap_activity_config
-        in: body
-        name: poap_activity_config
-        required: true
-        schema:
-          $ref: '#/definitions/models.POAPActivityConfig'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: success
-          schema:
-            type: string
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Set POAP Activity
-      tags:
-      - POAP
-  /poap/mint/activity/{id}:
+  /poap/activity:
     get:
       description: Get POAP Activity list
       operationId: GetPOAPActivityList
@@ -1139,7 +1116,181 @@ paths:
       summary: Get POAP Activity list
       tags:
       - POAP
-  /poap/mint/csv:
+    post:
+      description: Set POAP Activity
+      operationId: SetPOAPActivity
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: poap_activity_config
+        in: body
+        name: poap_activity_config
+        required: true
+        schema:
+          $ref: '#/definitions/models.POAPActivityConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.POAPActivityConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Set POAP Activity
+      tags:
+      - POAP
+  /poap/activity/{activity_id}:
+    get:
+      description: Get POAP Result list
+      operationId: GetPOAPResultList
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.POAPResultQueryResult'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get POAP Result list
+      tags:
+      - POAP
+  /poap/activity/{activity_id}/{id}:
+    get:
+      description: Get POAP Result
+      operationId: GetPOAPResult
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.POAPResult'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get POAP Result
+      tags:
+      - POAP
+  /poap/activity/{id}:
+    get:
+      description: Get POAP Activity detail info
+      operationId: GetPOAPActivityDetail
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.POAPActivityConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get POAP Activity detail
+      tags:
+      - POAP
+  /poap/activity/h5:
+    post:
+      description: Set H5 Page Config
+      operationId: SetH5Config
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: poap_h5_config
+        in: body
+        name: poap_h5_config
+        required: true
+        schema:
+          $ref: '#/definitions/models.H5Config'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.H5Config'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Set H5 Config
+      tags:
+      - POAP
+  /poap/csv/:activity_id:
     post:
       consumes:
       - multipart/form-data
@@ -1188,7 +1339,7 @@ paths:
       summary: POAP Mint By CSV
       tags:
       - POAP
-  /poap/mint/h5:
+  /poap/h5:
     post:
       description: POAP Mint By H5
       operationId: POAPMintByH5

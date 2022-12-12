@@ -12,26 +12,25 @@ import (
 )
 
 type POAPRequest struct {
-	ContractID int32 `json:"contract_id" binding:"required"`
-	Name string `json:"name" binding:"required"`
+	ActivityID int32 `json:"activity_id" binding:"required"`
 	UserAddress string `json:"user_address"`
 	Command string `json:"command"`
 }
 
-func POAPActivityConfig(config *models.POAPActivityConfig, id uint) error {
+func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POAPActivityConfig, error) {
 	config.RainbowUserId = int32(id)
 	token, err := middlewares.GenPOAPOpenJWTByRainbowUserId(*config)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !config.IsCommandNeeded && config.Command == ""{
-		return fmt.Errorf("The corresponding command is needed.")
+		return nil, fmt.Errorf("The corresponding command is needed.")
 	}
 
 	info, err := GetContractInfo(config.ContractID, "Bearer " + token)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	config.ContractType = *info.Type
 	config.Chain = *info.ChainType
@@ -40,21 +39,34 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) error {
 
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
-		return  res.Error
+		return nil, res.Error
 	}
 
-	return nil
+	return config, nil
+}
+
+func POAPH5Config(config *models.H5Config, id uint) (*models.H5Config, error) {
+	config.RainbowUserId = int32(id)
+
+	res := models.GetDB().Create(&config)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	return config, nil
 }
 
 func HandlePOAPCSVMint(records [][]string, req *POAPRequest) ([]openapiclient.ModelsMintTask, error){
-	token, err := middlewares.GeneratePOAPOpenJWT(req.Name, req.ContractID)
+	config, err := models.FindPOAPActivityConfigById(int(req.ActivityID))
 	if err != nil {
 		return nil, err
 	}
-	config, err := models.FindPOAPActivityConfig(req.Name, req.ContractID)
+
+	token, err := middlewares.GeneratePOAPOpenJWT(config.Name, config.ContractID)
 	if err != nil {
 		return nil, err
 	}
+
 
 	if config.StartedTime != -1 && config.EndedTime != -1 && (time.Now().Unix() < config.StartedTime  || time.Now().Unix() > config.EndedTime) {
 		return nil, fmt.Errorf("The activity has already expired or has not been started")
@@ -81,13 +93,6 @@ func HandlePOAPCSVMint(records [][]string, req *POAPRequest) ([]openapiclient.Mo
 			MintToAddress: address,
 		}
 
-		err = models.StorePOAPResult(models.POAPResult{
-			Address: address,
-			ContractID: req.ContractID,
-		})
-		if err != nil {
-			return nil, err
-		}
 		mintItems = append(mintItems, *tmp)
 	}
 
@@ -112,18 +117,34 @@ func HandlePOAPCSVMint(records [][]string, req *POAPRequest) ([]openapiclient.Mo
 		return nil, err
 	}
 
+	for _, task := range resp {
+		err = models.StorePOAPResult(models.POAPResult{
+			ActivityID: int32(config.ID),
+			Address: *task.MintTo,
+			ContractID: config.ContractID,
+			TxID: *task.Id,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	go SyncNFTMintTaskStatus(token, int32(config.ID))
+
 	return resp, nil
 }
 
 func HandlePOAPH5Mint(req *POAPRequest) (*openapiclient.ModelsMintTask, error){
-	token, err := middlewares.GeneratePOAPOpenJWT(req.Name, req.ContractID)
+	config, err := models.FindPOAPActivityConfigById(int(req.ActivityID))
 	if err != nil {
 		return nil, err
 	}
-	config, err := models.FindPOAPActivityConfig(req.Name, req.ContractID)
+
+	token, err := middlewares.GeneratePOAPOpenJWT(config.Name, config.ContractID)
 	if err != nil {
 		return nil, err
 	}
+
 	if config.IsCommandNeeded && req.Command != config.Command{
 		return nil, fmt.Errorf("The command is worng")
 	}
@@ -154,12 +175,16 @@ func HandlePOAPH5Mint(req *POAPRequest) (*openapiclient.ModelsMintTask, error){
 	}
 
 	err = models.StorePOAPResult(models.POAPResult{
+		ActivityID: int32(config.ID),
 		Address: req.UserAddress,
-		ContractID: req.ContractID,
+		ContractID: config.ContractID,
+		TxID: *resp.Id,
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	go SyncNFTMintTaskStatus(token, int32(config.ID))
 
 	return resp, nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"net/http"
 	"time"
@@ -175,11 +176,12 @@ func sendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto
 func getTokenId(id int32, token string) (string, error) {
 	//configuration := openapiclient.NewConfiguration()
 	//apiClient := openapiclient.NewAPIClient(configuration)
-	fmt.Println("Start to get token Id")
+	//fmt.Println("Start to get token Id")
 	resp, _, err := newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
 		return "", err
 	}
+
 	for resp.TokenId == nil && *resp.Status != 1 {
 		resp, _, err = newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 		if err != nil {
@@ -211,4 +213,24 @@ func newClient() *openapiclient.APIClient {
 	}
 	apiClient := openapiclient.NewAPIClient(configuration)
 	return apiClient
+}
+
+func SyncNFTMintTaskStatus(token string, id int32) {
+	logrus.Info("start task for syncing nft mint status")
+	var mintTasks []*models.POAPResult
+
+	models.GetDB().Where("token_id = ?", "").Limit(100).Find(&mintTasks).Where("activity_id = ?", id).Limit(100).Find(&mintTasks)
+	if len(mintTasks) == 0 {
+		return
+	}else {
+		for _, mintTask := range mintTasks {
+			tokenId, _ := getTokenId(mintTask.TxID, "Bearer " + token)
+			if tokenId != "" {
+				mintTask.TokenID = tokenId
+			}
+			models.GetDB().Save(&mintTask)
+		}
+
+		time.Sleep(time.Second * 5)
+	}
 }

@@ -14,7 +14,7 @@
         },
         "version": "1.0"
     },
-    "host": "api.nftrainbow.cn",
+    "host": "127.0.0.1:8080",
     "basePath": "/v1",
     "paths": {
         "/custom/discord/activity/{id}": {
@@ -701,115 +701,7 @@
                 }
             }
         },
-        "/poap/mint/activity": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get POAP Activity detail info",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Get POAP Activity detail",
-                "operationId": "GetPOAPActivityDetail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.POAPActivityConfig"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Set POAP Activity",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Set POAP Activity",
-                "operationId": "SetPOAPActivity",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "poap_activity_config",
-                        "name": "poap_activity_config",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.POAPActivityConfig"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/poap/mint/activity/{id}": {
+        "/poap/activity": {
             "get": {
                 "security": [
                     {
@@ -866,9 +758,279 @@
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Set POAP Activity",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Set POAP Activity",
+                "operationId": "SetPOAPActivity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "poap_activity_config",
+                        "name": "poap_activity_config",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.POAPActivityConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.POAPActivityConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
             }
         },
-        "/poap/mint/csv": {
+        "/poap/activity/h5": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Set H5 Page Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Set H5 Config",
+                "operationId": "SetH5Config",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "poap_h5_config",
+                        "name": "poap_h5_config",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.H5Config"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.H5Config"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/poap/activity/{activity_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get POAP Result list",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Get POAP Result list",
+                "operationId": "GetPOAPResultList",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.POAPResultQueryResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/poap/activity/{activity_id}/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get POAP Result",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Get POAP Result",
+                "operationId": "GetPOAPResult",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.POAPResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/poap/activity/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get POAP Activity detail info",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Get POAP Activity detail",
+                "operationId": "GetPOAPActivityDetail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.POAPActivityConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/poap/csv/:activity_id": {
             "post": {
                 "security": [
                     {
@@ -942,7 +1104,7 @@
                 }
             }
         },
-        "/poap/mint/h5": {
+        "/poap/h5": {
             "post": {
                 "security": [
                     {
@@ -1552,6 +1714,66 @@
                 }
             }
         },
+        "models.H5Config": {
+            "type": "object",
+            "required": [
+                "link"
+            ],
+            "properties": {
+                "activity_id": {
+                    "type": "integer"
+                },
+                "button_word_color": {
+                    "type": "integer"
+                },
+                "claim_button_color": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "content_color": {
+                    "type": "integer"
+                },
+                "content_size": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "object",
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "logo_url": {
+                    "type": "string"
+                },
+                "mobile_picture_url": {
+                    "type": "string"
+                },
+                "pc_picture_url": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "title_color": {
+                    "type": "integer"
+                },
+                "title_size": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "models.POAPActivityConfig": {
             "type": "object",
             "required": [
@@ -1569,26 +1791,11 @@
                 "app_id": {
                     "type": "integer"
                 },
-                "button_word_color": {
-                    "type": "integer"
-                },
                 "chain_type": {
-                    "type": "integer"
-                },
-                "claim_button_color": {
                     "type": "integer"
                 },
                 "command": {
                     "type": "string"
-                },
-                "content": {
-                    "type": "string"
-                },
-                "content_color": {
-                    "type": "integer"
-                },
-                "content_size": {
-                    "type": "integer"
                 },
                 "contract_address": {
                     "type": "string"
@@ -1618,37 +1825,16 @@
                 "is_command_needed": {
                     "type": "boolean"
                 },
-                "link": {
-                    "type": "string"
-                },
-                "logo_url": {
-                    "type": "string"
-                },
                 "metadata_uri": {
                     "type": "string"
                 },
-                "mobile_picture_url": {
-                    "type": "string"
-                },
                 "name": {
-                    "type": "string"
-                },
-                "pc_picture_url": {
                     "type": "string"
                 },
                 "rainbow_user_id": {
                     "type": "integer"
                 },
                 "start_time": {
-                    "type": "integer"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "title_color": {
-                    "type": "integer"
-                },
-                "title_size": {
                     "type": "integer"
                 },
                 "updated_at": {
@@ -1666,6 +1852,57 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.POAPActivityConfig"
+                    }
+                }
+            }
+        },
+        "models.POAPResult": {
+            "type": "object",
+            "required": [
+                "address",
+                "contract_id"
+            ],
+            "properties": {
+                "activity_id": {
+                    "type": "integer"
+                },
+                "address": {
+                    "type": "string"
+                },
+                "contract_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "object",
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "token_id": {
+                    "type": "string"
+                },
+                "tx_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.POAPResultQueryResult": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.POAPResult"
                     }
                 }
             }
@@ -1754,17 +1991,13 @@
         "services.POAPRequest": {
             "type": "object",
             "required": [
-                "contract_id",
-                "name"
+                "activity_id"
             ],
             "properties": {
-                "command": {
-                    "type": "string"
-                },
-                "contract_id": {
+                "activity_id": {
                     "type": "integer"
                 },
-                "name": {
+                "command": {
                     "type": "string"
                 },
                 "user_address": {
