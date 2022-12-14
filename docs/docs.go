@@ -44,6 +44,15 @@ var doc = `{
                 ],
                 "summary": "Get Discord custom Activity detail",
                 "operationId": "GetDiscordCustomActivityDetail",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -413,6 +422,15 @@ var doc = `{
                 ],
                 "summary": "Get DoDo custom Activity detail",
                 "operationId": "GetDoDoCustomActivityDetail",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -916,6 +934,13 @@ var doc = `{
                         "description": "limit",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "activity_id",
+                        "name": "activity_id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -962,6 +987,20 @@ var doc = `{
                         "description": "Bearer JWT",
                         "name": "Authorization",
                         "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "activity_id",
+                        "name": "activity_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -1076,17 +1115,10 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "activity name",
-                        "name": "name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "contract id",
-                        "name": "contract_id",
-                        "in": "formData",
+                        "type": "integer",
+                        "description": "activity_id",
+                        "name": "activity_id",
+                        "in": "path",
                         "required": true
                     }
                 ],

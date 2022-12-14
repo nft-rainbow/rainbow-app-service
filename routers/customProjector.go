@@ -153,6 +153,7 @@ func getDoDoCustomActivityList(c *gin.Context) {
 // @Description Get Discord custom Activity detail info
 // @security    ApiKeyAuth
 // @Produce     json
+// @Param       id            path     int    true "id"
 // @Success     200           {object} models.DiscordCustomActivityConfig
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
@@ -173,6 +174,7 @@ func getDiscordCustomActivity(c *gin.Context) {
 // @Description Get DoDo custom Activity detail info
 // @security    ApiKeyAuth
 // @Produce     json
+// @Param       id            path     int    true "id"
 // @Success     200           {object} models.DoDoCustomActivityConfig
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"

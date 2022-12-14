@@ -22,8 +22,7 @@ const FileKey = "list"
 // @Accept      mpfd
 // @Param       Authorization header   string true "Bearer JWT"
 // @Param       list          formData file   true "uploaded csv file"
-// @Param       name          formData string   true "activity name"
-// @Param       contract_id   formData string   true "contract id"
+// @Param       activity_id   path     int    true "activity_id"
 // @Success     200           {array} rainbowsdk.ModelsMintTask
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
@@ -184,6 +183,7 @@ func setPOAPH5Config(c *gin.Context) {
 // @Param       Authorization header   string true "Bearer JWT"
 // @Param       page          query    integer false "page"
 // @Param       limit         query    integer false "limit"
+// @Param       activity_id   path     int    true "activity_id"
 // @Success     200           {object} models.POAPResultQueryResult
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
@@ -211,6 +211,8 @@ func getPOAPAResultList(c *gin.Context) {
 // @security    ApiKeyAuth
 // @Produce     json
 // @Param       Authorization header   string true "Bearer JWT"
+// @Param       activity_id   path     int    true "activity_id"
+// @Param       id            path     int    true "id"
 // @Success     200           {object} models.POAPResult
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"

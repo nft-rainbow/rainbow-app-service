@@ -674,6 +674,12 @@ paths:
     get:
       description: Get Discord custom Activity detail info
       operationId: GetDiscordCustomActivityDetail
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -912,6 +918,12 @@ paths:
     get:
       description: Get DoDo custom Activity detail info
       operationId: GetDoDoCustomActivityDetail
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -1169,6 +1181,11 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: activity_id
+        in: path
+        name: activity_id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -1199,6 +1216,16 @@ paths:
         name: Authorization
         required: true
         type: string
+      - description: activity_id
+        in: path
+        name: activity_id
+        required: true
+        type: integer
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -1307,16 +1334,11 @@ paths:
         name: list
         required: true
         type: file
-      - description: activity name
-        in: formData
-        name: name
+      - description: activity_id
+        in: path
+        name: activity_id
         required: true
-        type: string
-      - description: contract id
-        in: formData
-        name: contract_id
-        required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
