@@ -22,7 +22,7 @@ const FileKey = "list"
 // @Accept      mpfd
 // @Param       Authorization header   string true "Bearer JWT"
 // @Param       list          formData file   true "uploaded csv file"
-// @Param       activity_id   path     int    true "activity_id"
+// @Param       activity_id   path     int    true "activity_id"`
 // @Success     200           {array} rainbowsdk.ModelsMintTask
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
