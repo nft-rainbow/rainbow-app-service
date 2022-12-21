@@ -45,9 +45,7 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POA
 	return config, nil
 }
 
-func POAPH5Config(config *models.H5Config, id uint) (*models.H5Config, error) {
-	config.RainbowUserId = int32(id)
-
+func POAPH5Config(config *models.H5Config) (*models.H5Config, error) {
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
 		return nil, res.Error
@@ -100,15 +98,10 @@ func HandlePOAPCSVMint(records [][]string, req *POAPRequest) ([]openapiclient.Mo
 	if err != nil {
 		return nil, err
 	}
-	contractType, err := utils.ContractTypeByTypeId(uint(config.ContractType))
-	if err != nil {
-		return nil, err
-	}
 
 	dto := &openapiclient.ServicesCustomMintBatchDto{
 		Chain: chainType,
 		ContractAddress: config.ContractAddress,
-		ContractType: contractType,
 		MintItems: mintItems,
 	}
 
@@ -158,14 +151,9 @@ func HandlePOAPH5Mint(req *POAPRequest) (*openapiclient.ModelsMintTask, error){
 	if err != nil {
 		return nil, err
 	}
-	contractType, err := utils.ContractTypeByTypeId(uint(config.ContractType))
-	if err != nil {
-		return nil, err
-	}
 
 	resp, err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
 		Chain: chainType,
-		ContractType: contractType,
 		ContractAddress: config.ContractAddress,
 		MintToAddress: req.UserAddress,
 		MetadataUri: &config.MetadataURI,

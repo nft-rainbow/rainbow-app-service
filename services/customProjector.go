@@ -124,14 +124,9 @@ func dodoCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask, s
 	if err != nil {
 		return nil, "", 0, err
 	}
-	contractType, err := utils.ContractTypeByTypeId(uint(config.ContractType))
-	if err != nil {
-		return nil, "", 0, err
-	}
 
 	resp , err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
 		Chain: chainType,
-		ContractType: contractType,
 		ContractAddress: config.ContractAddress,
 		MintToAddress: cfxAddress,
 		MetadataUri: &config.MetadataURI,
@@ -168,14 +163,9 @@ func discordCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask
 	if err != nil {
 		return nil, "", 0, err
 	}
-	contractType, err := utils.ContractTypeByTypeId(uint(config.ContractType))
-	if err != nil {
-		return nil, "", 0, err
-	}
 
 	resp , err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
 		Chain: chainType,
-		ContractType: contractType,
 		ContractAddress: config.ContractAddress,
 		MintToAddress: cfxAddress,
 		MetadataUri: &config.MetadataURI,

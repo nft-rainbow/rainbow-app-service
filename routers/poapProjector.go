@@ -170,7 +170,7 @@ func setPOAPH5Config(c *gin.Context) {
 		return
 	}
 
-	resp, err := services.POAPH5Config(config, GetIdFromJwtClaim(c))
+	resp, err := services.POAPH5Config(config)
 	ginutils.RenderResp(c, resp, err)
 }
 

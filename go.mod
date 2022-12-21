@@ -10,7 +10,7 @@ require (
 	github.com/dodo-open/dodo-open-go v0.0.0-20220905103425-3e85ab616f11
 	github.com/ethereum/go-ethereum v1.10.15
 	github.com/gin-gonic/gin v1.8.1
-	github.com/nft-rainbow/rainbow-sdk-go v0.1.2
+	github.com/nft-rainbow/rainbow-sdk-go v0.1.4-0.20221220081223-929302b8de81
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/viper v1.13.0
 	github.com/swaggo/files v0.0.0-20220728132757-551d4a08d97a
