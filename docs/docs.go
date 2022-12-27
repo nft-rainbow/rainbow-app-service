@@ -1088,9 +1088,6 @@ var doc = `{
                     }
                 ],
                 "description": "POAP Mint By CSV file",
-                "consumes": [
-                    "multipart/form-data"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -1108,18 +1105,13 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "file",
-                        "description": "uploaded csv file",
-                        "name": "list",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "activity_id",
-                        "name": "activity_id",
-                        "in": "path",
-                        "required": true
+                        "description": "poap_csv_mint_dto",
+                        "name": "poap_csv_mint_dto",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.POAPRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -1824,8 +1816,11 @@ var doc = `{
                 "app_id",
                 "contract_id",
                 "description",
+                "end_time",
+                "max_mint_count",
                 "metadata_uri",
-                "name"
+                "name",
+                "start_time"
             ],
             "properties": {
                 "amount": {
@@ -1865,8 +1860,8 @@ var doc = `{
                 "id": {
                     "type": "integer"
                 },
-                "is_command_needed": {
-                    "type": "boolean"
+                "max_mint_count": {
+                    "type": "integer"
                 },
                 "metadata_uri": {
                     "type": "string"
@@ -1882,6 +1877,12 @@ var doc = `{
                 },
                 "updated_at": {
                     "type": "string"
+                },
+                "white_list_infos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.WhiteListInfo"
+                    }
                 }
             }
         },
@@ -1947,6 +1948,33 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/models.POAPResult"
                     }
+                }
+            }
+        },
+        "models.WhiteListInfo": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "object",
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "poapactivityConfigID": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
                 }
             }
         },
@@ -2034,7 +2062,8 @@ var doc = `{
         "services.POAPRequest": {
             "type": "object",
             "required": [
-                "activity_id"
+                "activity_id",
+                "user_address"
             ],
             "properties": {
                 "activity_id": {

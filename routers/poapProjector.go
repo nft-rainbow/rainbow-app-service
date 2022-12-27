@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"encoding/csv"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
@@ -11,46 +10,26 @@ import (
 	"strconv"
 )
 
-const FileKey = "list"
-
 // @Tags        POAP
 // @ID          POAPMintByCSV
 // @Summary     POAP Mint By CSV
 // @Description POAP Mint By CSV file
 // @security    ApiKeyAuth
 // @Produce     json
-// @Accept      mpfd
 // @Param       Authorization header   string true "Bearer JWT"
-// @Param       list          formData file   true "uploaded csv file"
-// @Param       activity_id   path     int    true "activity_id"`
+// @Param       poap_csv_mint_dto body  services.POAPRequest true "poap_csv_mint_dto"
 // @Success     200           {array} rainbowsdk.ModelsMintTask
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/csv/:activity_id [post]
 func poapMintByCSV(c *gin.Context) {
 	poapRequest := services.POAPRequest{}
-	activityId, err := strconv.Atoi(c.Param("activity_id"))
-	if err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	poapRequest.ActivityID = int32(activityId)
-
-	file, err := c.FormFile(FileKey)
-	if err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	files, _ := file.Open()
-	defer files.Close()
-
-	content, err := csv.NewReader(files).ReadAll()
-	if err != nil {
+	if err := c.ShouldBind(&poapRequest); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
 
-	resp, err := services.HandlePOAPCSVMint(content, &poapRequest)
+	resp, err := services.HandlePOAPCSVMint(&poapRequest)
 	if err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INTERNAL_SERVER_COMMON)
 		return
@@ -146,7 +125,6 @@ func setPOAPActivityConfig(c *gin.Context) {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-
 	resp, err := services.POAPActivityConfig(config, GetIdFromJwtClaim(c))
 	ginutils.RenderResp(c, resp, err)
 }

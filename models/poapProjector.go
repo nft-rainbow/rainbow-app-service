@@ -11,11 +11,19 @@ type POAPActivityConfig struct {
 	ContractAddress string `gorm:"type:string" json:"contract_address"`
 	Chain    int32   `gorm:"type:int" json:"chain_type"`
 	MetadataURI string `gorm:"type:string" json:"metadata_uri" binding:"required"`
-	IsCommandNeeded bool `gorm:"type:bool" json:"is_command_needed"`
 	Command string `gorm:"type:string" json:"command"`
-	EndedTime int64 `gorm:"type:integer" json:"end_time"`
-	StartedTime int64 `gorm:"type:integer" json:"start_time"`
+	EndedTime int64 `gorm:"type:integer" json:"end_time" binding:"required"`
+	StartedTime int64 `gorm:"type:integer" json:"start_time" binding:"required"`
 	RainbowUserId int32 `gorm:"type:integer" json:"rainbow_user_id"`
+	MaxMintCount uint `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
+	WhiteListInfos []WhiteListInfo `json:"white_list_infos"`
+}
+
+type WhiteListInfo struct {
+	BaseModel
+	User string `gorm:"type:string" json:"user"`
+	Count int32 `gorm:"type:integer" json:"count"`
+	POAPActivityConfigID uint
 }
 
 type H5Config struct {
@@ -54,6 +62,13 @@ func FindPOAPActivityConfig(name string, contractId int32) (*POAPActivityConfig,
 func FindPOAPActivityConfigById(id int) (*POAPActivityConfig, error){
 	var item POAPActivityConfig
 	err := db.Where("id = ?", id).First(&item).Error
+	if err != nil {
+		return nil, err
+	}
+	err = db.Preload("WhiteListInfos").Find(&item).Error
+	if err != nil {
+		return nil, err
+	}
 	return &item, err
 }
 
@@ -78,6 +93,24 @@ func FindAndCountPOAPResult(activityId, offset int, limit int) (*POAPResultQuery
 	var items []*POAPResult
 	cond := &POAPResult{}
 	cond.ActivityID = int32(activityId)
+
+	var count int64
+	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
+		return nil, err
+	}
+
+	if err := db.Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
+		return nil, err
+	}
+
+	return &POAPResultQueryResult{count, items}, nil
+}
+
+func FindAndCountPOAPResultByAddress(activityId, offset int, limit int, address string) (*POAPResultQueryResult, error) {
+	var items []*POAPResult
+	cond := &POAPResult{}
+	cond.ActivityID = int32(activityId)
+	cond.Address = address
 
 	var count int64
 	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {

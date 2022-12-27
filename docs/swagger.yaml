@@ -489,8 +489,8 @@ definitions:
         type: integer
       id:
         type: integer
-      is_command_needed:
-        type: boolean
+      max_mint_count:
+        type: integer
       metadata_uri:
         type: string
       name:
@@ -501,13 +501,20 @@ definitions:
         type: integer
       updated_at:
         type: string
+      white_list_infos:
+        items:
+          $ref: '#/definitions/models.WhiteListInfo'
+        type: array
     required:
     - amount
     - app_id
     - contract_id
     - description
+    - end_time
+    - max_mint_count
     - metadata_uri
     - name
+    - start_time
     type: object
   models.POAPActivityQueryResult:
     properties:
@@ -551,6 +558,24 @@ definitions:
         items:
           $ref: '#/definitions/models.POAPResult'
         type: array
+    type: object
+  models.WhiteListInfo:
+    properties:
+      count:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+        type: object
+      id:
+        type: integer
+      poapactivityConfigID:
+        type: integer
+      updated_at:
+        type: string
+      user:
+        type: string
     type: object
   rainbowsdk.GormDeletedAt:
     properties:
@@ -617,6 +642,7 @@ definitions:
         type: string
     required:
     - activity_id
+    - user_address
     type: object
   sql.NullTime:
     properties:
@@ -1319,8 +1345,6 @@ paths:
       - POAP
   /poap/csv/:activity_id:
     post:
-      consumes:
-      - multipart/form-data
       description: POAP Mint By CSV file
       operationId: POAPMintByCSV
       parameters:
@@ -1329,16 +1353,12 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: uploaded csv file
-        in: formData
-        name: list
+      - description: poap_csv_mint_dto
+        in: body
+        name: poap_csv_mint_dto
         required: true
-        type: file
-      - description: activity_id
-        in: path
-        name: activity_id
-        required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/services.POAPRequest'
       produces:
       - application/json
       responses:

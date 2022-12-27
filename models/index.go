@@ -41,6 +41,7 @@ func ConnectDB() {
 	db.AutoMigrate(&POAPResult{})
 	db.AutoMigrate(&POAPActivityConfig{})
 	db.AutoMigrate(&H5Config{})
+	db.AutoMigrate(&WhiteListInfo{})
 }
 
 func GetDB() *gorm.DB {
