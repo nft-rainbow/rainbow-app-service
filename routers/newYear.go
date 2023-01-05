@@ -32,50 +32,6 @@ func setNewYearConfig(c *gin.Context) {
 }
 
 // @Tags        NewYear
-// @ID          NewYearSpecialMint
-// @Summary     Mint Special NFT
-// @Description Mint Special NFT
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
-// @Param       poap_request body  services.POAPRequest true "poap_request"
-// @Success     200           {object} rainbowsdk.ModelsMintTask
-// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/newYear/special [post]
-func newYearSpecialMint(c *gin.Context) {
-	var req *services.POAPRequest
-	if err := c.ShouldBind(&req); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	resp, err := services.HandleSpecialNFTMint(req)
-	ginutils.RenderResp(c, resp, err)
-}
-
-// @Tags        NewYear
-// @ID          NewYearCommonMint
-// @Summary     Mint Common NFT
-// @Description Mint Common NFT
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
-// @Param       poap_request body  services.POAPRequest true "poap_request"
-// @Success     200           {object} rainbowsdk.ModelsMintTask
-// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/newYear/common [post]
-func newYearCommonMint(c *gin.Context) {
-	var req *services.POAPRequest
-	if err := c.ShouldBind(&req); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	resp, err := services.HandleCommonNFTMint(req)
-	ginutils.RenderResp(c, resp, err)
-}
-
-// @Tags        NewYear
 // @ID          Update By Sharing
 // @Summary     Update By Sharing
 // @Description Update By Sharing
