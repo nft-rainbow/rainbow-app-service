@@ -18,7 +18,7 @@ import (
 // @Produce     json
 // @Param       Authorization header   string true "Bearer JWT"
 // @Param       poap_csv_mint_dto body  services.POAPRequest true "poap_csv_mint_dto"
-// @Success     200           {array} rainbowsdk.ModelsMintTask
+// @Success     200           {object} rainbowsdk.ModelsMintTask
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/csv/:activity_id [post]

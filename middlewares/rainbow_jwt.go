@@ -235,6 +235,25 @@ func GenPOAPOpenJWTByRainbowUserId(activity models.POAPActivityConfig) (string, 
 	return tokenString, nil
 }
 
+func GenNewYearOpenJWTByRainbowUserId(rainbowUserId, appId int32) (string, error){
+	kycType, err := getKycType(rainbowUserId)
+	if err != nil {
+		return "", err
+	}
+
+	data := &App{
+		Id: uint(appId),
+		KycType: kycType,
+		AppUserId: uint(rainbowUserId),
+	}
+
+	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
+}
+
 func getKycType(userId int32) (uint, error){
 	user := &User{
 		Id: uint(userId),

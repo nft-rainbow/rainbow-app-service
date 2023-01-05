@@ -115,7 +115,7 @@ func main() {
 	models.ConnectDB()
 	go initDoDoBot()
 	go initGin()
-
+	go services.UpdateEveryday()
 	initDiscordBot()
 }
 

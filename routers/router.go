@@ -56,6 +56,17 @@ func SetupRoutes(router *gin.Engine) {
 		poap.GET("/activity/result/:activity_id", getPOAPAResultList)
 		poap.GET("/activity/result/:activity_id/:id", getPOAPAResult)
 	}
+
+	poapNewYear := poap.Group("/newYear")
+	poapNewYear.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	{
+		poapNewYear.POST("/config", setNewYearConfig)
+		poapNewYear.POST("/common", newYearCommonMint)
+		poapNewYear.POST("/special/:common_id", newYearSpecialMint)
+		poapNewYear.POST("/sharer", updateBySharing)
+		poapNewYear.GET("/count/common/:address/:id", getCommonMintCount)
+		poapNewYear.GET("/count/special/:address/:id", getSpecialMintCount)
+	}
 }
 
 func indexEndpoint(c *gin.Context) {

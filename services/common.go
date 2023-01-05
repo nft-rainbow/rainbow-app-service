@@ -161,6 +161,16 @@ func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, cha
 	return res, nil
 }
 
+func sendBurnNFTRequest(token string, dto openapiclient.ServicesBurnDto)(*openapiclient.ModelsBurnTask, error){
+	fmt.Println("Start to burn")
+	resp, _, err := newClient().BurnsApi.BurnNft(context.Background()).Authorization(token).BurnDto(dto).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 func sendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto) (*openapiclient.ModelsMintTask, error){
 	//configuration := openapiclient.NewConfiguration()
 	//apiClient := openapiclient.NewAPIClient(configuration)

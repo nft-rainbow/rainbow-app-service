@@ -135,3 +135,22 @@ func FindPOAPResultById(activityId, id int) (*POAPResult, error) {
 
 	return resp, nil
 }
+
+func FindAndCountPOAPResultByAddresses(activityId, contractId, offset, limit int, userAddress string) (*POAPResultQueryResult, error) {
+	var items []*POAPResult
+	cond := &POAPResult{}
+	cond.ActivityID = int32(activityId)
+	cond.Address = userAddress
+	cond.ContractID = int32(contractId)
+
+	var count int64
+	if err := db.Where(cond).Find(&items).Count(&count).Error; err != nil {
+		return nil, err
+	}
+
+	if err := db.Where(cond).Find(&items).Offset(offset).Limit(limit).Error; err != nil {
+		return nil, err
+	}
+
+	return &POAPResultQueryResult{count, items}, nil
+}
