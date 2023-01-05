@@ -1,12 +1,13 @@
 package routers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
+	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
+	"github.com/spf13/viper"
 	"strconv"
 )
 
@@ -56,9 +57,15 @@ func poapMintByH5(c *gin.Context) {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-
-	resp, err := services.HandlePOAPH5Mint(poapRequest)
-
+	var resp *openapiclient.ModelsMintTask
+	var err error
+	if poapRequest.ActivityID == viper.GetInt32("newYearCommonId") {
+		resp, err = services.HandleCommonNFTMint(poapRequest)
+	}else if poapRequest.ActivityID == viper.GetInt32("newYearSpecialId"){
+		resp, err = services.HandleSpecialNFTMint(poapRequest)
+	}else{
+		resp, err = services.HandlePOAPH5Mint(poapRequest)
+	}
 	ginutils.RenderResp(c, resp, err)
 }
 
@@ -125,6 +132,7 @@ func setPOAPActivityConfig(c *gin.Context) {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
+
 	resp, err := services.POAPActivityConfig(config, GetIdFromJwtClaim(c))
 	ginutils.RenderResp(c, resp, err)
 }
@@ -177,7 +185,6 @@ func getPOAPAResultList(c *gin.Context) {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	fmt.Println(activityId)
 	mints, err := models.FindAndCountPOAPResult(activityId, pagination.Offset(), pagination.Limit)
 	ginutils.RenderResp(c, mints, err)
 }

@@ -42,16 +42,14 @@ func setNewYearConfig(c *gin.Context) {
 // @Success     200           {object} rainbowsdk.ModelsMintTask
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/newYear/special/:common_id [post]
+// @Router      /poap/newYear/special [post]
 func newYearSpecialMint(c *gin.Context) {
 	var req *services.POAPRequest
 	if err := c.ShouldBind(&req); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	commonIdStr := c.Param("common_id")
-	commonId, _ := strconv.Atoi(commonIdStr)
-	resp, err := services.HandleSpecialNFTMint(int(commonId), req)
+	resp, err := services.HandleSpecialNFTMint(req)
 	ginutils.RenderResp(c, resp, err)
 }
 
@@ -141,12 +139,13 @@ func getCommonMintCount(c *gin.Context) {
 func getSpecialMintCount(c *gin.Context) {
 	address := c.Param("address")
 	activityIdStr := c.Param("id")
+
 	activityId, err := strconv.Atoi(activityIdStr)
 	if err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	resp, max, err := services.GetSpecialMintRemain(activityId, address)
+	resp, err := services.GetSpecialMintCount(activityId, address)
 
-	ginutils.RenderResp(c, max - resp, err)
+	ginutils.RenderResp(c, resp, err)
 }

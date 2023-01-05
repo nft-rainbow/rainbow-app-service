@@ -1,11 +1,15 @@
 package services
 
 import (
+	cryptoRand "crypto/rand"
 	"fmt"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
+	"github.com/spf13/viper"
+	"math"
+	"math/big"
 	"math/rand"
 	"time"
 )
@@ -18,7 +22,6 @@ type ShareRequest struct {
 
 var everydayNFTMintCache = make(map[string]int64)
 var mintAddressCache = make(map[string][]string)
-const newYearActivityId = 11
 
 func SetNewYearConfig(config *models.NewYearConfig, id uint) (*models.NewYearConfig, error) {
 	config.RainbowUserId = int32(id)
@@ -26,18 +29,14 @@ func SetNewYearConfig(config *models.NewYearConfig, id uint) (*models.NewYearCon
 	if err != nil {
 		return nil, err
 	}
-
-	for i := range config.ContractInfos {
-		info, err := GetContractInfo(config.ContractInfos[i].ContractID, "Bearer " + token)
-		if err != nil {
-			return nil, err
-		}
-		config.ContractInfos[i].ContractType = *info.Type
-		config.ContractInfos[i].ContractAddress = *info.Address
-
-		config.Chain = *info.ChainType
-		config.AppId = *info.AppId
+	info, err := GetContractInfo(config.ContractID, "Bearer " + token)
+	if err != nil {
+		return nil, err
 	}
+	config.ContractType = *info.Type
+	config.ContractAddress = *info.Address
+	config.Chain = *info.ChainType
+	config.AppId = *info.AppId
 
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
@@ -47,27 +46,28 @@ func SetNewYearConfig(config *models.NewYearConfig, id uint) (*models.NewYearCon
 	return config, nil
 }
 
-func HandleSpecialNFTMint(commonActivityID int, req *POAPRequest)(*openapiclient.ModelsMintTask, error){
-	specialConfig, err := models.FindNewYearConfigById(int(req.ActivityID))
-	if err != nil {
-		return nil, err
-	}
-	commonConfig, err := models.FindNewYearConfigById(commonActivityID)
+func HandleSpecialNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error){
+	config, err := models.FindNewYearConfigById(int(req.ActivityID))
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := middlewares.GenNewYearOpenJWTByRainbowUserId(specialConfig.RainbowUserId, specialConfig.AppId)
+	commonConfig, err := models.FindNewYearConfigById(viper.GetInt("newYearCommonId"))
 	if err != nil {
 		return nil, err
 	}
 
-	err = newYearCommonCheck(specialConfig.StartedTime, specialConfig.EndedTime, int(specialConfig.ID), int32(specialConfig.Amount))
+	token, err := middlewares.GenNewYearOpenJWTByRainbowUserId(config.RainbowUserId, config.AppId)
 	if err != nil {
 		return nil, err
 	}
 
-	chainType, err := utils.ChainTypeByTypeId(uint(specialConfig.Chain))
+	err = newYearCommonCheck(config.StartedTime, config.EndedTime, int(config.ID), config.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	chainType, err := utils.ChainTypeByTypeId(uint(config.Chain))
 	if err != nil {
 		return nil, err
 	}
@@ -77,22 +77,22 @@ func HandleSpecialNFTMint(commonActivityID int, req *POAPRequest)(*openapiclient
 		return nil, err
 	}
 
-	resp, index, err := randomMint(specialConfig, token, req.UserAddress, chainType)
+	resp, err := randomMint(config, token, req.UserAddress, chainType)
 	if err != nil {
 		return nil, err
 	}
 
 	err = models.StorePOAPResult(models.POAPResult{
-		ActivityID: int32(specialConfig.ID),
+		ActivityID: int32(config.ID),
 		Address: req.UserAddress,
-		ContractID: specialConfig.ContractInfos[index].ContractID,
+		ContractID: config.ContractID,
 		TxID: *resp.Id,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	go SyncNFTMintTaskStatus(token, int32(specialConfig.ID))
+	go SyncNFTMintTaskStatus(token, int32(config.ID))
 
 	return resp, nil
 }
@@ -122,7 +122,7 @@ func HandleCommonNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error)
 		return nil, err
 	}
 
-	resp, index, err := randomMint(config, token, req.UserAddress, chainType)
+	resp, err := randomMint(config, token, req.UserAddress, chainType)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func HandleCommonNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error)
 	err = models.StorePOAPResult(models.POAPResult{
 		ActivityID: int32(config.ID),
 		Address: req.UserAddress,
-		ContractID: config.ContractInfos[index].ContractID,
+		ContractID: config.ContractID,
 		TxID: *resp.Id,
 	})
 	if err != nil {
@@ -138,10 +138,13 @@ func HandleCommonNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error)
 	}
 
 	go SyncNFTMintTaskStatus(token, int32(config.ID))
-	res, _ := models.FindMintCount(req.UserAddress, req.ActivityID)
+	res, err := models.FindMintCount(req.UserAddress, req.ActivityID)
+	if err != nil {
+		return nil, err
+	}
 	if res.Count == 0 {
 		everydayNFTMintCache[req.UserAddress] = 3
-		_, err = models.UpdateMintCount(req.UserAddress, req.ActivityID, 3)
+		_, err = models.UpdateMintCount(req.UserAddress, req.ActivityID, viper.GetInt32("everyDaySharerLimit"))
 		if err != nil {
 			return nil, err
 		}
@@ -159,32 +162,36 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 	if err != nil {
 		return err
 	}
-	for i, v := range config.ContractInfos {
-		tmp, _:= models.FindAndCountPOAPResultByAddresses(int(config.ID), int(v.ContractID), 0, 10, address)
-		contractType, err := utils.ContractTypeByTypeId(uint(v.ContractType))
+	var amount = int32(1)
+	for i := viper.GetInt("commonMintLimit"); i < len(config.ContractInfos); i++ {
+		tmp, _:= models.FindAndCountPOAPResultByTokenId(
+			int(config.ID),
+			int(config.ContractID),
+			0, 10,
+			config.ContractInfos[i].TokenID,
+			address,
+			)
+		contractType, err := utils.ContractTypeByTypeId(uint(config.ContractType))
 		if err != nil {
 			return err
 		}
+		result, _ := cryptoRand.Int(cryptoRand.Reader, big.NewInt(viper.GetInt64("commonMintLimit")))
+
 		dto := &openapiclient.ServicesBurnDto{
 			Chain: chainType,
-			ContractAddress: config.ContractInfos[i].ContractAddress,
+			ContractAddress: config.ContractAddress,
 			ContractType: contractType,
 			User: &address,
-			TokenId: tmp.Items[0].TokenID,
+			TokenId: tmp.Items[result.Int64()].TokenID,
+			Amount: &amount,
 		}
-		//dto := *openapiclient.NewServicesBurnDto(
-		//	chainType,
-		//	config.ContractInfos[i].ContractAddress,
-		//	contractType,
-		//	tmp.Items[0].TokenID,
-		//)
 
 		_, err = sendBurnNFTRequest("Bearer " + token, *dto)
 		if err != nil {
 			return err
 		}
 
-		record, err := models.FindPOAPResultById(int(config.ID), int(tmp.Items[0].ID))
+		record, err := models.FindPOAPResultById(int(config.ID), int(tmp.Items[result.Int64()].ID))
 		if err != nil {
 			return err
 		}
@@ -199,11 +206,9 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 func UpdateBySharing(req ShareRequest)error {
 	for _, v := range mintAddressCache[req.Receiver] {
 		if v == req.Sharer {
-			return nil
+			return fmt.Errorf("The sharer has shared the link to receiver")
 		}
 	}
-
-	mintAddressCache[req.Receiver] = append(mintAddressCache[req.Receiver], req.Sharer)
 
 	if everydayNFTMintCache[req.Sharer] > 0 {
 		_, err := models.UpdateMintCount(req.Sharer, req.ActivityId, 1)
@@ -218,33 +223,34 @@ func UpdateBySharing(req ShareRequest)error {
 		return err
 	}
 	if resp.Count == 0 {
-		everydayNFTMintCache[req.Receiver] = 3
+		everydayNFTMintCache[req.Receiver] = viper.GetInt64("everyDaySharerLimit")
 		mintAddressCache[req.Receiver] = []string{}
 		_, err := models.UpdateMintCount(req.Sharer, req.ActivityId, 1)
 		if err != nil {
 			return nil
 		}
 	}
+	mintAddressCache[req.Receiver] = append(mintAddressCache[req.Receiver], req.Sharer)
 
 	return nil
 }
 
-func GetSpecialMintRemain(activityId int, address string)(int, int, error){
+func GetSpecialMintCount(activityId int, address string)(int64, error){
 	config, err := models.FindNewYearConfigById(activityId)
 	if err != nil {
-		return 0, 0, err
+		return 0, err
 	}
-	res := 0
-	for _, v := range config.ContractInfos {
-		resp, err := models.FindAndCountPOAPResultByAddresses(int(config.ID), int(v.ContractID), 0, 10, address)
+	res := int64(math.MaxInt64)
+	for i := 0; i < viper.GetInt("commonMintLimit"); i++ {
+		resp, err := models.FindAndCountPOAPResultByTokenId(int(config.ID), int(config.ContractID), 0, 10, config.ContractInfos[i].TokenID,address)
 		if err != nil {
-			return 0, 0, err
+			return 0, err
 		}
-		if resp.Count != 0 {
-			res ++
+		if resp.Count < res {
+			res = resp.Count
 		}
 	}
-	return res, int(config.MaxMintCount), nil
+	return res, nil
 }
 
 func UpdateEveryday() {
@@ -253,8 +259,8 @@ func UpdateEveryday() {
 		for {
 			<- c
 			for key := range everydayNFTMintCache {
-				everydayNFTMintCache[key] = 3
-				_, _ = models.UpdateMintCount(key, int32(newYearActivityId), 1)
+				everydayNFTMintCache[key] = viper.GetInt64("everyDaySharerLimit")
+				_, _ = models.UpdateMintCount(key, viper.GetInt32("newYearActivityId"), 1)
 				mintAddressCache[key] = []string{}
 			}
 		}
@@ -263,7 +269,7 @@ func UpdateEveryday() {
 
 func checkEnough(config *models.NewYearConfig, address string)error{
 	for i := range config.ContractInfos {
-		resp, err := models.FindAndCountPOAPResultByAddresses(int(config.ID), int(config.ContractInfos[i].ContractID), 0, 10, address)
+		resp, err := models.FindAndCountPOAPResultByTokenId(int(config.ID), int(config.ContractID), 0, 10, config.ContractInfos[i].TokenID,address)
 		if err != nil {
 			return err
 		}
@@ -274,24 +280,26 @@ func checkEnough(config *models.NewYearConfig, address string)error{
 	return nil
 }
 
-func randomMint(config *models.NewYearConfig, token, address, chain string)(*openapiclient.ModelsMintTask, int, error) {
+func randomMint(config *models.NewYearConfig, token, address, chain string)(*openapiclient.ModelsMintTask, error) {
+	var index int
 	probabilities := make([]float32, 0)
-	for _, v := range config.ContractInfos {
-		probabilities = append(probabilities, v.Probability)
+	for i := 0; i < len(config.ContractInfos); i ++ {
+		probabilities = append(probabilities, config.ContractInfos[i].Probability)
 	}
+	index = weightedRandomIndex(probabilities)
 
-	index := weightedRandomIndex(probabilities)
 	resp, err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
 		Chain: chain,
-		ContractAddress: config.ContractInfos[index].ContractAddress,
+		ContractAddress: config.ContractAddress,
 		MintToAddress: address,
 		MetadataUri: &(config.ContractInfos[index].MetadataURI),
+		TokenId: &(config.ContractInfos[index].TokenID),
 	})
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	return resp, index, nil
+	return resp, nil
 
 }
 

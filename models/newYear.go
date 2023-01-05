@@ -1,5 +1,9 @@
 package models
 
+import (
+	"gorm.io/gorm"
+)
+
 type NewYearConfig struct {
 	BaseModel
 	Amount int32 `gorm:"type:integer" json:"amount" binding:"required"`
@@ -10,6 +14,9 @@ type NewYearConfig struct {
 	EndedTime int64 `gorm:"type:integer" json:"end_time" binding:"required"`
 	StartedTime int64 `gorm:"type:integer" json:"start_time" binding:"required"`
 	RainbowUserId int32 `gorm:"type:integer" json:"rainbow_user_id"`
+	ContractType int32 `gorm:"type:integer" json:"contract_type"`
+	ContractAddress string `gorm:"type:string" json:"contract_address"`
+	ContractID int32 `gorm:"type:integer" json:"contract_id" binding:"required"`
 	MaxMintCount uint `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
 	ActivityPictureURL string `gorm:"type:string" json:"activity_picture_url"`
 	SharingContent string `gorm:"type:string" json:"sharing_content"`
@@ -27,9 +34,7 @@ type NFTContractInfo struct {
 	BaseModel
 	MetadataURI string `gorm:"type:string" json:"metadata_uri" binding:"required"`
 	Probability float32 `gorm:"type:varchar(256)" json:"probability" binding:"required"`
-	ContractType int32 `gorm:"type:integer" json:"contract_type"`
-	ContractAddress string `gorm:"type:string" json:"contract_address"`
-	ContractID int32 `gorm:"type:integer" json:"contract_id" binding:"required"`
+	TokenID    string `gorm:"type:string" json:"token_id" binding:"required"`
 	NewYearConfigID uint
 }
 
@@ -58,26 +63,21 @@ func FindNewYearConfigById(id int) (*NewYearConfig, error){
 }
 
 func FindMintCount(address string, activityId int32) (*MintCount, error){
-	var count int64
 	var cond MintCount
+	var item MintCount
 	cond.Address = address
 	cond.ActivityID = uint(activityId)
-	cond.Count = 0
-	if err := db.Find(&cond).Count(&count).Error; err != nil {
-		return nil, err
-	}
-
-	if count == 0 {
+	err := db.Where(&cond).Last(&item).Error
+	if err == gorm.ErrRecordNotFound {
 		item := &MintCount{
 			Address: address,
-			Count: 0,
 			ActivityID: uint(activityId),
+			Count: 0,
 		}
+
 		db.Create(item)
 		return item, nil
 	}
-	var item MintCount
-	err := db.Where("activity_id = ?", activityId).Where("address = ?", address).Last(&item).Error
 	return &item, err
 }
 
