@@ -65,7 +65,7 @@ func updateBySharing(c *gin.Context){
 // @Success     200           {object} models.MintCount
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/count/common/{address}/{id} [get]
+// @Router      /poap/count/{address}/{id} [get]
 func getCommonMintCount(c *gin.Context) {
 	address := c.Param("address")
 	activityIdStr := c.Param("id")
