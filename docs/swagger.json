@@ -1069,6 +1069,67 @@
                 }
             }
         },
+        "/poap/count/{address}/{activity_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Common Mint Count",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NewYear"
+                ],
+                "summary": "Get Common Mint Count",
+                "operationId": "GetMintCount",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "activity_id",
+                        "name": "activity_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MintCount"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/poap/csv/:activity_id": {
             "post": {
                 "security": [
@@ -1107,10 +1168,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/rainbowsdk.ModelsMintTask"
-                            }
+                            "$ref": "#/definitions/rainbowsdk.ModelsMintTask"
                         }
                     },
                     "400": {
@@ -1167,6 +1225,118 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/rainbowsdk.ModelsMintTask"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/poap/newYear/config": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Set NewYear Activity",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NewYear"
+                ],
+                "summary": "Set NewYear Activity",
+                "operationId": "SetNewYearActivity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "new_year_activity_config",
+                        "name": "new_year_activity_config",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NewYearConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NewYearConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/poap/newYear/sharer": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update By Sharing",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NewYear"
+                ],
+                "summary": "Update By Sharing",
+                "operationId": "Update By Sharing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "share_request",
+                        "name": "share_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.ShareRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -1798,6 +1968,144 @@
                 }
             }
         },
+        "models.MintCount": {
+            "type": "object",
+            "properties": {
+                "activity_id": {
+                    "type": "integer"
+                },
+                "address": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "object",
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.NFTContractInfo": {
+            "type": "object",
+            "required": [
+                "metadata_uri",
+                "probability",
+                "token_id"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "object",
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "metadata_uri": {
+                    "type": "string"
+                },
+                "newYearConfigID": {
+                    "type": "integer"
+                },
+                "probability": {
+                    "type": "number"
+                },
+                "token_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.NewYearConfig": {
+            "type": "object",
+            "required": [
+                "amount",
+                "app_id",
+                "contract_id",
+                "description",
+                "end_time",
+                "max_mint_count",
+                "name",
+                "start_time"
+            ],
+            "properties": {
+                "activity_picture_url": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "integer"
+                },
+                "app_id": {
+                    "type": "integer"
+                },
+                "chain_type": {
+                    "type": "integer"
+                },
+                "contract_address": {
+                    "type": "string"
+                },
+                "contract_id": {
+                    "type": "integer"
+                },
+                "contract_type": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "object",
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "max_mint_count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nft_contract_infos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.NFTContractInfo"
+                    }
+                },
+                "rainbow_user_id": {
+                    "type": "integer"
+                },
+                "sharing_content": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "models.POAPActivityConfig": {
             "type": "object",
             "required": [
@@ -2062,6 +2370,20 @@
                     "type": "string"
                 },
                 "user_address": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.ShareRequest": {
+            "type": "object",
+            "properties": {
+                "activity_id": {
+                    "type": "integer"
+                },
+                "receiver": {
+                    "type": "string"
+                },
+                "sharer": {
                     "type": "string"
                 }
             }

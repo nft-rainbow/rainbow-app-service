@@ -462,6 +462,101 @@ definitions:
     required:
     - link
     type: object
+  models.MintCount:
+    properties:
+      activity_id:
+        type: integer
+      address:
+        type: string
+      count:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+        type: object
+      id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.NFTContractInfo:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+        type: object
+      id:
+        type: integer
+      metadata_uri:
+        type: string
+      newYearConfigID:
+        type: integer
+      probability:
+        type: number
+      token_id:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - metadata_uri
+    - probability
+    - token_id
+    type: object
+  models.NewYearConfig:
+    properties:
+      activity_picture_url:
+        type: string
+      amount:
+        type: integer
+      app_id:
+        type: integer
+      chain_type:
+        type: integer
+      contract_address:
+        type: string
+      contract_id:
+        type: integer
+      contract_type:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+        type: object
+      description:
+        type: string
+      end_time:
+        type: integer
+      id:
+        type: integer
+      max_mint_count:
+        type: integer
+      name:
+        type: string
+      nft_contract_infos:
+        items:
+          $ref: '#/definitions/models.NFTContractInfo'
+        type: array
+      rainbow_user_id:
+        type: integer
+      sharing_content:
+        type: string
+      start_time:
+        type: integer
+      updated_at:
+        type: string
+    required:
+    - amount
+    - app_id
+    - contract_id
+    - description
+    - end_time
+    - max_mint_count
+    - name
+    - start_time
+    type: object
   models.POAPActivityConfig:
     properties:
       amount:
@@ -643,6 +738,15 @@ definitions:
     required:
     - activity_id
     - user_address
+    type: object
+  services.ShareRequest:
+    properties:
+      activity_id:
+        type: integer
+      receiver:
+        type: string
+      sharer:
+        type: string
     type: object
   sql.NullTime:
     properties:
@@ -1343,6 +1447,46 @@ paths:
       summary: Set H5 Config
       tags:
       - POAP
+  /poap/count/{address}/{activity_id}:
+    get:
+      description: Get Common Mint Count
+      operationId: GetMintCount
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: activity_id
+        in: path
+        name: activity_id
+        required: true
+        type: integer
+      - description: address
+        in: path
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MintCount'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Common Mint Count
+      tags:
+      - NewYear
   /poap/csv/:activity_id:
     post:
       description: POAP Mint By CSV file
@@ -1365,9 +1509,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/rainbowsdk.ModelsMintTask'
-            type: array
+            $ref: '#/definitions/rainbowsdk.ModelsMintTask'
         "400":
           description: Invalid request
           schema:
@@ -1417,6 +1559,78 @@ paths:
       summary: POAP Mint By H5
       tags:
       - POAP
+  /poap/newYear/config:
+    post:
+      description: Set NewYear Activity
+      operationId: SetNewYearActivity
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: new_year_activity_config
+        in: body
+        name: new_year_activity_config
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewYearConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.NewYearConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Set NewYear Activity
+      tags:
+      - NewYear
+  /poap/newYear/sharer:
+    post:
+      description: Update By Sharing
+      operationId: Update By Sharing
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: share_request
+        in: body
+        name: share_request
+        required: true
+        schema:
+          $ref: '#/definitions/services.ShareRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Update By Sharing
+      tags:
+      - NewYear
 schemes:
 - http
 - https

@@ -55,6 +55,14 @@ func SetupRoutes(router *gin.Engine) {
 		poap.GET("/activity/:id", getPOAPActivity)
 		poap.GET("/activity/result/:activity_id", getPOAPAResultList)
 		poap.GET("/activity/result/:activity_id/:id", getPOAPAResult)
+		poap.GET("/count/:address/:activity_id", getMintCount)
+	}
+
+	poapNewYear := poap.Group("/newYear")
+	poapNewYear.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	{
+		poapNewYear.POST("/config", setNewYearConfig)
+		poapNewYear.POST("/sharer", updateBySharing)
 	}
 }
 
