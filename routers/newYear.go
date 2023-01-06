@@ -6,6 +6,7 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
+	"github.com/spf13/viper"
 	"strconv"
 )
 
@@ -60,48 +61,27 @@ func updateBySharing(c *gin.Context){
 // @security    ApiKeyAuth
 // @Produce     json
 // @Param       Authorization header   string true "Bearer JWT"
-// @Param       id            path     int    true "id"
+// @Param       activity_id   path     int    true "activity_id"
 // @Param       address       path     string true "address"
 // @Success     200           {object} models.MintCount
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/count/{address}/{id} [get]
-func getCommonMintCount(c *gin.Context) {
+// @Router      /poap/count/{address}/{activity_id} [get]
+func getMintCount(c *gin.Context) {
+	var err error
 	address := c.Param("address")
-	activityIdStr := c.Param("id")
+	activityIdStr := c.Param("activity_id")
 	activityId, err := strconv.Atoi(activityIdStr)
 	if err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-
-	resp, err := models.FindMintCount(address, int32(activityId))
-	ginutils.RenderResp(c, resp, err)
-}
-
-// @Tags        NewYear
-// @ID          GetSpecialMintRemain
-// @Summary     Get Special Mint Count Remain
-// @Description Get Special Mint Count Remain
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
-// @Param       id            path     int    true "id"
-// @Param       address       path     string true "address"
-// @Success     200           {object} int
-// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/count/special/{address}/{id} [get]
-func getSpecialMintCount(c *gin.Context) {
-	address := c.Param("address")
-	activityIdStr := c.Param("id")
-
-	activityId, err := strconv.Atoi(activityIdStr)
-	if err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
+	var resp *models.MintCount
+	if activityId == viper.GetInt("newYearCommonId") {
+		resp, err = models.FindMintCount(address, int32(activityId))
+		ginutils.RenderResp(c, resp, err)
+	}else if activityId == viper.GetInt("newYearSpecialId") {
+		res, err := services.GetSpecialMintCount(viper.GetInt("newYearCommonId"), address)
+		ginutils.RenderResp(c, res, err)
 	}
-	resp, err := services.GetSpecialMintCount(activityId, address)
-
-	ginutils.RenderResp(c, resp, err)
 }

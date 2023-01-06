@@ -482,12 +482,6 @@ definitions:
     type: object
   models.NFTContractInfo:
     properties:
-      contract_address:
-        type: string
-      contract_id:
-        type: integer
-      contract_type:
-        type: integer
       created_at:
         type: string
       deleted_at:
@@ -501,12 +495,14 @@ definitions:
         type: integer
       probability:
         type: number
+      token_id:
+        type: string
       updated_at:
         type: string
     required:
-    - contract_id
     - metadata_uri
     - probability
+    - token_id
     type: object
   models.NewYearConfig:
     properties:
@@ -517,6 +513,12 @@ definitions:
       app_id:
         type: integer
       chain_type:
+        type: integer
+      contract_address:
+        type: string
+      contract_id:
+        type: integer
+      contract_type:
         type: integer
       created_at:
         type: string
@@ -548,6 +550,7 @@ definitions:
     required:
     - amount
     - app_id
+    - contract_id
     - description
     - end_time
     - max_mint_count
@@ -1444,7 +1447,7 @@ paths:
       summary: Set H5 Config
       tags:
       - POAP
-  /poap/count/common/{address}/{id}:
+  /poap/count/{address}/{activity_id}:
     get:
       description: Get Common Mint Count
       operationId: GetMintCount
@@ -1454,9 +1457,9 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: id
+      - description: activity_id
         in: path
-        name: id
+        name: activity_id
         required: true
         type: integer
       - description: address
@@ -1482,46 +1485,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get Common Mint Count
-      tags:
-      - NewYear
-  /poap/count/special/{address}/{id}:
-    get:
-      description: Get Special Mint Count Remain
-      operationId: GetSpecialMintRemain
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: address
-        in: path
-        name: address
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: integer
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Get Special Mint Count Remain
       tags:
       - NewYear
   /poap/csv/:activity_id:
@@ -1596,42 +1559,6 @@ paths:
       summary: POAP Mint By H5
       tags:
       - POAP
-  /poap/newYear/common:
-    post:
-      description: Mint Common NFT
-      operationId: NewYearCommonMint
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: poap_request
-        in: body
-        name: poap_request
-        required: true
-        schema:
-          $ref: '#/definitions/services.POAPRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/rainbowsdk.ModelsMintTask'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Mint Common NFT
-      tags:
-      - NewYear
   /poap/newYear/config:
     post:
       description: Set NewYear Activity
@@ -1702,42 +1629,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update By Sharing
-      tags:
-      - NewYear
-  /poap/newYear/special/:common_id:
-    post:
-      description: Mint Special NFT
-      operationId: NewYearSpecialMint
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: poap_request
-        in: body
-        name: poap_request
-        required: true
-        schema:
-          $ref: '#/definitions/services.POAPRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/rainbowsdk.ModelsMintTask'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Mint Special NFT
       tags:
       - NewYear
 schemes:

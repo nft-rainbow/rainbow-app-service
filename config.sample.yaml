@@ -16,3 +16,7 @@ customMint:
   mintRespPrefix: https://testnet.confluxscan.io/nft/
 proxy: http://0.0.0.0:7890
 advertise: Powered by NFTRainbow
+newYearCommonId: 14
+newYearSpecialId: 15
+commonMintLimit: 5
+everyDaySharerLimit: 3

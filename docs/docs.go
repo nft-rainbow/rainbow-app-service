@@ -1080,7 +1080,7 @@ var doc = `{
                 }
             }
         },
-        "/poap/count/common/{address}/{id}": {
+        "/poap/count/{address}/{activity_id}": {
             "get": {
                 "security": [
                     {
@@ -1106,8 +1106,8 @@ var doc = `{
                     },
                     {
                         "type": "integer",
-                        "description": "id",
-                        "name": "id",
+                        "description": "activity_id",
+                        "name": "activity_id",
                         "in": "path",
                         "required": true
                     },
@@ -1124,67 +1124,6 @@ var doc = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.MintCount"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/poap/count/special/{address}/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get Special Mint Count Remain",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NewYear"
-                ],
-                "summary": "Get Special Mint Count Remain",
-                "operationId": "GetSpecialMintRemain",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "address",
-                        "name": "address",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "integer"
                         }
                     },
                     "400": {
@@ -1314,62 +1253,6 @@ var doc = `{
                 }
             }
         },
-        "/poap/newYear/common": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Mint Common NFT",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NewYear"
-                ],
-                "summary": "Mint Common NFT",
-                "operationId": "NewYearCommonMint",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "poap_request",
-                        "name": "poap_request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/services.POAPRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/rainbowsdk.ModelsMintTask"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
         "/poap/newYear/config": {
             "post": {
                 "security": [
@@ -1465,62 +1348,6 @@ var doc = `{
                         "description": "success",
                         "schema": {
                             "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/poap/newYear/special/:common_id": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Mint Special NFT",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NewYear"
-                ],
-                "summary": "Mint Special NFT",
-                "operationId": "NewYearSpecialMint",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "poap_request",
-                        "name": "poap_request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/services.POAPRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/rainbowsdk.ModelsMintTask"
                         }
                     },
                     "400": {
@@ -2182,20 +2009,11 @@ var doc = `{
         "models.NFTContractInfo": {
             "type": "object",
             "required": [
-                "contract_id",
                 "metadata_uri",
-                "probability"
+                "probability",
+                "token_id"
             ],
             "properties": {
-                "contract_address": {
-                    "type": "string"
-                },
-                "contract_id": {
-                    "type": "integer"
-                },
-                "contract_type": {
-                    "type": "integer"
-                },
                 "created_at": {
                     "type": "string"
                 },
@@ -2215,6 +2033,9 @@ var doc = `{
                 "probability": {
                     "type": "number"
                 },
+                "token_id": {
+                    "type": "string"
+                },
                 "updated_at": {
                     "type": "string"
                 }
@@ -2225,6 +2046,7 @@ var doc = `{
             "required": [
                 "amount",
                 "app_id",
+                "contract_id",
                 "description",
                 "end_time",
                 "max_mint_count",
@@ -2242,6 +2064,15 @@ var doc = `{
                     "type": "integer"
                 },
                 "chain_type": {
+                    "type": "integer"
+                },
+                "contract_address": {
+                    "type": "string"
+                },
+                "contract_id": {
+                    "type": "integer"
+                },
+                "contract_type": {
                     "type": "integer"
                 },
                 "created_at": {
