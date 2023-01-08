@@ -89,7 +89,7 @@ func InitRainbowJwtMiddleware() {
 	logrus.Info("init open jwt middleware done")
 }
 
-func GenerateDiscordOpenJWT(channelId string) (string, error){
+func GenerateDiscordOpenJWT(channelId string) (string, error) {
 	activity, err := models.FindDiscordCustomActivityConfigByChannelId(channelId)
 	if err != nil {
 		return "", err
@@ -105,8 +105,8 @@ func GenerateDiscordOpenJWT(channelId string) (string, error){
 	}
 
 	data := &App{
-		Id: uint(config.AppId),
-		KycType: kycType,
+		Id:        uint(config.AppId),
+		KycType:   kycType,
 		AppUserId: uint(config.RainbowUserId),
 	}
 
@@ -117,7 +117,7 @@ func GenerateDiscordOpenJWT(channelId string) (string, error){
 	return tokenString, nil
 }
 
-func GenDiscordOpenJWTByRainbowUserId(id uint) (string, error){
+func GenDiscordOpenJWTByRainbowUserId(id uint) (string, error) {
 	config, err := models.FindDiscordConfigByUserId(int(id))
 	if err != nil {
 		return "", err
@@ -129,8 +129,8 @@ func GenDiscordOpenJWTByRainbowUserId(id uint) (string, error){
 	}
 
 	data := &App{
-		Id: uint(config.AppId),
-		KycType: kycType,
+		Id:        uint(config.AppId),
+		KycType:   kycType,
 		AppUserId: uint(config.RainbowUserId),
 	}
 
@@ -141,7 +141,7 @@ func GenDiscordOpenJWTByRainbowUserId(id uint) (string, error){
 	return tokenString, nil
 }
 
-func GenerateDoDoOpenJWT(channelId string) (string, error){
+func GenerateDoDoOpenJWT(channelId string) (string, error) {
 	activity, err := models.FindDoDoCustomActivityConfigByChannelId(channelId)
 	if err != nil {
 		return "", err
@@ -157,8 +157,8 @@ func GenerateDoDoOpenJWT(channelId string) (string, error){
 	}
 
 	data := &App{
-		Id: uint(config.AppId),
-		KycType: kycType,
+		Id:        uint(config.AppId),
+		KycType:   kycType,
 		AppUserId: uint(config.RainbowUserId),
 	}
 
@@ -169,7 +169,7 @@ func GenerateDoDoOpenJWT(channelId string) (string, error){
 	return tokenString, nil
 }
 
-func GenDoDoOpenJWTByRainbowUserId(id uint) (string, error){
+func GenDoDoOpenJWTByRainbowUserId(id uint) (string, error) {
 	config, err := models.FindDoDoConfigByUserId(int(id))
 	if err != nil {
 		return "", err
@@ -181,8 +181,8 @@ func GenDoDoOpenJWTByRainbowUserId(id uint) (string, error){
 	}
 
 	data := &App{
-		Id: uint(config.AppId),
-		KycType: kycType,
+		Id:        uint(config.AppId),
+		KycType:   kycType,
 		AppUserId: uint(config.RainbowUserId),
 	}
 
@@ -193,7 +193,7 @@ func GenDoDoOpenJWTByRainbowUserId(id uint) (string, error){
 	return tokenString, nil
 }
 
-func GeneratePOAPOpenJWT(name string, contractId int32) (string, error){
+func GeneratePOAPOpenJWT(name string, contractId int32) (string, error) {
 	activity, err := models.FindPOAPActivityConfig(name, contractId)
 	if err != nil {
 		return "", err
@@ -204,8 +204,8 @@ func GeneratePOAPOpenJWT(name string, contractId int32) (string, error){
 		return "", err
 	}
 	data := &App{
-		Id: uint(activity.AppId),
-		KycType: kycType,
+		Id:        uint(activity.AppId),
+		KycType:   kycType,
 		AppUserId: uint(activity.RainbowUserId),
 	}
 
@@ -216,15 +216,15 @@ func GeneratePOAPOpenJWT(name string, contractId int32) (string, error){
 	return tokenString, nil
 }
 
-func GenPOAPOpenJWTByRainbowUserId(activity models.POAPActivityConfig) (string, error){
+func GenPOAPOpenJWTByRainbowUserId(activity models.POAPActivityConfig) (string, error) {
 	kycType, err := getKycType(activity.RainbowUserId)
 	if err != nil {
 		return "", err
 	}
 
 	data := &App{
-		Id: uint(activity.AppId),
-		KycType: kycType,
+		Id:        uint(activity.AppId),
+		KycType:   kycType,
 		AppUserId: uint(activity.RainbowUserId),
 	}
 
@@ -235,15 +235,15 @@ func GenPOAPOpenJWTByRainbowUserId(activity models.POAPActivityConfig) (string, 
 	return tokenString, nil
 }
 
-func GenNewYearOpenJWTByRainbowUserId(rainbowUserId, appId int32) (string, error){
+func GenNewYearOpenJWTByRainbowUserId(rainbowUserId, appId int32) (string, error) {
 	kycType, err := getKycType(rainbowUserId)
 	if err != nil {
 		return "", err
 	}
 
 	data := &App{
-		Id: uint(appId),
-		KycType: kycType,
+		Id:        uint(appId),
+		KycType:   kycType,
 		AppUserId: uint(rainbowUserId),
 	}
 
@@ -254,7 +254,7 @@ func GenNewYearOpenJWTByRainbowUserId(rainbowUserId, appId int32) (string, error
 	return tokenString, nil
 }
 
-func getKycType(userId int32) (uint, error){
+func getKycType(userId int32) (uint, error) {
 	user := &User{
 		Id: uint(userId),
 	}
@@ -270,16 +270,16 @@ func getKycType(userId int32) (uint, error){
 	return uint(kycType), nil
 }
 
-func queryKycType(tokenString string)(float64, error){
-	req, err := http.NewRequest("GET", "https://dev.nftrainbow.xyz/dashboard/users/profile", nil)
+func queryKycType(tokenString string) (float64, error) {
+	req, err := http.NewRequest("GET", viper.GetString("profileApi"), nil)
 	if err != nil {
 		panic(err)
 	}
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer " + tokenString)
+	req.Header.Add("Authorization", "Bearer "+tokenString)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return  0, err
+		return 0, err
 	}
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
