@@ -14,18 +14,18 @@ import (
 	"time"
 )
 
-func bindCFXAddressWithDiscord(req *models.BindCFXWithDiscord) error{
+func bindCFXAddressWithDiscord(req *models.BindCFXWithDiscord) error {
 	res := models.GetDB().Create(&req)
 	if res.Error != nil {
-		return  res.Error
+		return res.Error
 	}
 	return nil
 }
 
-func bindCFXAddressWithDoDo(req *models.BindCFXWithDoDo) error{
+func bindCFXAddressWithDoDo(req *models.BindCFXWithDoDo) error {
 	res := models.GetDB().Create(&req)
 	if res.Error != nil {
-		return  res.Error
+		return res.Error
 	}
 	return nil
 }
@@ -46,7 +46,7 @@ func GetDiscordBindCFXAddress(userID string) (string, error) {
 	return resp.CFXAddress, nil
 }
 
-func HandleBindCfxAddress(userId, userAddress, platform string) error{
+func HandleBindCfxAddress(userId, userAddress, platform string) error {
 	var err error
 	_, err = utils.CheckCfxAddress(utils.CONFLUX_TEST, userAddress)
 	if err != nil {
@@ -55,12 +55,12 @@ func HandleBindCfxAddress(userId, userAddress, platform string) error{
 
 	if platform == "discord" {
 		err = bindCFXAddressWithDiscord(&models.BindCFXWithDiscord{
-			DiscordId: userId,
+			DiscordId:  userId,
 			CFXAddress: userAddress,
 		})
-	}else if platform == "dodo"{
+	} else if platform == "dodo" {
 		err = bindCFXAddressWithDoDo(&models.BindCFXWithDoDo{
-			DoDoId: userId,
+			DoDoId:     userId,
 			CFXAddress: userAddress,
 		})
 	}
@@ -71,7 +71,7 @@ func HandleBindCfxAddress(userId, userAddress, platform string) error{
 	return nil
 }
 
-func GetDiscordChannelInfo(guildId string) ([]*discordgo.Channel, error){
+func GetDiscordChannelInfo(guildId string) ([]*discordgo.Channel, error) {
 	st, err := GetSession().GuildChannels(guildId)
 
 	if err != nil {
@@ -80,7 +80,7 @@ func GetDiscordChannelInfo(guildId string) ([]*discordgo.Channel, error){
 	return st, err
 }
 
-func GetDoDoChannelInfo(islandId string) ([]*dodoModel.ChannelElement, error){
+func GetDoDoChannelInfo(islandId string) ([]*dodoModel.ChannelElement, error) {
 	st, err := (*GetInstance()).GetChannelList(context.Background(), &dodoModel.GetChannelListReq{
 		IslandId: islandId,
 	})
@@ -91,7 +91,7 @@ func GetDoDoChannelInfo(islandId string) ([]*dodoModel.ChannelElement, error){
 	return st, err
 }
 
-func GetDiscordGuildInfo(guildId string) (st *discordgo.Guild, err error){
+func GetDiscordGuildInfo(guildId string) (st *discordgo.Guild, err error) {
 	st, err = GetSession().Guild(guildId)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func GetDiscordGuildInfo(guildId string) (st *discordgo.Guild, err error){
 	return st, err
 }
 
-func GetDoDoIslandInfo(islandId string) (st *dodoModel.GetIslandInfoRsp, err error){
+func GetDoDoIslandInfo(islandId string) (st *dodoModel.GetIslandInfoRsp, err error) {
 	info, err := (*GetInstance()).GetIslandInfo(context.Background(), &dodoModel.GetIslandInfoReq{
 		IslandId: islandId,
 	})
@@ -109,18 +109,18 @@ func GetDoDoIslandInfo(islandId string) (st *dodoModel.GetIslandInfoRsp, err err
 	return info, err
 }
 
-func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32)(*models.CustomMintResp, error){
-	tokenId, err := getTokenId(id, "Bearer " + token)
+func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
+	tokenId, err := getTokenId(id, "Bearer "+token)
 	if err != nil {
 		return nil, err
 	}
 
 	res := &models.CustomMintResp{
 		UserAddress: userAddress,
-		NFTAddress: viper.GetString("customMint.mintRespPrefix") +  contractAddress + "/" + tokenId,
-		Contract: contractAddress,
-		TokenID: tokenId,
-		Time: createTime,
+		NFTAddress:  viper.GetString("customMint.mintRespPrefix") + contractAddress + "/" + tokenId,
+		Contract:    contractAddress,
+		TokenID:     tokenId,
+		Time:        createTime,
 	}
 	_, err = models.UpdateDiscordCustomCount(userID, channelID)
 	if err != nil {
@@ -128,25 +128,25 @@ func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, 
 	}
 
 	err = models.StoreCustomMintResult(models.CustomMintResult{
-		UserID: userID,
+		UserID:     userID,
 		ContractID: contractId,
-		TokenID: tokenId,
+		TokenID:    tokenId,
 	})
 	return res, nil
 }
 
-func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32)(*models.CustomMintResp, error){
-	tokenId, err := getTokenId(id, "Bearer " + token)
+func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
+	tokenId, err := getTokenId(id, "Bearer "+token)
 	if err != nil {
 		return nil, err
 	}
 
 	res := &models.CustomMintResp{
 		UserAddress: userAddress,
-		NFTAddress: viper.GetString("customMint.mintRespPrefix") +  contractAddress + "/" + tokenId,
-		Contract: contractAddress,
-		TokenID: tokenId,
-		Time: createTime,
+		NFTAddress:  viper.GetString("customMint.mintRespPrefix") + contractAddress + "/" + tokenId,
+		Contract:    contractAddress,
+		TokenID:     tokenId,
+		Time:        createTime,
 	}
 	_, err = models.UpdateDoDoCustomCount(userID, channelID)
 	if err != nil {
@@ -154,14 +154,14 @@ func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, cha
 	}
 
 	err = models.StoreCustomMintResult(models.CustomMintResult{
-		UserID: userID,
+		UserID:     userID,
 		ContractID: contractId,
-		TokenID: tokenId,
+		TokenID:    tokenId,
 	})
 	return res, nil
 }
 
-func sendBurnNFTRequest(token string, dto openapiclient.ServicesBurnDto)(*openapiclient.ModelsBurnTask, error){
+func sendBurnNFTRequest(token string, dto openapiclient.ServicesBurnDto) (*openapiclient.ModelsBurnTask, error) {
 	fmt.Println("Start to burn")
 	resp, _, err := newClient().BurnsApi.BurnNft(context.Background()).Authorization(token).BurnDto(dto).Execute()
 	if err != nil {
@@ -171,7 +171,7 @@ func sendBurnNFTRequest(token string, dto openapiclient.ServicesBurnDto)(*openap
 	return resp, nil
 }
 
-func sendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto) (*openapiclient.ModelsMintTask, error){
+func sendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto) (*openapiclient.ModelsMintTask, error) {
 	//configuration := openapiclient.NewConfiguration()
 	//apiClient := openapiclient.NewAPIClient(configuration)
 	fmt.Println("Start to mint")
@@ -202,7 +202,7 @@ func getTokenId(id int32, token string) (string, error) {
 	return *resp.TokenId, nil
 }
 
-func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, error){
+func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, error) {
 	//configuration := openapiclient.NewConfiguration()
 	//apiClient := openapiclient.NewAPIClient(configuration)
 	fmt.Println("Start to get contract information")
@@ -218,7 +218,7 @@ func newClient() *openapiclient.APIClient {
 	configuration.HTTPClient = http.DefaultClient
 	configuration.Servers = openapiclient.ServerConfigurations{
 		{
-			URL: "https://dev.nftrainbow.xyz/v1",
+			URL: viper.GetString("rainbowOpenApi") + "/v1",
 		},
 	}
 	apiClient := openapiclient.NewAPIClient(configuration)
@@ -232,9 +232,9 @@ func SyncNFTMintTaskStatus(token string, id int32) {
 	models.GetDB().Where("token_id = ?", "").Limit(100).Find(&mintTasks).Where("activity_id = ?", id).Limit(100).Find(&mintTasks)
 	if len(mintTasks) == 0 {
 		return
-	}else {
+	} else {
 		for _, mintTask := range mintTasks {
-			tokenId, _ := getTokenId(mintTask.TxID, "Bearer " + token)
+			tokenId, _ := getTokenId(mintTask.TxID, "Bearer "+token)
 			if tokenId != "" {
 				mintTask.TokenID = tokenId
 			}

@@ -20,4 +20,5 @@ newYearCommonId: 14
 newYearSpecialId: 15
 commonMintLimit: 5
 everyDaySharerLimit: 3
-profileApi: https://dev.nftrainbow.xyz/dashboard/users/profile
+rainbowDashboardApi: https://console.nftrainbow.cn
+rainbowOpenApi: https://api.nftrainbow.cn

@@ -271,7 +271,7 @@ func getKycType(userId int32) (uint, error) {
 }
 
 func queryKycType(tokenString string) (float64, error) {
-	req, err := http.NewRequest("GET", viper.GetString("profileApi"), nil)
+	req, err := http.NewRequest("GET", viper.GetString("rainbowDashboardApi")+"/dashboard/users/profile", nil)
 	if err != nil {
 		panic(err)
 	}
