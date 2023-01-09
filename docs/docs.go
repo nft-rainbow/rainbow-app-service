@@ -373,13 +373,6 @@ var doc = `{
                 "operationId": "GetDiscordChannelDetail",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
                         "type": "integer",
                         "description": "guild_id",
                         "name": "guild_id",
@@ -697,13 +690,6 @@ var doc = `{
                 "operationId": "GetDoDoChannelDetail",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
                         "type": "integer",
                         "description": "island_id",
                         "name": "island_id",
@@ -917,13 +903,6 @@ var doc = `{
                 "operationId": "GetPOAPResultList",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
                         "type": "integer",
                         "description": "page",
                         "name": "page",
@@ -983,13 +962,6 @@ var doc = `{
                 "operationId": "GetPOAPResult",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
                         "type": "integer",
                         "description": "activity_id",
                         "name": "activity_id",
@@ -1043,13 +1015,6 @@ var doc = `{
                 "summary": "Get POAP Activity detail",
                 "operationId": "GetPOAPActivityDetail",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "description": "id",
@@ -1154,13 +1119,6 @@ var doc = `{
                 "operationId": "GetMintCount",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
                         "type": "integer",
                         "description": "activity_id",
                         "name": "activity_id",
@@ -1215,13 +1173,6 @@ var doc = `{
                 "operationId": "POAPMintByCSV",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
                         "description": "poap_csv_mint_dto",
                         "name": "poap_csv_mint_dto",
                         "in": "body",
@@ -1271,13 +1222,6 @@ var doc = `{
                 "operationId": "POAPMintByH5",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
                         "description": "poap_h5_mint_dto",
                         "name": "poap_h5_mint_dto",
                         "in": "body",
@@ -1326,13 +1270,6 @@ var doc = `{
                 "summary": "Update By Sharing",
                 "operationId": "Update By Sharing",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "share_request",
                         "name": "share_request",

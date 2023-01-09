@@ -772,11 +772,6 @@ paths:
       description: Get Discord Channel detail info
       operationId: GetDiscordChannelDetail
       parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: guild_id
         in: path
         name: guild_id
@@ -1016,11 +1011,6 @@ paths:
       description: Get DoDo Channel detail info
       operationId: GetDoDoChannelDetail
       parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: island_id
         in: path
         name: island_id
@@ -1298,11 +1288,6 @@ paths:
       description: Get POAP Result list
       operationId: GetPOAPResultList
       parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: page
         in: query
         name: page
@@ -1341,11 +1326,6 @@ paths:
       description: Get POAP Result
       operationId: GetPOAPResult
       parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: activity_id
         in: path
         name: activity_id
@@ -1381,11 +1361,6 @@ paths:
       description: Get POAP Activity detail info
       operationId: GetPOAPActivityDetail
       parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: id
         in: path
         name: id
@@ -1488,11 +1463,6 @@ paths:
       description: Get Common Mint Count
       operationId: GetMintCount
       parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: activity_id
         in: path
         name: activity_id
@@ -1528,11 +1498,6 @@ paths:
       description: POAP Mint By CSV file
       operationId: POAPMintByCSV
       parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: poap_csv_mint_dto
         in: body
         name: poap_csv_mint_dto
@@ -1564,11 +1529,6 @@ paths:
       description: POAP Mint By H5
       operationId: POAPMintByH5
       parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: poap_h5_mint_dto
         in: body
         name: poap_h5_mint_dto
@@ -1600,11 +1560,6 @@ paths:
       description: Update By Sharing
       operationId: Update By Sharing
       parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: share_request
         in: body
         name: share_request

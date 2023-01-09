@@ -38,7 +38,6 @@ func setNewYearConfig(c *gin.Context) {
 // @Description Update By Sharing
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
 // @Param       share_request body  services.ShareRequest true "share_request"
 // @Success     200           {object} string "success"
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
@@ -60,7 +59,6 @@ func updateBySharing(c *gin.Context){
 // @Description Get Common Mint Count
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
 // @Param       activity_id   path     int    true "activity_id"
 // @Param       address       path     string true "address"
 // @Success     200           {object} models.MintCount

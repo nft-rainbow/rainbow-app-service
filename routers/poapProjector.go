@@ -17,7 +17,6 @@ import (
 // @Description POAP Mint By CSV file
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
 // @Param       poap_csv_mint_dto body  services.POAPRequest true "poap_csv_mint_dto"
 // @Success     200           {object} rainbowsdk.ModelsMintTask
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
@@ -45,7 +44,6 @@ func poapMintByCSV(c *gin.Context) {
 // @Description POAP Mint By H5
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
 // @Param       poap_h5_mint_dto body  services.POAPRequest true "poap_h5_mint_dto"
 // @Success     200           {object} rainbowsdk.ModelsMintTask
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
@@ -75,7 +73,6 @@ func poapMintByH5(c *gin.Context) {
 // @Description Get POAP Activity detail info
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
 // @Param       id            path     int    true "id"
 // @Success     200           {object} models.POAPActivityConfig
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
@@ -87,8 +84,17 @@ func getPOAPActivity(c *gin.Context) {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	item, err := models.FindPOAPActivityConfigById(activityId)
-	ginutils.RenderResp(c, item, err)
+	if activityId == viper.GetInt("newYearEvent.newYearCommonId") || activityId == viper.GetInt("newYearEvent.newYearSpecialId"){
+		resp, err := models.FindNewYearConfigById(activityId)
+		if err != nil {
+			ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
+			return
+		}
+		ginutils.RenderResp(c, resp, err)
+	}else{
+		item, err := models.FindPOAPActivityConfigById(activityId)
+		ginutils.RenderResp(c, item, err)
+	}
 }
 
 // @Tags        POAP
@@ -166,7 +172,6 @@ func setPOAPH5Config(c *gin.Context) {
 // @Description Get POAP Result list
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
 // @Param       page          query    integer false "page"
 // @Param       limit         query    integer false "limit"
 // @Param       activity_id   path     int    true "activity_id"
@@ -195,7 +200,6 @@ func getPOAPAResultList(c *gin.Context) {
 // @Description Get POAP Result
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
 // @Param       activity_id   path     int    true "activity_id"
 // @Param       id            path     int    true "id"
 // @Success     200           {object} models.POAPResult
