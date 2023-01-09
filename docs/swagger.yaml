@@ -756,7 +756,7 @@ definitions:
         description: Valid is true if Time is not NULL
         type: boolean
     type: object
-host: https://console.nftrainbow.cn
+host: console.nftrainbow.cn
 info:
   contact: {}
   description: The responses of the open api in swagger focus on the data field rather
