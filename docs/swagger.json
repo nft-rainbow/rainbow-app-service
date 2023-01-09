@@ -14,7 +14,7 @@
         },
         "version": "1.0"
     },
-    "host": "127.0.0.1:8080",
+    "host": "https://console.nftrainbow.cn/apps",
     "basePath": "/v1",
     "paths": {
         "/custom/discord/activity/{id}": {
@@ -1069,6 +1069,62 @@
                 }
             }
         },
+        "/poap/config": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Set NewYear Activity",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Set NewYear Activity",
+                "operationId": "SetNewYearActivity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "new_year_activity_config",
+                        "name": "new_year_activity_config",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NewYearConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NewYearConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/poap/count/{address}/{activity_id}": {
             "get": {
                 "security": [
@@ -1081,7 +1137,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "NewYear"
+                    "POAP"
                 ],
                 "summary": "Get Common Mint Count",
                 "operationId": "GetMintCount",
@@ -1242,63 +1298,7 @@
                 }
             }
         },
-        "/poap/newYear/config": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Set NewYear Activity",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NewYear"
-                ],
-                "summary": "Set NewYear Activity",
-                "operationId": "SetNewYearActivity",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "new_year_activity_config",
-                        "name": "new_year_activity_config",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.NewYearConfig"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.NewYearConfig"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/poap/newYear/sharer": {
+        "/poap/sharer": {
             "post": {
                 "security": [
                     {
@@ -1310,7 +1310,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "NewYear"
+                    "POAP"
                 ],
                 "summary": "Update By Sharing",
                 "operationId": "Update By Sharing",

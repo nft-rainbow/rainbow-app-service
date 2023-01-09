@@ -756,7 +756,7 @@ definitions:
         description: Valid is true if Time is not NULL
         type: boolean
     type: object
-host: 127.0.0.1:8080
+host: https://console.nftrainbow.cn/apps
 info:
   contact: {}
   description: The responses of the open api in swagger focus on the data field rather
@@ -1447,6 +1447,42 @@ paths:
       summary: Set H5 Config
       tags:
       - POAP
+  /poap/config:
+    post:
+      description: Set NewYear Activity
+      operationId: SetNewYearActivity
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: new_year_activity_config
+        in: body
+        name: new_year_activity_config
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewYearConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.NewYearConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Set NewYear Activity
+      tags:
+      - POAP
   /poap/count/{address}/{activity_id}:
     get:
       description: Get Common Mint Count
@@ -1486,7 +1522,7 @@ paths:
       - ApiKeyAuth: []
       summary: Get Common Mint Count
       tags:
-      - NewYear
+      - POAP
   /poap/csv/:activity_id:
     post:
       description: POAP Mint By CSV file
@@ -1559,43 +1595,7 @@ paths:
       summary: POAP Mint By H5
       tags:
       - POAP
-  /poap/newYear/config:
-    post:
-      description: Set NewYear Activity
-      operationId: SetNewYearActivity
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: new_year_activity_config
-        in: body
-        name: new_year_activity_config
-        required: true
-        schema:
-          $ref: '#/definitions/models.NewYearConfig'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.NewYearConfig'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Set NewYear Activity
-      tags:
-      - NewYear
-  /poap/newYear/sharer:
+  /poap/sharer:
     post:
       description: Update By Sharing
       operationId: Update By Sharing
@@ -1630,7 +1630,7 @@ paths:
       - ApiKeyAuth: []
       summary: Update By Sharing
       tags:
-      - NewYear
+      - POAP
 schemes:
 - http
 - https

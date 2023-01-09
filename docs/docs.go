@@ -1080,6 +1080,62 @@ var doc = `{
                 }
             }
         },
+        "/poap/config": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Set NewYear Activity",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Set NewYear Activity",
+                "operationId": "SetNewYearActivity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "new_year_activity_config",
+                        "name": "new_year_activity_config",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NewYearConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NewYearConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/poap/count/{address}/{activity_id}": {
             "get": {
                 "security": [
@@ -1092,7 +1148,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NewYear"
+                    "POAP"
                 ],
                 "summary": "Get Common Mint Count",
                 "operationId": "GetMintCount",
@@ -1253,63 +1309,7 @@ var doc = `{
                 }
             }
         },
-        "/poap/newYear/config": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Set NewYear Activity",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NewYear"
-                ],
-                "summary": "Set NewYear Activity",
-                "operationId": "SetNewYearActivity",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "new_year_activity_config",
-                        "name": "new_year_activity_config",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.NewYearConfig"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.NewYearConfig"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/poap/newYear/sharer": {
+        "/poap/sharer": {
             "post": {
                 "security": [
                     {
@@ -1321,7 +1321,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NewYear"
+                    "POAP"
                 ],
                 "summary": "Update By Sharing",
                 "operationId": "Update By Sharing",
@@ -2426,7 +2426,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "127.0.0.1:8080",
+	Host:        "https://console.nftrainbow.cn/apps",
 	BasePath:    "/v1",
 	Schemes:     []string{"http", "https"},
 	Title:       "Rainbow-APP-Service",
