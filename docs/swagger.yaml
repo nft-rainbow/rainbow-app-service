@@ -1,4 +1,4 @@
-basePath: /v1
+basePath: /apps
 definitions:
   appService_errors.RainbowAppServiceErrorDetailInfo:
     properties:
@@ -756,7 +756,7 @@ definitions:
         description: Valid is true if Time is not NULL
         type: boolean
     type: object
-host: https://console.nftrainbow.cn/apps
+host: https://console.nftrainbow.cn
 info:
   contact: {}
   description: The responses of the open api in swagger focus on the data field rather

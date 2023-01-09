@@ -108,8 +108,8 @@ func initDoDoBot(){
 // @license.name Apache 2.0
 // @license.url  http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host     https://console.nftrainbow.cn/apps
-// @BasePath /v1
+// @host     https://console.nftrainbow.cn
+// @BasePath /apps
 // @schemes  http https
 func main() {
 	models.ConnectDB()

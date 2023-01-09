@@ -2426,8 +2426,8 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "https://console.nftrainbow.cn/apps",
-	BasePath:    "/v1",
+	Host:        "https://console.nftrainbow.cn",
+	BasePath:    "/apps",
 	Schemes:     []string{"http", "https"},
 	Title:       "Rainbow-APP-Service",
 	Description: "The responses of the open api in swagger focus on the data field rather than the code and the message fields",

@@ -14,8 +14,8 @@
         },
         "version": "1.0"
     },
-    "host": "https://console.nftrainbow.cn/apps",
-    "basePath": "/v1",
+    "host": "https://console.nftrainbow.cn",
+    "basePath": "/apps",
     "paths": {
         "/custom/discord/activity/{id}": {
             "get": {
