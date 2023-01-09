@@ -108,7 +108,7 @@ func initDoDoBot(){
 // @license.name Apache 2.0
 // @license.url  http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host     127.0.0.1:8080
+// @host     https://console.nftrainbow.cn/apps
 // @BasePath /v1
 // @schemes  http https
 func main() {

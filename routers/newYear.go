@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-// @Tags        NewYear
+// @Tags        POAP
 // @ID          SetNewYearActivity
 // @Summary     Set NewYear Activity
 // @Description Set NewYear Activity
@@ -21,7 +21,7 @@ import (
 // @Success     200           {object} models.NewYearConfig
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/newYear/config [post]
+// @Router      /poap/config [post]
 func setNewYearConfig(c *gin.Context) {
 	var config *models.NewYearConfig
 	if err := c.ShouldBind(&config); err != nil {
@@ -32,7 +32,7 @@ func setNewYearConfig(c *gin.Context) {
 	ginutils.RenderResp(c, resp, err)
 }
 
-// @Tags        NewYear
+// @Tags        POAP
 // @ID          Update By Sharing
 // @Summary     Update By Sharing
 // @Description Update By Sharing
@@ -43,7 +43,7 @@ func setNewYearConfig(c *gin.Context) {
 // @Success     200           {object} string "success"
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/newYear/sharer [post]
+// @Router      /poap/sharer [post]
 func updateBySharing(c *gin.Context){
 	var req services.ShareRequest
 	if err := c.ShouldBind(&req); err != nil {
@@ -54,7 +54,7 @@ func updateBySharing(c *gin.Context){
 	ginutils.RenderResp(c, "success", err)
 }
 
-// @Tags        NewYear
+// @Tags        POAP
 // @ID          GetMintCount
 // @Summary     Get Common Mint Count
 // @Description Get Common Mint Count
@@ -77,11 +77,11 @@ func getMintCount(c *gin.Context) {
 		return
 	}
 	var resp *models.MintCount
-	if activityId == viper.GetInt("newYearCommonId") {
+	if activityId == viper.GetInt("newYearEvent.newYearCommonId") {
 		resp, err = models.FindMintCount(address, int32(activityId))
 		ginutils.RenderResp(c, resp, err)
-	}else if activityId == viper.GetInt("newYearSpecialId") {
-		res, err := services.GetSpecialMintCount(viper.GetInt("newYearCommonId"), address)
+	}else if activityId == viper.GetInt("newYearEvent.newYearSpecialId") {
+		res, err := services.GetSpecialMintCount(viper.GetInt("newYearEvent.newYearCommonId"), address)
 		ginutils.RenderResp(c, res, err)
 	}
 }

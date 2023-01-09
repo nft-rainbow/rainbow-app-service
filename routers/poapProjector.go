@@ -59,9 +59,9 @@ func poapMintByH5(c *gin.Context) {
 	}
 	var resp *openapiclient.ModelsMintTask
 	var err error
-	if poapRequest.ActivityID == viper.GetInt32("newYearCommonId") {
+	if poapRequest.ActivityID == viper.GetInt32("newYearEvent.newYearCommonId") {
 		resp, err = services.HandleCommonNFTMint(poapRequest)
-	}else if poapRequest.ActivityID == viper.GetInt32("newYearSpecialId"){
+	}else if poapRequest.ActivityID == viper.GetInt32("newYearEvent.newYearSpecialId"){
 		resp, err = services.HandleSpecialNFTMint(poapRequest)
 	}else{
 		resp, err = services.HandlePOAPH5Mint(poapRequest)

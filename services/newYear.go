@@ -52,7 +52,7 @@ func HandleSpecialNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error
 		return nil, err
 	}
 
-	commonConfig, err := models.FindNewYearConfigById(viper.GetInt("newYearCommonId"))
+	commonConfig, err := models.FindNewYearConfigById(viper.GetInt("newYearEvent.newYearCommonId"))
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 		return err
 	}
 	var amount = int32(1)
-	for i := viper.GetInt("commonMintLimit"); i < len(config.ContractInfos); i++ {
+	for i := viper.GetInt("newYearEvent.commonMintLimit"); i < len(config.ContractInfos); i++ {
 		tmp, _:= models.FindAndCountPOAPResultByTokenId(
 			int(config.ID),
 			int(config.ContractID),
@@ -175,7 +175,7 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 		if err != nil {
 			return err
 		}
-		result, _ := cryptoRand.Int(cryptoRand.Reader, big.NewInt(viper.GetInt64("commonMintLimit")))
+		result, _ := cryptoRand.Int(cryptoRand.Reader, big.NewInt(viper.GetInt64("newYearEvent.commonMintLimit")))
 
 		dto := &openapiclient.ServicesBurnDto{
 			Chain: chainType,
@@ -241,7 +241,7 @@ func GetSpecialMintCount(activityId int, address string)(int64, error){
 		return 0, err
 	}
 	res := int64(math.MaxInt64)
-	for i := 0; i < viper.GetInt("commonMintLimit"); i++ {
+	for i := 0; i < viper.GetInt("newYearEvent.commonMintLimit"); i++ {
 		resp, err := models.FindAndCountPOAPResultByTokenId(int(config.ID), int(config.ContractID), 0, 10, config.ContractInfos[i].TokenID,address)
 		if err != nil {
 			return 0, err

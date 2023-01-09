@@ -15,8 +15,11 @@ import (
 func SetupRoutes(router *gin.Engine) {
 	router.GET("/", indexEndpoint)
 	router.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
-	custom := router.Group("/custom")
-	poap := router.Group("/poap")
+
+	apiV1 := router.Group("/v1")
+
+	custom := apiV1.Group("/custom")
+	poap := apiV1.Group("/poap")
 
 	discord := custom.Group("/discord")
 	dodo := custom.Group("/dodo")
@@ -45,24 +48,19 @@ func SetupRoutes(router *gin.Engine) {
 		discordCustomProjector.GET("/activity/:id", getDiscordCustomActivity)
 	}
 
+	poap.POST("/csv", poapMintByCSV)
+	poap.POST("/h5", poapMintByH5)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		poap.POST("/activity", setPOAPActivityConfig)
 		poap.POST("/activity/h5", setPOAPH5Config)
-		poap.POST("/csv", poapMintByCSV)
-		poap.POST("/h5", poapMintByH5)
 		poap.GET("/activity", getPOAPActivityList)
 		poap.GET("/activity/:id", getPOAPActivity)
 		poap.GET("/activity/result/:activity_id", getPOAPAResultList)
 		poap.GET("/activity/result/:activity_id/:id", getPOAPAResult)
 		poap.GET("/count/:address/:activity_id", getMintCount)
-	}
-
-	poapNewYear := poap.Group("/newYear")
-	poapNewYear.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
-	{
-		poapNewYear.POST("/config", setNewYearConfig)
-		poapNewYear.POST("/sharer", updateBySharing)
+		poap.POST("/config", setNewYearConfig)
+		poap.POST("/sharer", updateBySharing)
 	}
 }
 
