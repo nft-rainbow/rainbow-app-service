@@ -87,17 +87,19 @@ func HandlePOAPCSVMint(req *POAPRequest) (*openapiclient.ModelsMintTask, error){
 		return nil, err
 	}
 
-	err = models.StorePOAPResult(models.POAPResult{
+	item := &models.POAPResult{
 		ActivityID: int32(config.ID),
 		Address: req.UserAddress,
 		ContractID: config.ContractID,
 		TxID: *resp.Id,
-	})
+	}
+
+	err = models.StorePOAPResult(*item)
 	if err != nil {
 		return nil, err
 	}
 
-	go SyncNFTMintTaskStatus(token, int32(config.ID))
+	go SyncNFTMintTaskStatus(token, item)
 
 	return resp, nil
 }
@@ -138,17 +140,19 @@ func HandlePOAPH5Mint(req *POAPRequest) (*openapiclient.ModelsMintTask, error){
 		return nil, err
 	}
 
-	err = models.StorePOAPResult(models.POAPResult{
+	item := &models.POAPResult{
 		ActivityID: int32(config.ID),
 		Address: req.UserAddress,
 		ContractID: config.ContractID,
 		TxID: *resp.Id,
-	})
+	}
+
+	err = models.StorePOAPResult(*item)
 	if err != nil {
 		return nil, err
 	}
 
-	go SyncNFTMintTaskStatus(token, int32(config.ID))
+	go SyncNFTMintTaskStatus(token, item)
 
 	return resp, nil
 }

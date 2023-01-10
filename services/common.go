@@ -225,22 +225,13 @@ func newClient() *openapiclient.APIClient {
 	return apiClient
 }
 
-func SyncNFTMintTaskStatus(token string, id int32) {
+func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 	logrus.Info("start task for syncing nft mint status")
-	var mintTasks []*models.POAPResult
 
-	models.GetDB().Where("token_id = ?", "").Limit(100).Find(&mintTasks).Where("activity_id = ?", id).Limit(100).Find(&mintTasks)
-	if len(mintTasks) == 0 {
-		return
-	} else {
-		for _, mintTask := range mintTasks {
-			tokenId, _ := getTokenId(mintTask.TxID, "Bearer "+token)
-			if tokenId != "" {
-				mintTask.TokenID = tokenId
-			}
-			models.GetDB().Save(&mintTask)
-		}
-
-		time.Sleep(time.Second * 5)
+	tokenId, _ := getTokenId(res.TxID, "Bearer "+token)
+	if tokenId != "" {
+		res.TokenID = tokenId
 	}
+	models.GetDB().Save(&res)
+
 }

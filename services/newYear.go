@@ -77,22 +77,23 @@ func HandleSpecialNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error
 		return nil, err
 	}
 
-	resp, err := randomMint(config, token, req.UserAddress, chainType)
+	resp, index, err := randomMint(config, token, req.UserAddress, chainType)
 	if err != nil {
 		return nil, err
 	}
 
-	err = models.StorePOAPResult(models.POAPResult{
+	res := &models.POAPResult{
 		ActivityID: int32(config.ID),
 		Address: req.UserAddress,
 		ContractID: config.ContractID,
 		TxID: *resp.Id,
-	})
+		TokenID: config.ContractInfos[index].TokenID,
+	}
+
+	err = models.StorePOAPResult(*res)
 	if err != nil {
 		return nil, err
 	}
-
-	go SyncNFTMintTaskStatus(token, int32(config.ID))
 
 	return resp, nil
 }
@@ -122,22 +123,24 @@ func HandleCommonNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error)
 		return nil, err
 	}
 
-	resp, err := randomMint(config, token, req.UserAddress, chainType)
+	resp, index, err := randomMint(config, token, req.UserAddress, chainType)
 	if err != nil {
 		return nil, err
 	}
 
-	err = models.StorePOAPResult(models.POAPResult{
+	item := &models.POAPResult{
 		ActivityID: int32(config.ID),
 		Address: req.UserAddress,
 		ContractID: config.ContractID,
 		TxID: *resp.Id,
-	})
+		TokenID: config.ContractInfos[index].TokenID,
+	}
+
+	err = models.StorePOAPResult(*item)
 	if err != nil {
 		return nil, err
 	}
 
-	go SyncNFTMintTaskStatus(token, int32(config.ID))
 	res, err := models.FindMintCount(req.UserAddress, req.ActivityID)
 	if err != nil {
 		return nil, err
@@ -163,7 +166,7 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 		return err
 	}
 	var amount = int32(1)
-	for i := viper.GetInt("newYearEvent.commonMintLimit"); i < len(config.ContractInfos); i++ {
+	for i := 0; i < len(config.ContractInfos); i++ {
 		tmp, _:= models.FindAndCountPOAPResultByTokenId(
 			int(config.ID),
 			int(config.ContractID),
@@ -175,7 +178,7 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 		if err != nil {
 			return err
 		}
-		result, _ := cryptoRand.Int(cryptoRand.Reader, big.NewInt(viper.GetInt64("newYearEvent.commonMintLimit")))
+		result, _ := cryptoRand.Int(cryptoRand.Reader, big.NewInt(tmp.Count))
 
 		dto := &openapiclient.ServicesBurnDto{
 			Chain: chainType,
@@ -273,14 +276,14 @@ func checkEnough(config *models.NewYearConfig, address string)error{
 		if err != nil {
 			return err
 		}
-		if resp.Count == 0 {
+		if resp.Count <= 0 {
 			return fmt.Errorf("The common NFTs are not enough")
 		}
 	}
 	return nil
 }
 
-func randomMint(config *models.NewYearConfig, token, address, chain string)(*openapiclient.ModelsMintTask, error) {
+func randomMint(config *models.NewYearConfig, token, address, chain string)(*openapiclient.ModelsMintTask, int32, error) {
 	var index int
 	probabilities := make([]float32, 0)
 	for i := 0; i < len(config.ContractInfos); i ++ {
@@ -296,10 +299,10 @@ func randomMint(config *models.NewYearConfig, token, address, chain string)(*ope
 		TokenId: &(config.ContractInfos[index].TokenID),
 	})
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return resp, nil
+	return resp, int32(index), nil
 
 }
 

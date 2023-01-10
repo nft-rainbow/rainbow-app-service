@@ -129,7 +129,7 @@ func FindPOAPResultById(activityId, id int) (*POAPResult, error) {
 	resp := &POAPResult{}
 	cond.ActivityID = int32(activityId)
 	cond.ID = uint(id)
-	if err := db.Where(cond).First(&resp).Error; err != nil {
+	if err := db.Where(cond).Last(&resp).Error; err != nil {
 		return nil, err
 	}
 
