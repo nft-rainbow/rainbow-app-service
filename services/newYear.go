@@ -141,17 +141,6 @@ func HandleCommonNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error)
 		return nil, err
 	}
 
-	res, err := models.FindMintCount(req.UserAddress, req.ActivityID)
-	if err != nil {
-		return nil, err
-	}
-	if res.Count == 0 {
-		everydayNFTMintCache[req.UserAddress] = 3
-		_, err = models.UpdateMintCount(req.UserAddress, req.ActivityID, viper.GetInt32("everyDaySharerLimit"))
-		if err != nil {
-			return nil, err
-		}
-	}
 	_, err = models.UpdateMintCount(req.UserAddress, req.ActivityID, -1)
 	if err != nil {
 		return nil, err
@@ -207,6 +196,9 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 }
 
 func UpdateBySharing(req ShareRequest)error {
+	if req.Sharer == req.Receiver {
+		return fmt.Errorf("Can not share to yourself")
+	}
 	for _, v := range mintAddressCache[req.Receiver] {
 		if v == req.Sharer {
 			return fmt.Errorf("The sharer has shared the link to receiver")
@@ -226,9 +218,7 @@ func UpdateBySharing(req ShareRequest)error {
 		return err
 	}
 	if resp.Count == 0 {
-		everydayNFTMintCache[req.Receiver] = viper.GetInt64("everyDaySharerLimit")
-		mintAddressCache[req.Receiver] = []string{}
-		_, err := models.UpdateMintCount(req.Sharer, req.ActivityId, 1)
+		err := checkAndCreateNewAccount(req.Receiver, req.ActivityId)
 		if err != nil {
 			return nil
 		}
@@ -256,8 +246,25 @@ func GetSpecialMintCount(activityId int, address string)(int64, error){
 	return res, nil
 }
 
+func GetCommonMintCount(activityId int32, address string) (*models.MintCount, error){
+	err := checkAndCreateNewAccount(address, activityId)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := models.FindMintCount(address, int32(activityId))
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func UpdateEveryday() {
-	c := time.Tick(24 * time.Hour)
+	var c <-chan time.Time
+	if viper.GetString("env") == "dev" {
+		c = time.Tick(30 * time.Minute)
+	}else if viper.GetString("env") == "prod"{
+		c = time.Tick(24 * time.Hour)
+	}
 	go func() {
 		for {
 			<- c
@@ -355,8 +362,9 @@ func checkNewYearAmount(configID int, amount int32) error {
 }
 
 func checkMintCount(activityId int32, address string) error{
-	if _, ok := everydayNFTMintCache[address]; !ok {
-		return nil
+	err := checkAndCreateNewAccount(address, activityId)
+	if err != nil {
+		return err
 	}
 	resp, err := models.FindMintCount(address, activityId)
 	if err != nil {
@@ -365,6 +373,19 @@ func checkMintCount(activityId int32, address string) error{
 
 	if resp.Count <= 0 {
 		return fmt.Errorf("The mint count is not enough")
+	}
+	return nil
+}
+
+func checkAndCreateNewAccount(address string, activityId int32) error{
+	if _, ok := everydayNFTMintCache[address]; !ok {
+		everydayNFTMintCache[address] = viper.GetInt64("newYearEvent.everyDaySharerLimit")
+		mintAddressCache[address] = []string{}
+		_, err := models.UpdateMintCount(address, activityId, 1)
+		if err != nil {
+			return nil
+		}
+		return nil
 	}
 	return nil
 }
