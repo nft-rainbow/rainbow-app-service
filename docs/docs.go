@@ -885,7 +885,7 @@ var doc = `{
                 }
             }
         },
-        "/poap/activity/{activity_id}": {
+        "/poap/activity/result/{activity_id}": {
             "get": {
                 "security": [
                     {
@@ -944,7 +944,7 @@ var doc = `{
                 }
             }
         },
-        "/poap/activity/{activity_id}/{id}": {
+        "/poap/activity/result/{activity_id}/{id}": {
             "get": {
                 "security": [
                     {
@@ -1155,7 +1155,7 @@ var doc = `{
                 }
             }
         },
-        "/poap/csv/:activity_id": {
+        "/poap/csv": {
             "post": {
                 "security": [
                     {

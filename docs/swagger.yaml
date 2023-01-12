@@ -1283,79 +1283,6 @@ paths:
       summary: Set POAP Activity
       tags:
       - POAP
-  /poap/activity/{activity_id}:
-    get:
-      description: Get POAP Result list
-      operationId: GetPOAPResultList
-      parameters:
-      - description: page
-        in: query
-        name: page
-        type: integer
-      - description: limit
-        in: query
-        name: limit
-        type: integer
-      - description: activity_id
-        in: path
-        name: activity_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.POAPResultQueryResult'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Get POAP Result list
-      tags:
-      - POAP
-  /poap/activity/{activity_id}/{id}:
-    get:
-      description: Get POAP Result
-      operationId: GetPOAPResult
-      parameters:
-      - description: activity_id
-        in: path
-        name: activity_id
-        required: true
-        type: integer
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.POAPResult'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Get POAP Result
-      tags:
-      - POAP
   /poap/activity/{id}:
     get:
       description: Get POAP Activity detail info
@@ -1420,6 +1347,79 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Set H5 Config
+      tags:
+      - POAP
+  /poap/activity/result/{activity_id}:
+    get:
+      description: Get POAP Result list
+      operationId: GetPOAPResultList
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: activity_id
+        in: path
+        name: activity_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.POAPResultQueryResult'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get POAP Result list
+      tags:
+      - POAP
+  /poap/activity/result/{activity_id}/{id}:
+    get:
+      description: Get POAP Result
+      operationId: GetPOAPResult
+      parameters:
+      - description: activity_id
+        in: path
+        name: activity_id
+        required: true
+        type: integer
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.POAPResult'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get POAP Result
       tags:
       - POAP
   /poap/config:
@@ -1493,7 +1493,7 @@ paths:
       summary: Get Common Mint Count
       tags:
       - POAP
-  /poap/csv/:activity_id:
+  /poap/csv:
     post:
       description: POAP Mint By CSV file
       operationId: POAPMintByCSV

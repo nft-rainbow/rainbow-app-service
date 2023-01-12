@@ -21,7 +21,7 @@ import (
 // @Success     200           {object} rainbowsdk.ModelsMintTask
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/csv/:activity_id [post]
+// @Router      /poap/csv [post]
 func poapMintByCSV(c *gin.Context) {
 	poapRequest := services.POAPRequest{}
 	if err := c.ShouldBind(&poapRequest); err != nil {
@@ -178,7 +178,7 @@ func setPOAPH5Config(c *gin.Context) {
 // @Success     200           {object} models.POAPResultQueryResult
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/{activity_id} [get]
+// @Router      /poap/activity/result/{activity_id} [get]
 func getPOAPAResultList(c *gin.Context) {
 	pagination, err := GetPagination(c)
 	if err != nil {
@@ -205,7 +205,7 @@ func getPOAPAResultList(c *gin.Context) {
 // @Success     200           {object} models.POAPResult
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/{activity_id}/{id} [get]
+// @Router      /poap/activity/result/{activity_id}/{id} [get]
 func getPOAPAResult(c *gin.Context) {
 	activityId, err := strconv.Atoi(c.Param("activity_id"))
 	if err != nil {

@@ -874,7 +874,7 @@
                 }
             }
         },
-        "/poap/activity/{activity_id}": {
+        "/poap/activity/result/{activity_id}": {
             "get": {
                 "security": [
                     {
@@ -933,7 +933,7 @@
                 }
             }
         },
-        "/poap/activity/{activity_id}/{id}": {
+        "/poap/activity/result/{activity_id}/{id}": {
             "get": {
                 "security": [
                     {
@@ -1144,7 +1144,7 @@
                 }
             }
         },
-        "/poap/csv/:activity_id": {
+        "/poap/csv": {
             "post": {
                 "security": [
                     {
