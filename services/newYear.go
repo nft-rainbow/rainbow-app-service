@@ -67,6 +67,11 @@ func HandleSpecialNFTMint(req *POAPRequest)(*models.POAPResult, error){
 		return nil, err
 	}
 
+	err = checkPersonalAmount(int32(config.ID), config.MaxMintCount, req.UserAddress)
+	if err != nil {
+		return nil, err
+	}
+
 	chainType, err := utils.ChainTypeByTypeId(uint(config.Chain))
 	if err != nil {
 		return nil, err
@@ -117,7 +122,17 @@ func HandleCommonNFTMint(req *POAPRequest)(*models.POAPResult, error) {
 		return nil, err
 	}
 
+	err = checkPersonalAmount(int32(config.ID), config.MaxMintCount, req.UserAddress)
+	if err != nil {
+		return nil, err
+	}
+
 	chainType, err := utils.ChainTypeByTypeId(uint(config.Chain))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = models.UpdateMintCount(req.UserAddress, req.ActivityID, -1)
 	if err != nil {
 		return nil, err
 	}
@@ -133,11 +148,6 @@ func HandleCommonNFTMint(req *POAPRequest)(*models.POAPResult, error) {
 		ContractID: config.ContractID,
 		TxID: *resp.Id,
 		TokenID: config.ContractInfos[index].TokenID,
-	}
-
-	_, err = models.UpdateMintCount(req.UserAddress, req.ActivityID, -1)
-	if err != nil {
-		return nil, err
 	}
 
 	res := models.GetDB().Create(&item)
@@ -370,6 +380,20 @@ func checkMintCount(activityId int32, address string) error{
 
 	if resp.Count <= 0 {
 		return fmt.Errorf("The mint count is not enough")
+	}
+	return nil
+}
+
+func checkPersonalAmount(activityId, max int32, address string)error{
+	if max == -1 {
+		return nil
+	}
+	resp, err := models.FindAndCountPOAPResultByAddress(int(activityId), 0, 10, address)
+	if err != nil {
+		return err
+	}
+	if int32(resp.Count) >= max{
+		return fmt.Errorf("The mint amount has exceeded the personal limit")
 	}
 	return nil
 }

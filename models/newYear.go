@@ -17,7 +17,7 @@ type NewYearConfig struct {
 	ContractType int32 `gorm:"type:integer" json:"contract_type"`
 	ContractAddress string `gorm:"type:string" json:"contract_address"`
 	ContractID int32 `gorm:"type:integer" json:"contract_id" binding:"required"`
-	MaxMintCount uint `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
+	MaxMintCount int32 `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
 	ActivityPictureURL string `gorm:"type:string" json:"activity_picture_url"`
 	SharingContent string `gorm:"type:string" json:"sharing_content"`
 	ContractInfos []NFTContractInfo `json:"nft_contract_infos"`
