@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
@@ -19,11 +20,11 @@ import (
 )
 
 func initConfig() {
-	viper.SetConfigName("config")             // name of config file (without extension)
-	viper.SetConfigType("yaml")               // REQUIRED if the config file does not have the extension in the name
-	viper.AddConfigPath(".")                  // optionally look for config in the working directory
-	err := viper.ReadInConfig()               // Find and read the config file
-	if err != nil {                           // Handle errors reading the config file
+	viper.SetConfigName("config") // name of config file (without extension)
+	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
+	viper.AddConfigPath(".")      // optionally look for config in the working directory
+	err := viper.ReadInConfig()   // Find and read the config file
+	if err != nil {               // Handle errors reading the config file
 		log.Fatalln(fmt.Errorf("fatal error config file: %w", err))
 	}
 }
@@ -37,6 +38,7 @@ func init() {
 func initGin() {
 	engine := gin.New()
 	engine.Use(gin.Logger())
+	engine.Use(cors.Default())
 	routers.SetupRoutes(engine)
 
 	port := viper.GetString("port")
@@ -61,7 +63,7 @@ func initDiscordBot() {
 		Proxy:           http.ProxyURL(proxy),
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	s.Client.Transport =tr
+	s.Client.Transport = tr
 	s.Dialer.Proxy = http.ProxyURL(proxy)
 
 	err = s.Open()
@@ -86,7 +88,7 @@ func initDiscordBot() {
 	<-stop
 }
 
-func initDoDoBot(){
+func initDoDoBot() {
 	ws := services.InitInstance()
 	fmt.Println("Start to connect")
 
@@ -113,17 +115,8 @@ func initDoDoBot(){
 // @schemes  http https
 func main() {
 	models.ConnectDB()
-	go initDoDoBot()
-	go initGin()
+	//go initDoDoBot()
+	//go initDiscordBot()
 	go services.UpdateEveryday()
-	initDiscordBot()
+	initGin()
 }
-
-
-
-
-
-
-
-
-
