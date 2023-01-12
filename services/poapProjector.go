@@ -48,7 +48,7 @@ func POAPH5Config(config *models.H5Config) (*models.H5Config, error) {
 	return config, nil
 }
 
-func HandlePOAPCSVMint(req *POAPRequest) (*openapiclient.ModelsMintTask, error){
+func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error){
 	config, err := models.FindPOAPActivityConfigById(int(req.ActivityID))
 	if err != nil {
 		return nil, err
@@ -94,17 +94,14 @@ func HandlePOAPCSVMint(req *POAPRequest) (*openapiclient.ModelsMintTask, error){
 		TxID: *resp.Id,
 	}
 
-	err = models.StorePOAPResult(*item)
-	if err != nil {
-		return nil, err
-	}
+	res := models.GetDB().Create(&item)
 
 	go SyncNFTMintTaskStatus(token, item)
 
-	return resp, nil
+	return item, res.Error
 }
 
-func HandlePOAPH5Mint(req *POAPRequest) (*openapiclient.ModelsMintTask, error){
+func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error){
 	config, err := models.FindPOAPActivityConfigById(int(req.ActivityID))
 	if err != nil {
 		return nil, err
@@ -147,14 +144,11 @@ func HandlePOAPH5Mint(req *POAPRequest) (*openapiclient.ModelsMintTask, error){
 		TxID: *resp.Id,
 	}
 
-	err = models.StorePOAPResult(*item)
-	if err != nil {
-		return nil, err
-	}
+	res := models.GetDB().Create(&item)
 
 	go SyncNFTMintTaskStatus(token, item)
 
-	return resp, nil
+	return item, res.Error
 }
 
 func commonCheck(config *models.POAPActivityConfig, req *POAPRequest)error{

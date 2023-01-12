@@ -110,7 +110,7 @@ func GetDoDoIslandInfo(islandId string) (st *dodoModel.GetIslandInfoRsp, err err
 }
 
 func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
-	tokenId, err := getTokenId(id, "Bearer "+token)
+	tokenId, hash, err := getTokenInfo(id, "Bearer "+token)
 	if err != nil {
 		return nil, err
 	}
@@ -131,12 +131,13 @@ func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, 
 		UserID:     userID,
 		ContractID: contractId,
 		TokenID:    tokenId,
+		Hash: hash,
 	})
 	return res, nil
 }
 
 func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
-	tokenId, err := getTokenId(id, "Bearer "+token)
+	tokenId, hash, err := getTokenInfo(id, "Bearer "+token)
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +158,7 @@ func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, cha
 		UserID:     userID,
 		ContractID: contractId,
 		TokenID:    tokenId,
+		Hash: hash,
 	})
 	return res, nil
 }
@@ -183,23 +185,23 @@ func sendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto
 	return resp, nil
 }
 
-func getTokenId(id int32, token string) (string, error) {
+func getTokenInfo(id int32, token string) (string, string, error) {
 	//configuration := openapiclient.NewConfiguration()
 	//apiClient := openapiclient.NewAPIClient(configuration)
 	//fmt.Println("Start to get token Id")
 	resp, _, err := newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	for resp.TokenId == nil && *resp.Status != 1 {
+	for *resp.Status != 1 && *resp.Hash == ""{
 		resp, _, err = newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
-		time.Sleep(10 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
-	return *resp.TokenId, nil
+	return *resp.TokenId, *resp.Hash, nil
 }
 
 func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, error) {
@@ -227,11 +229,10 @@ func newClient() *openapiclient.APIClient {
 
 func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 	logrus.Info("start task for syncing nft mint status")
+	tokenId, hash, _ := getTokenInfo(res.TxID, "Bearer "+token)
 
-	tokenId, _ := getTokenId(res.TxID, "Bearer "+token)
-	if tokenId != "" {
-		res.TokenID = tokenId
-	}
+	res.TokenID = tokenId
+	res.Hash = hash
+
 	models.GetDB().Save(&res)
-
 }

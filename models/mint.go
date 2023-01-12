@@ -1,5 +1,7 @@
 package models
 
+import "gorm.io/gorm"
+
 type CustomMintResp struct {
 	UserAddress string `form:"user_address" json:"user_address"`
 	NFTAddress string `form:"nft_address" json:"nft_address"`
@@ -15,9 +17,10 @@ type CustomMintReq struct {
 
 type CustomMintResult struct {
 	BaseModel
-	UserID string `gorm:"type:varchar(256)" json:"user_id" binding:"required"`
-	ContractID int32 `gorm:"type:integer" json:"contract_id" binding:"required"`
-	TokenID string `gorm:"type:varchar(256)" json:"token_id" binding:"required"`
+	UserID string `gorm:"type:varchar(256)" json:"user_id"`
+	ContractID int32 `gorm:"type:integer" json:"contract_id"`
+	TokenID string `gorm:"type:varchar(256)" json:"token_id"`
+	Hash string `gorm:"type:string" json:"hash"`
 }
 
 type POAPResult struct {
@@ -27,6 +30,7 @@ type POAPResult struct {
 	ContractID int32 `gorm:"type:integer" json:"contract_id" binding:"required"`
 	TxID int32 `gorm:"type:integer" json:"tx_id"`
 	TokenID string `gorm:"type:varchar(256)" json:"token_id"`
+	Hash string `gorm:"type:string" json:"hash"`
 }
 
 func StoreCustomMintResult(req CustomMintResult) error{
@@ -37,10 +41,10 @@ func StoreCustomMintResult(req CustomMintResult) error{
 	return nil
 }
 
-func StorePOAPResult(req POAPResult) error{
+func StorePOAPResult(req POAPResult) (*gorm.DB, error){
 	res := GetDB().Create(&req)
 	if res.Error != nil {
-		return  res.Error
+		return nil, res.Error
 	}
-	return nil
+	return res, nil
 }

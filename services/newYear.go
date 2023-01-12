@@ -46,7 +46,7 @@ func SetNewYearConfig(config *models.NewYearConfig, id uint) (*models.NewYearCon
 	return config, nil
 }
 
-func HandleSpecialNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error){
+func HandleSpecialNFTMint(req *POAPRequest)(*models.POAPResult, error){
 	config, err := models.FindNewYearConfigById(int(req.ActivityID))
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func HandleSpecialNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error
 		return nil, err
 	}
 
-	res := &models.POAPResult{
+	item := &models.POAPResult{
 		ActivityID: int32(config.ID),
 		Address: req.UserAddress,
 		ContractID: config.ContractID,
@@ -90,15 +90,14 @@ func HandleSpecialNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error
 		TokenID: config.ContractInfos[index].TokenID,
 	}
 
-	err = models.StorePOAPResult(*res)
-	if err != nil {
-		return nil, err
-	}
+	res := models.GetDB().Create(&item)
 
-	return resp, nil
+	go SyncNFTMintTaskStatus(token, item)
+
+	return item, res.Error
 }
 
-func HandleCommonNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error) {
+func HandleCommonNFTMint(req *POAPRequest)(*models.POAPResult, error) {
 	err := checkMintCount(req.ActivityID, req.UserAddress)
 	if err != nil {
 		return nil, err
@@ -136,17 +135,16 @@ func HandleCommonNFTMint(req *POAPRequest)(*openapiclient.ModelsMintTask, error)
 		TokenID: config.ContractInfos[index].TokenID,
 	}
 
-	err = models.StorePOAPResult(*item)
-	if err != nil {
-		return nil, err
-	}
-
 	_, err = models.UpdateMintCount(req.UserAddress, req.ActivityID, -1)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp, nil
+	res := models.GetDB().Create(&item)
+
+	go SyncNFTMintTaskStatus(token, item)
+
+	return item, res.Error
 }
 
 func burnNFTs(config *models.NewYearConfig, address, token, chainType string) error{
@@ -310,7 +308,6 @@ func randomMint(config *models.NewYearConfig, token, address, chain string)(*ope
 	}
 
 	return resp, int32(index), nil
-
 }
 
 func weightedRandomIndex(weights []float32) int {

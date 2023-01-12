@@ -6,7 +6,6 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
-	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/spf13/viper"
 	"strconv"
 )
@@ -55,7 +54,7 @@ func poapMintByH5(c *gin.Context) {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	var resp *openapiclient.ModelsMintTask
+	var resp *models.POAPResult
 	var err error
 	if poapRequest.ActivityID == viper.GetInt32("newYearEvent.newYearCommonId") {
 		resp, err = services.HandleCommonNFTMint(poapRequest)
