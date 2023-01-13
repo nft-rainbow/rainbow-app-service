@@ -633,6 +633,8 @@ definitions:
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
         type: object
+      hash:
+        type: string
       id:
         type: integer
       token_id:

@@ -2168,6 +2168,9 @@ var doc = `{
                     "type": "object",
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
+                "hash": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },

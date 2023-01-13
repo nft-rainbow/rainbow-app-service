@@ -45,6 +45,7 @@ func ConnectDB() {
 	db.AutoMigrate(&NewYearConfig{})
 	db.AutoMigrate(&MintCount{})
 	db.AutoMigrate(&NFTContractInfo{})
+	db.AutoMigrate(&ShareInfo{})
 }
 
 func GetDB() *gorm.DB {

@@ -1,7 +1,10 @@
 package models
 
 import (
+	"errors"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
+	"time"
 )
 
 type NewYearConfig struct {
@@ -38,6 +41,13 @@ type NFTContractInfo struct {
 	NewYearConfigID uint
 }
 
+type ShareInfo struct {
+	BaseModel
+	Sharer string `gorm:"type:string" json:"sharer"`
+	Receiver string `gorm:"type:string" json:"receiver"`
+	ActivityId int32 `gorm:"type:integer" json:"activity_id"`
+}
+
 type NewYearConfigQueryResult struct {
 	Count int64       `json:"count"`
 	Items []*NewYearConfig `json:"items"`
@@ -68,7 +78,7 @@ func FindMintCount(address string, activityId int32) (*MintCount, error){
 	cond.Address = address
 	cond.ActivityID = uint(activityId)
 	err := db.Where(&cond).Last(&item).Error
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		item := &MintCount{
 			Address: address,
 			ActivityID: uint(activityId),
@@ -91,4 +101,43 @@ func UpdateMintCount(address string, activityId, updateCount int32) (*MintCount,
 	db.Save(&item)
 
 	return item, nil
+}
+
+func FindSharingInfo(sharer, receiver string, activityId int32) (*ShareInfo, error){
+	var cond ShareInfo
+	var item ShareInfo
+	cond.Sharer = sharer
+	cond.Receiver = receiver
+	cond.ActivityId = activityId
+	res := db.Where(&cond).First(&item)
+
+	return &item, res.Error
+}
+
+func CountTodaySharerInfo(sharer string, activityId int32, now time.Time)(int64, error) {
+	var item []*ShareInfo
+	var cond ShareInfo
+	cond.Sharer = sharer
+	cond.ActivityId = activityId
+	var count int64
+	if viper.GetString("env") == "dev" {
+		db.Find(&item).Where(&cond).
+			Where("updated_at > ? and updated_at < ?", now, now.Add(30 * time.Minute)).Count(&count)
+	}else if viper.GetString("env") == "prod"{
+		db.Find(&item).Where(&cond).
+			Where("updated_at > ? and updated_at < ?", now, now.Add(24 * time.Hour)).Count(&count)
+	}
+
+	return count, nil
+}
+
+func CountSharerInfo(sharer string, activityId int32)(int64, error) {
+	var cond ShareInfo
+	cond.Sharer = sharer
+	cond.ActivityId = activityId
+	var count int64
+
+	res := db.Find(&ShareInfo{}).Where(&cond).Count(&count)
+
+	return count, res.Error
 }

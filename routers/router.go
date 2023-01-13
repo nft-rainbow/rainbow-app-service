@@ -48,7 +48,6 @@ func SetupRoutes(router *gin.Engine) {
 		discordCustomProjector.GET("/activity/:id", getDiscordCustomActivity)
 	}
 
-	poap.POST("/csv", poapMintByCSV)
 	poap.POST("/h5", poapMintByH5)
 	poap.GET("/activity/:id", getPOAPActivity)
 	poap.GET("/activity/result/:activity_id", getPOAPAResultList)
@@ -57,6 +56,7 @@ func SetupRoutes(router *gin.Engine) {
 	poap.POST("/sharer", updateBySharing)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
+		poap.POST("/csv", poapMintByCSV)
 		poap.POST("/activity", setPOAPActivityConfig)
 		poap.POST("/activity/h5", setPOAPH5Config)
 		poap.GET("/activity", getPOAPActivityList)

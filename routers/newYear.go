@@ -81,5 +81,7 @@ func getMintCount(c *gin.Context) {
 	}else if activityId == viper.GetInt("newYearEvent.newYearSpecialId") {
 		res, err := services.GetSpecialMintCount(viper.GetInt("newYearEvent.newYearCommonId"), address)
 		ginutils.RenderResp(c, res, err)
+	}else {
+		ginutils.RenderResp(c, 1, err)
 	}
 }

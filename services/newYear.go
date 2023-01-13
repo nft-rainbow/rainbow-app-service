@@ -2,12 +2,14 @@ package services
 
 import (
 	cryptoRand "crypto/rand"
+	"errors"
 	"fmt"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 	"math"
 	"math/big"
 	"math/rand"
@@ -20,8 +22,7 @@ type ShareRequest struct {
 	ActivityId int32 `json:"activity_id"`
 }
 
-var everydayNFTMintCache = make(map[string]int64)
-var mintAddressCache = make(map[string][]string)
+var clock = time.Now()
 
 func SetNewYearConfig(config *models.NewYearConfig, id uint) (*models.NewYearConfig, error) {
 	config.RainbowUserId = int32(id)
@@ -203,37 +204,53 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 	return nil
 }
 
-func UpdateBySharing(req ShareRequest)error {
+func UpdateBySharing(req ShareRequest) error {
 	if req.Sharer == req.Receiver {
 		return fmt.Errorf("Can not share to yourself")
 	}
-	for _, v := range mintAddressCache[req.Receiver] {
-		if v == req.Sharer {
-			return fmt.Errorf("The sharer has shared the link to receiver")
-		}
-	}
 
-	if everydayNFTMintCache[req.Sharer] > 0 {
-		_, err := models.UpdateMintCount(req.Sharer, req.ActivityId, 1)
+	err := checkAndCreateNewAccount(req.Receiver, req.ActivityId)
+	if err != nil {
+		return nil
+	}
+	count, err := models.CountTodaySharerInfo(req.Sharer, req.ActivityId, clock)
+
+	if count < 3 {
+		resp, err := models.FindSharingInfo(req.Sharer, req.Receiver, req.ActivityId)
+		if !errors.Is(err, gorm.ErrRecordNotFound){
+			if viper.GetString("env") == "dev" {
+				if resp.UpdatedAt.Unix() > clock.Unix() &&
+					resp.UpdatedAt.Unix() < clock.Add(30 * time.Minute).Unix() {
+					return fmt.Errorf("The sharer has shared the link to receiver")
+				}
+			}else if viper.GetString("env") == "prod" {
+				if resp.UpdatedAt.Unix() > clock.Unix() &&
+					resp.UpdatedAt.Unix() < clock.Add(24 * time.Hour).Unix() {
+					return fmt.Errorf("The sharer has shared the link to receiver")
+				}
+			}
+		}else {
+			item := models.ShareInfo{
+				Sharer: req.Sharer,
+				Receiver: req.Receiver,
+				ActivityId: req.ActivityId,
+			}
+			models.GetDB().Create(&item)
+		}
+		_, err = models.UpdateMintCount(req.Sharer, req.ActivityId, 1)
 		if err != nil {
 			return err
 		}
-		everydayNFTMintCache[req.Sharer] -= 1
 	}
 
-	resp, err := models.FindMintCount(req.Receiver, req.ActivityId)
-	if err != nil {
-		return err
+	item := models.ShareInfo{
+		Sharer: req.Sharer,
+		Receiver: req.Receiver,
+		ActivityId: req.ActivityId,
 	}
-	if resp.Count == 0 {
-		err := checkAndCreateNewAccount(req.Receiver, req.ActivityId)
-		if err != nil {
-			return nil
-		}
-	}
-	mintAddressCache[req.Receiver] = append(mintAddressCache[req.Receiver], req.Sharer)
+	res := models.GetDB().Model(&item).Where(&item).Update("updated_at", time.Now())
 
-	return nil
+	return res.Error
 }
 
 func GetSpecialMintCount(activityId int, address string)(int64, error){
@@ -276,11 +293,10 @@ func UpdateEveryday() {
 	go func() {
 		for {
 			<- c
-			for key := range everydayNFTMintCache {
-				everydayNFTMintCache[key] = viper.GetInt64("everyDaySharerLimit")
-				_, _ = models.UpdateMintCount(key, viper.GetInt32("newYearActivityId"), 1)
-				mintAddressCache[key] = []string{}
-			}
+			clock = time.Now()
+			var cond models.MintCount
+			cond.ActivityID = viper.GetUint("newYearActivityId")
+			models.GetDB().Where(cond).Update("count", gorm.Expr("count+ ?", 1))
 		}
 	}()
 }
@@ -399,14 +415,17 @@ func checkPersonalAmount(activityId, max int32, address string)error{
 }
 
 func checkAndCreateNewAccount(address string, activityId int32) error{
-	if _, ok := everydayNFTMintCache[address]; !ok {
-		everydayNFTMintCache[address] = viper.GetInt64("newYearEvent.everyDaySharerLimit")
-		mintAddressCache[address] = []string{}
-		_, err := models.UpdateMintCount(address, activityId, 1)
-		if err != nil {
-			return nil
+	resp, _ := models.CountSharerInfo(address, activityId)
+
+	if resp == 0 {
+		resp, _ := models.FindMintCount(address, activityId)
+		if resp.Count == 0 {
+			_, err := models.UpdateMintCount(address, activityId, 1)
+			if err != nil {
+				return nil
+			}
 		}
-		return nil
 	}
+
 	return nil
 }
