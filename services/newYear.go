@@ -139,9 +139,20 @@ func HandleCommonNFTMint(req *POAPRequest)(*models.POAPResult, error) {
 		return nil, err
 	}
 
-	_, err = models.UpdateMintCount(req.UserAddress, req.ActivityID, -1)
+	everyDay, err := models.FindEveryDayMintCount(req.UserAddress, req.ActivityID)
 	if err != nil {
 		return nil, err
+	}
+	if everyDay.Count != 0 {
+		_, err = models.UpdateEveryDayMintCount(req.UserAddress, req.ActivityID, -1)
+		if err != nil {
+			return nil, err
+		}
+	}else {
+		_, err = models.UpdateMintCount(req.UserAddress, req.ActivityID, -1)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	resp, index, err := randomMint(config, token, req.UserAddress, chainType)
@@ -286,14 +297,19 @@ func GetCommonMintCount(activityId int32, address string) (*MintCountResponse, e
 	if err != nil {
 		return nil, err
 	}
-	resp, err := models.FindMintCount(address, int32(activityId))
+	resp, err := models.FindShareMintCount(address, int32(activityId))
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := models.FindEveryDayMintCount(address, activityId)
 	if err != nil {
 		return nil, err
 	}
 	return &MintCountResponse{
 		Address: address,
 		ActivityId: activityId,
-		Count: resp.Count,
+		Count: resp.Count + res.Count,
 	}, nil
 }
 
@@ -324,9 +340,9 @@ func UpdateEveryday() {
 				Where("activity_id = ?", viper.GetInt32("newYearEvent.newYearCommonId")).Update("time", updateVal)
 
 			clock = updateVal
-			var cond models.MintCount
-			cond.ActivityID = viper.GetUint("newYearEvent.newYearCommonId")
-			models.GetDB().Model(models.MintCount{}).Where(&cond).Update("count", gorm.Expr("count + ?", 1))
+			var cond models.EveryDayMintCount
+			cond.Activity = viper.GetInt32("newYearEvent.newYearCommonId")
+			models.GetDB().Model(models.EveryDayMintCount{}).Where(&cond).Not("count > ?", 0).Update("count", gorm.Expr("count + ?", 1))
 		}
 	}()
 }
@@ -419,12 +435,16 @@ func checkMintCount(activityId int32, address string) error{
 	if err != nil {
 		return err
 	}
-	resp, err := models.FindMintCount(address, activityId)
+	resp, err := models.FindShareMintCount(address, activityId)
+	if err != nil {
+		return err
+	}
+	res, err := models.FindEveryDayMintCount(address, activityId)
 	if err != nil {
 		return err
 	}
 
-	if resp.Count <= 0 {
+	if res.Count + resp.Count <= 0 {
 		return fmt.Errorf("The mint count is not enough")
 	}
 	return nil
@@ -438,6 +458,7 @@ func checkPersonalAmount(activityId, max int32, address string)error{
 	if err != nil {
 		return err
 	}
+
 	if int32(resp.Count) >= max{
 		return fmt.Errorf("The mint amount has exceeded the personal limit")
 	}
@@ -448,12 +469,22 @@ func checkAndCreateNewAccount(address string, activityId int32) error{
 	resp, _ := models.CountSharerInfo(address, activityId)
 
 	if resp == 0 {
-		resp, _ := models.FindMintCount(address, activityId)
-		if resp.Count == 0 {
-			_, err := models.UpdateMintCount(address, activityId, 1)
-			if err != nil {
-				return nil
+		_, err := models.FindShareMintCount(address, activityId)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			item := &models.ShareMintCount{
+				Address: address,
+				ActivityID: uint(activityId),
+				Count: 0,
 			}
+
+			models.GetDB().Create(item)
+
+			everyDay := &models.EveryDayMintCount{
+				Address: address,
+				Activity: activityId,
+				Count: 1,
+			}
+			models.GetDB().Create(everyDay)
 		}
 	}
 

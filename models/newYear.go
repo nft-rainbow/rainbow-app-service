@@ -1,9 +1,7 @@
 package models
 
 import (
-	"errors"
 	"github.com/spf13/viper"
-	"gorm.io/gorm"
 	"time"
 )
 
@@ -26,7 +24,7 @@ type NewYearConfig struct {
 	ContractInfos []NFTContractInfo `json:"nft_contract_infos"`
 }
 
-type MintCount struct {
+type ShareMintCount struct {
 	BaseModel
 	Address string `gorm:"type:string" json:"address"`
 	Count int32 `gorm:"type:integer" json:"count"`
@@ -64,6 +62,13 @@ type NewYearSpecialConfigQueryResult struct {
 	Items []*NewYearConfig `json:"items"`
 }
 
+type EveryDayMintCount struct {
+	BaseModel
+	Address string `gorm:"type:string" json:"address"`
+	Count int32 `gorm:"type:integer" json:"count"`
+	Activity int32 `gorm:"type:integer" json:"activity_id"`
+}
+
 func FindNewYearConfigById(id int) (*NewYearConfig, error){
 	var item NewYearConfig
 	err := db.Where("id = ?", id).First(&item).Error
@@ -78,27 +83,40 @@ func FindNewYearConfigById(id int) (*NewYearConfig, error){
 	return &item, err
 }
 
-func FindMintCount(address string, activityId int32) (*MintCount, error){
-	var cond MintCount
-	var item MintCount
+func FindShareMintCount(address string, activityId int32) (*ShareMintCount, error){
+	var cond ShareMintCount
+	var item ShareMintCount
 	cond.Address = address
 	cond.ActivityID = uint(activityId)
 	err := db.Where(&cond).Last(&item).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		item := &MintCount{
-			Address: address,
-			ActivityID: uint(activityId),
-			Count: 0,
-		}
 
-		db.Create(item)
-		return item, nil
-	}
 	return &item, err
 }
 
-func UpdateMintCount(address string, activityId, updateCount int32) (*MintCount, error){
-	item, err := FindMintCount(address, activityId)
+func FindEveryDayMintCount(address string, activityId int32)(*EveryDayMintCount, error) {
+	var cond EveryDayMintCount
+	var item EveryDayMintCount
+	cond.Address = address
+	cond.Activity = activityId
+	err := db.Where(&cond).Last(&item).Error
+
+	return &item, err
+}
+
+func UpdateMintCount(address string, activityId, updateCount int32) (*ShareMintCount, error){
+	item, err := FindShareMintCount(address, activityId)
+	if err != nil {
+		return nil, err
+	}
+	item.Count += updateCount
+
+	db.Save(&item)
+
+	return item, nil
+}
+
+func UpdateEveryDayMintCount(address string, activityId, updateCount int32) (*EveryDayMintCount, error){
+	item, err := FindEveryDayMintCount(address, activityId)
 	if err != nil {
 		return nil, err
 	}
