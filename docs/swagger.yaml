@@ -462,24 +462,6 @@ definitions:
     required:
     - link
     type: object
-  models.MintCount:
-    properties:
-      activity_id:
-        type: integer
-      address:
-        type: string
-      count:
-        type: integer
-      created_at:
-        type: string
-      deleted_at:
-        $ref: '#/definitions/gorm.DeletedAt'
-        type: object
-      id:
-        type: integer
-      updated_at:
-        type: string
-    type: object
   models.NFTContractInfo:
     properties:
       created_at:
@@ -728,6 +710,15 @@ definitions:
         type: integer
       updated_at:
         type: string
+    type: object
+  services.MintCountResponse:
+    properties:
+      activity_id:
+        type: integer
+      address:
+        type: string
+      count:
+        type: integer
     type: object
   services.POAPRequest:
     properties:
@@ -1481,7 +1472,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.MintCount'
+            $ref: '#/definitions/services.MintCountResponse'
         "400":
           description: Invalid request
           schema:

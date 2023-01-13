@@ -48,6 +48,12 @@ type ShareInfo struct {
 	ActivityId int32 `gorm:"type:integer" json:"activity_id"`
 }
 
+type ClockTime struct {
+	BaseModel
+	Time time.Time `json:"time"`
+	ActivityId int32 `gorm:"type:integer" json:"activity_id"`
+}
+
 type NewYearConfigQueryResult struct {
 	Count int64       `json:"count"`
 	Items []*NewYearConfig `json:"items"`
@@ -122,7 +128,7 @@ func CountTodaySharerInfo(sharer string, activityId int32, now time.Time)(int64,
 	var count int64
 	if viper.GetString("env") == "dev" {
 		db.Find(&item).Where(&cond).
-			Where("updated_at > ? and updated_at < ?", now, now.Add(30 * time.Minute)).Count(&count)
+			Where("updated_at > ? and updated_at < ?", now, now.Add(viper.GetDuration("testMinuteDuration") * time.Minute)).Count(&count)
 	}else if viper.GetString("env") == "prod"{
 		db.Find(&item).Where(&cond).
 			Where("updated_at > ? and updated_at < ?", now, now.Add(24 * time.Hour)).Count(&count)
@@ -140,4 +146,13 @@ func CountSharerInfo(sharer string, activityId int32)(int64, error) {
 	res := db.Find(&ShareInfo{}).Where(&cond).Count(&count)
 
 	return count, res.Error
+}
+
+func GetClock(activityId int32) (*ClockTime, error){
+	var item ClockTime
+	var cond ClockTime
+	cond.ActivityId = activityId
+
+	res := db.Where("activity_id = ?", activityId).First(&item)
+	return &item, res.Error
 }

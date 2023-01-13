@@ -1137,7 +1137,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.MintCount"
+                            "$ref": "#/definitions/services.MintCountResponse"
                         }
                     },
                     "400": {
@@ -1916,33 +1916,6 @@ var doc = `{
                 }
             }
         },
-        "models.MintCount": {
-            "type": "object",
-            "properties": {
-                "activity_id": {
-                    "type": "integer"
-                },
-                "address": {
-                    "type": "string"
-                },
-                "count": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "type": "object",
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "models.NFTContractInfo": {
             "type": "object",
             "required": [
@@ -2304,6 +2277,20 @@ var doc = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "services.MintCountResponse": {
+            "type": "object",
+            "properties": {
+                "activity_id": {
+                    "type": "integer"
+                },
+                "address": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
                 }
             }
         },

@@ -22,7 +22,13 @@ type ShareRequest struct {
 	ActivityId int32 `json:"activity_id"`
 }
 
-var clock = time.Now()
+type MintCountResponse struct {
+	Address string `json:"address"`
+	ActivityId int32 `json:"activity_id"`
+	Count int32 `json:"count"`
+}
+
+var clock time.Time
 
 func SetNewYearConfig(config *models.NewYearConfig, id uint) (*models.NewYearConfig, error) {
 	config.RainbowUserId = int32(id)
@@ -215,12 +221,12 @@ func UpdateBySharing(req ShareRequest) error {
 	}
 	count, err := models.CountTodaySharerInfo(req.Sharer, req.ActivityId, clock)
 
-	if count < 3 {
+	if count < viper.GetInt64("newYearEvent.everyDaySharerLimit") {
 		resp, err := models.FindSharingInfo(req.Sharer, req.Receiver, req.ActivityId)
 		if !errors.Is(err, gorm.ErrRecordNotFound){
 			if viper.GetString("env") == "dev" {
 				if resp.UpdatedAt.Unix() > clock.Unix() &&
-					resp.UpdatedAt.Unix() < clock.Add(30 * time.Minute).Unix() {
+					resp.UpdatedAt.Unix() < clock.Add(viper.GetDuration("testMinuteDuration") * time.Minute).Unix() {
 					return fmt.Errorf("The sharer has shared the link to receiver")
 				}
 			}else if viper.GetString("env") == "prod" {
@@ -253,25 +259,29 @@ func UpdateBySharing(req ShareRequest) error {
 	return res.Error
 }
 
-func GetSpecialMintCount(activityId int, address string)(int64, error){
+func GetSpecialMintCount(activityId int, address string)(*MintCountResponse, error){
 	config, err := models.FindNewYearConfigById(activityId)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	res := int64(math.MaxInt64)
 	for i := 0; i < viper.GetInt("newYearEvent.commonMintLimit"); i++ {
 		resp, err := models.FindAndCountPOAPResultByTokenId(int(config.ID), int(config.ContractID), 0, 10, config.ContractInfos[i].TokenID,address)
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
 		if resp.Count < res {
 			res = resp.Count
 		}
 	}
-	return res, nil
+	return &MintCountResponse{
+		Address: address,
+		ActivityId: int32(activityId),
+		Count: int32(res),
+	}, nil
 }
 
-func GetCommonMintCount(activityId int32, address string) (*models.MintCount, error){
+func GetCommonMintCount(activityId int32, address string) (*MintCountResponse, error){
 	err := checkAndCreateNewAccount(address, activityId)
 	if err != nil {
 		return nil, err
@@ -280,23 +290,43 @@ func GetCommonMintCount(activityId int32, address string) (*models.MintCount, er
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return &MintCountResponse{
+		Address: address,
+		ActivityId: activityId,
+		Count: resp.Count,
+	}, nil
 }
 
 func UpdateEveryday() {
+	resp, err := models.GetClock(viper.GetInt32("newYearEvent.newYearCommonId"))
+	if errors.Is(err, gorm.ErrRecordNotFound){
+		now := time.Now()
+		models.GetDB().Create(&models.ClockTime{
+			Time: now,
+			ActivityId: viper.GetInt32("newYearEvent.newYearCommonId"),
+		})
+		clock = now
+	}else {
+		clock = resp.Time
+	}
 	var c <-chan time.Time
 	if viper.GetString("env") == "dev" {
-		c = time.Tick(30 * time.Minute)
+		c = time.Tick(viper.GetDuration("testMinuteDuration") * time.Minute)
 	}else if viper.GetString("env") == "prod"{
 		c = time.Tick(24 * time.Hour)
 	}
+
 	go func() {
 		for {
 			<- c
-			clock = time.Now()
+			updateVal := time.Now()
+			models.GetDB().Model(&models.ClockTime{}).
+				Where("activity_id = ?", viper.GetInt32("newYearEvent.newYearCommonId")).Update("time", updateVal)
+
+			clock = updateVal
 			var cond models.MintCount
-			cond.ActivityID = viper.GetUint("newYearActivityId")
-			models.GetDB().Where(cond).Update("count", gorm.Expr("count+ ?", 1))
+			cond.ActivityID = viper.GetUint("newYearEvent.newYearCommonId")
+			models.GetDB().Model(models.MintCount{}).Where(&cond).Update("count", gorm.Expr("count + ?", 1))
 		}
 	}()
 }

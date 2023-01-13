@@ -61,7 +61,7 @@ func updateBySharing(c *gin.Context){
 // @Produce     json
 // @Param       activity_id   path     int    true "activity_id"
 // @Param       address       path     string true "address"
-// @Success     200           {object} models.MintCount
+// @Success     200           {object} services.MintCountResponse
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/count/{address}/{activity_id} [get]
@@ -74,7 +74,7 @@ func getMintCount(c *gin.Context) {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	var resp *models.MintCount
+	var resp *services.MintCountResponse
 	if activityId == viper.GetInt("newYearEvent.newYearCommonId") {
 		resp, err = services.GetCommonMintCount(int32(activityId), address)
 		ginutils.RenderResp(c, resp, err)
