@@ -24,3 +24,4 @@ newYearEvent:
 rainbowDashboardApi: https://console.nftrainbow.cn
 rainbowOpenApi: https://api.nftrainbow.cn
 env: dev
+testMinuteDuration: 30
