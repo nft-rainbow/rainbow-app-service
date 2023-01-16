@@ -28,13 +28,13 @@ func InitConfluxChainClient() {
 	}
 }
 
-func ERC1155BalanceOfBatch(address *cfxaddress.Address, accounts []*cfxaddress.Address, ids []*big.Int) ([]*big.Int, error) {
+func ERC1155BalanceOfBatch(contractAddr *cfxaddress.Address, accounts []*cfxaddress.Address, ids []*big.Int) ([]*big.Int, error) {
 	var err error
 	var nftCaller *contracts.ERC1155NFTCaller
-	if address.GetNetworkID() == 1029 {
-		nftCaller, err = contracts.NewERC1155NFTCaller(*address, cfxMainClient)
+	if contractAddr.GetNetworkID() == 1029 {
+		nftCaller, err = contracts.NewERC1155NFTCaller(*contractAddr, cfxMainClient)
 	} else {
-		nftCaller, err = contracts.NewERC1155NFTCaller(*address, cfxTestClient)
+		nftCaller, err = contracts.NewERC1155NFTCaller(*contractAddr, cfxTestClient)
 	}
 	if err != nil {
 		return nil, err
