@@ -37,7 +37,7 @@ func init() {
 	services.InitConfluxChainClient()
 }
 
-func initGin() {
+func startGin() {
 	engine := gin.New()
 	engine.Use(gin.Logger())
 	engine.Use(cors.Default())
@@ -120,5 +120,5 @@ func main() {
 	//go initDoDoBot()
 	//go initDiscordBot()
 	go services.UpdateEveryday()
-	initGin()
+	startGin()
 }
