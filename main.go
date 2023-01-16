@@ -3,6 +3,12 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"log"
+	"net/http"
+	"net/url"
+	"os"
+	"os/signal"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -12,11 +18,6 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
-	"net/http"
-	"net/url"
-	"os"
-	"os/signal"
 )
 
 func initConfig() {
@@ -33,6 +34,7 @@ func init() {
 	initConfig()
 	middlewares.InitRainbowJwtMiddleware()
 	middlewares.InitDashboardJwtMiddleware()
+	services.InitConfluxChainClient()
 }
 
 func initGin() {
