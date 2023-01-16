@@ -149,7 +149,7 @@ func FindAndCountPOAPResultByTokenId(poapId string, contractId, offset, limit in
 	cond.TokenID = tokenId
 
 	var count int64
-	if err := db.Where(cond).Find(&items).Count(&count).Error; err != nil {
+	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
 		return nil, err
 	}
 

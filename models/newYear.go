@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"time"
 )
@@ -89,7 +90,7 @@ func FindShareMintCount(address string, activityId string) (*ShareMintCount, err
 	var item ShareMintCount
 	cond.Address = address
 	cond.ActivityID = activityId
-	err := db.Where(&cond).Last(&item).Error
+	err := db.Where(&cond).First(&item).Error
 
 	return &item, err
 }
@@ -99,7 +100,7 @@ func FindEveryDayMintCount(address string, activityId string)(*EveryDayMintCount
 	var item EveryDayMintCount
 	cond.Address = address
 	cond.ActivityID = activityId
-	err := db.Where(&cond).Last(&item).Error
+	err := db.Where(&cond).First(&item).Error
 
 	return &item, err
 }
@@ -121,7 +122,9 @@ func UpdateEveryDayMintCount(address, poapId string, updateCount int32) (*EveryD
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(item)
 	item.Count += updateCount
+	fmt.Println(item)
 
 	db.Save(&item)
 

@@ -120,7 +120,7 @@ func HandleSpecialNFTMint(req *POAPRequest)(*models.POAPResult, error){
 }
 
 func HandleCommonNFTMint(req *POAPRequest)(*models.POAPResult, error) {
-	err := checkMintCount(req.ActivityID, req.UserAddress)
+	err := checkMintCount(req.UserAddress, req.ActivityID)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +298,7 @@ func GetSpecialMintCount(address, poapId string)(*MintCountResponse, error){
 	}
 	return &MintCountResponse{
 		Address: address,
-		ActivityID: poapId,
+		ActivityID: viper.GetString("newYearEvent.newYearSpecialId"),
 		Count: int32(res),
 	}, nil
 }
