@@ -25,3 +25,6 @@ rainbowDashboardApi: https://console.nftrainbow.cn
 rainbowOpenApi: https://api.nftrainbow.cn
 env: dev
 testMinuteDuration: 30
+rpcs:
+  mainnet: https://main.confluxrpc.com
+  testnet: https://test.confluxrpc.com
