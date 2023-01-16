@@ -512,5 +512,5 @@ func getPoAPId(address string, name string) (string, error) {
 	sum := hash.Sum(nil)
 
 	newYearId := hex.EncodeToString(sum)
-	return newYearId, nil
+	return newYearId[:8], nil
 }
