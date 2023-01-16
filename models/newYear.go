@@ -21,6 +21,7 @@ type NewYearConfig struct {
 	MaxMintCount int32 `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
 	ActivityPictureURL string `gorm:"type:string" json:"activity_picture_url"`
 	SharingContent string `gorm:"type:string" json:"sharing_content"`
+	ActivityID string `gorm:"type:string" json:"activity_id"`
 	ContractInfos []NFTContractInfo `json:"nft_contract_infos"`
 }
 
@@ -28,7 +29,7 @@ type ShareMintCount struct {
 	BaseModel
 	Address string `gorm:"type:string" json:"address"`
 	Count int32 `gorm:"type:integer" json:"count"`
-	ActivityID uint `gorm:"type:integer" json:"activity_id"`
+	ActivityID string `gorm:"type:string" json:"activity_id"`
 }
 
 type NFTContractInfo struct {
@@ -43,13 +44,13 @@ type ShareInfo struct {
 	BaseModel
 	Sharer string `gorm:"type:string" json:"sharer"`
 	Receiver string `gorm:"type:string" json:"receiver"`
-	ActivityId int32 `gorm:"type:integer" json:"activity_id"`
+	ActivityID string `gorm:"type:string" json:"activity_id"`
 }
 
 type ClockTime struct {
 	BaseModel
 	Time time.Time `json:"time"`
-	ActivityId int32 `gorm:"type:integer" json:"activity_id"`
+	ActivityID string `gorm:"type:string" json:"activity_id"`
 }
 
 type NewYearConfigQueryResult struct {
@@ -66,12 +67,12 @@ type EveryDayMintCount struct {
 	BaseModel
 	Address string `gorm:"type:string" json:"address"`
 	Count int32 `gorm:"type:integer" json:"count"`
-	Activity int32 `gorm:"type:integer" json:"activity_id"`
+	ActivityID string `gorm:"type:string" json:"activity_id"`
 }
 
-func FindNewYearConfigById(id int) (*NewYearConfig, error){
+func FindNewYearConfigById(id string) (*NewYearConfig, error){
 	var item NewYearConfig
-	err := db.Where("id = ?", id).First(&item).Error
+	err := db.Where("activity_id = ?", id).First(&item).Error
 	if err != nil {
 		return nil, err
 	}
@@ -83,28 +84,28 @@ func FindNewYearConfigById(id int) (*NewYearConfig, error){
 	return &item, err
 }
 
-func FindShareMintCount(address string, activityId int32) (*ShareMintCount, error){
+func FindShareMintCount(address string, activityId string) (*ShareMintCount, error){
 	var cond ShareMintCount
 	var item ShareMintCount
 	cond.Address = address
-	cond.ActivityID = uint(activityId)
+	cond.ActivityID = activityId
 	err := db.Where(&cond).Last(&item).Error
 
 	return &item, err
 }
 
-func FindEveryDayMintCount(address string, activityId int32)(*EveryDayMintCount, error) {
+func FindEveryDayMintCount(address string, activityId string)(*EveryDayMintCount, error) {
 	var cond EveryDayMintCount
 	var item EveryDayMintCount
 	cond.Address = address
-	cond.Activity = activityId
+	cond.ActivityID = activityId
 	err := db.Where(&cond).Last(&item).Error
 
 	return &item, err
 }
 
-func UpdateMintCount(address string, activityId, updateCount int32) (*ShareMintCount, error){
-	item, err := FindShareMintCount(address, activityId)
+func UpdateMintCount(address, poapId string, updateCount int32) (*ShareMintCount, error){
+	item, err := FindShareMintCount(address, poapId)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +116,8 @@ func UpdateMintCount(address string, activityId, updateCount int32) (*ShareMintC
 	return item, nil
 }
 
-func UpdateEveryDayMintCount(address string, activityId, updateCount int32) (*EveryDayMintCount, error){
-	item, err := FindEveryDayMintCount(address, activityId)
+func UpdateEveryDayMintCount(address, poapId string, updateCount int32) (*EveryDayMintCount, error){
+	item, err := FindEveryDayMintCount(address, poapId)
 	if err != nil {
 		return nil, err
 	}
@@ -127,22 +128,22 @@ func UpdateEveryDayMintCount(address string, activityId, updateCount int32) (*Ev
 	return item, nil
 }
 
-func FindSharingInfo(sharer, receiver string, activityId int32) (*ShareInfo, error){
+func FindSharingInfo(sharer, receiver, poapId string) (*ShareInfo, error){
 	var cond ShareInfo
 	var item ShareInfo
 	cond.Sharer = sharer
 	cond.Receiver = receiver
-	cond.ActivityId = activityId
+	cond.ActivityID = poapId
 	res := db.Where(&cond).First(&item)
 
 	return &item, res.Error
 }
 
-func CountTodaySharerInfo(sharer string, activityId int32, now time.Time)(int64, error) {
+func CountTodaySharerInfo(sharer, poapId string, now time.Time)(int64, error) {
 	var item []*ShareInfo
 	var cond ShareInfo
 	cond.Sharer = sharer
-	cond.ActivityId = activityId
+	cond.ActivityID = poapId
 	var count int64
 	if viper.GetString("env") == "dev" {
 		db.Find(&item).Where(&cond).
@@ -155,10 +156,10 @@ func CountTodaySharerInfo(sharer string, activityId int32, now time.Time)(int64,
 	return count, nil
 }
 
-func CountSharerInfo(sharer string, activityId int32)(int64, error) {
+func CountSharerInfo(sharer, poapId string)(int64, error) {
 	var cond ShareInfo
 	cond.Sharer = sharer
-	cond.ActivityId = activityId
+	cond.ActivityID = poapId
 	var count int64
 
 	res := db.Find(&ShareInfo{}).Where(&cond).Count(&count)
@@ -166,11 +167,11 @@ func CountSharerInfo(sharer string, activityId int32)(int64, error) {
 	return count, res.Error
 }
 
-func GetClock(activityId int32) (*ClockTime, error){
+func GetClock(poapId string) (*ClockTime, error){
 	var item ClockTime
 	var cond ClockTime
-	cond.ActivityId = activityId
+	cond.ActivityID = poapId
 
-	res := db.Where("activity_id = ?", activityId).First(&item)
+	res := db.Where("activity_id = ?", poapId).First(&item)
 	return &item, res.Error
 }

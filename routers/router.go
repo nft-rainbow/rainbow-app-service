@@ -49,7 +49,7 @@ func SetupRoutes(router *gin.Engine) {
 	}
 
 	poap.POST("/h5", poapMintByH5)
-	poap.GET("/activity/:id", getPOAPActivity)
+	poap.GET("/activity/:activity_id", getPOAPActivity)
 	poap.GET("/activity/result/:activity_id", getPOAPAResultList)
 	poap.GET("/activity/result/:activity_id/:id", getPOAPAResult)
 	poap.GET("/count/:address/:activity_id", getMintCount)

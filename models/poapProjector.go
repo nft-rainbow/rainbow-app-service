@@ -16,6 +16,9 @@ type POAPActivityConfig struct {
 	StartedTime int64 `gorm:"type:integer" json:"start_time" binding:"required"`
 	RainbowUserId int32 `gorm:"type:integer" json:"rainbow_user_id"`
 	MaxMintCount uint `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
+	ActivityID     string `gorm:"type:string" json:"activity_id"`
+	ActivityPictureURL string `gorm:"type:string" json:"activity_picture_url"`
+	SharingContent string `gorm:"type:string" json:"sharing_content"`
 	WhiteListInfos []WhiteListInfo `json:"white_list_infos"`
 }
 
@@ -59,9 +62,9 @@ func FindPOAPActivityConfig(name string, contractId int32) (*POAPActivityConfig,
 	return &item, err
 }
 
-func FindPOAPActivityConfigById(id int) (*POAPActivityConfig, error){
+func FindPOAPActivityConfigById(id string) (*POAPActivityConfig, error){
 	var item POAPActivityConfig
-	err := db.Where("id = ?", id).First(&item).Error
+	err := db.Where("activity_id = ?", id).First(&item).Error
 	if err != nil {
 		return nil, err
 	}
@@ -82,34 +85,35 @@ func FindAndCountPOAPActivity(id uint, offset int, limit int) (*POAPActivityQuer
 		return nil, err
 	}
 
-	if err := db.Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
+	if err := db.Model(&POAPActivityConfig{}).Where(cond).Offset(offset).Limit(limit).
+		Find(&items).Error; err != nil {
 		return nil, err
 	}
 
 	return &POAPActivityQueryResult{count, items}, nil
 }
 
-func FindAndCountPOAPResult(activityId, offset int, limit int) (*POAPResultQueryResult, error) {
+func FindAndCountPOAPResult(poapId string, offset int, limit int) (*POAPResultQueryResult, error) {
 	var items []*POAPResult
 	cond := &POAPResult{}
-	cond.ActivityID = int32(activityId)
+	cond.ActivityID = poapId
 
 	var count int64
-	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
+	if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
 		return nil, err
 	}
 
-	if err := db.Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
+	if err := db.Model(&POAPResult{}).Where(cond).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
 		return nil, err
 	}
 
 	return &POAPResultQueryResult{count, items}, nil
 }
 
-func FindAndCountPOAPResultByAddress(activityId, offset int, limit int, address string) (*POAPResultQueryResult, error) {
+func FindAndCountPOAPResultByAddress(offset int, limit int, address, poapId string) (*POAPResultQueryResult, error) {
 	var items []*POAPResult
 	cond := &POAPResult{}
-	cond.ActivityID = int32(activityId)
+	cond.ActivityID = poapId
 	cond.Address = address
 
 	var count int64
@@ -117,17 +121,17 @@ func FindAndCountPOAPResultByAddress(activityId, offset int, limit int, address 
 		return nil, err
 	}
 
-	if err := db.Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
+	if err := db.Model(&POAPResult{}).Where(cond).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
 		return nil, err
 	}
 
 	return &POAPResultQueryResult{count, items}, nil
 }
 
-func FindPOAPResultById(activityId, id int) (*POAPResult, error) {
+func FindPOAPResultById(poapId string, id int) (*POAPResult, error) {
 	cond := &POAPResult{}
 	resp := &POAPResult{}
-	cond.ActivityID = int32(activityId)
+	cond.ActivityID = poapId
 	cond.ID = uint(id)
 	if err := db.Where(cond).Last(&resp).Error; err != nil {
 		return nil, err
@@ -136,10 +140,10 @@ func FindPOAPResultById(activityId, id int) (*POAPResult, error) {
 	return resp, nil
 }
 
-func FindAndCountPOAPResultByTokenId(activityId, contractId, offset, limit int, tokenId, userAddress string) (*POAPResultQueryResult, error) {
+func FindAndCountPOAPResultByTokenId(poapId string, contractId, offset, limit int, tokenId, userAddress string) (*POAPResultQueryResult, error) {
 	var items []*POAPResult
 	cond := &POAPResult{}
-	cond.ActivityID = int32(activityId)
+	cond.ActivityID = poapId
 	cond.Address = userAddress
 	cond.ContractID = int32(contractId)
 	cond.TokenID = tokenId
@@ -149,9 +153,8 @@ func FindAndCountPOAPResultByTokenId(activityId, contractId, offset, limit int, 
 		return nil, err
 	}
 
-	if err := db.Where(cond).Find(&items).Offset(offset).Limit(limit).Error; err != nil {
+	if err := db.Model(&POAPResult{}).Where(cond).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
 		return nil, err
 	}
-
 	return &POAPResultQueryResult{count, items}, nil
 }

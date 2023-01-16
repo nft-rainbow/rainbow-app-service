@@ -56,9 +56,9 @@ func poapMintByH5(c *gin.Context) {
 	}
 	var resp *models.POAPResult
 	var err error
-	if poapRequest.ActivityID == viper.GetInt32("newYearEvent.newYearCommonId") {
+	if poapRequest.ActivityID == viper.GetString("newYearEvent.newYearCommonId") {
 		resp, err = services.HandleCommonNFTMint(poapRequest)
-	}else if poapRequest.ActivityID == viper.GetInt32("newYearEvent.newYearSpecialId"){
+	}else if poapRequest.ActivityID == viper.GetString("newYearEvent.newYearSpecialId"){
 		resp, err = services.HandleSpecialNFTMint(poapRequest)
 	}else{
 		resp, err = services.HandlePOAPH5Mint(poapRequest)
@@ -72,26 +72,26 @@ func poapMintByH5(c *gin.Context) {
 // @Description Get POAP Activity detail info
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       id            path     int    true "id"
+// @Param       activity_id       path     string    true "activity_id"
 // @Success     200           {object} models.POAPActivityConfig
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/{id} [get]
+// @Router      /poap/activity/{activity_id} [get]
 func getPOAPActivity(c *gin.Context) {
-	activityId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	poapId := c.Param("activity_id")
+	if poapId == "" {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	if activityId == viper.GetInt("newYearEvent.newYearCommonId") || activityId == viper.GetInt("newYearEvent.newYearSpecialId"){
-		resp, err := models.FindNewYearConfigById(activityId)
+	if poapId == viper.GetString("newYearEvent.newYearCommonId") || poapId == viper.GetString("newYearEvent.newYearSpecialId"){
+		resp, err := models.FindNewYearConfigById(poapId)
 		if err != nil {
 			ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 			return
 		}
 		ginutils.RenderResp(c, resp, err)
 	}else{
-		item, err := models.FindPOAPActivityConfigById(activityId)
+		item, err := models.FindPOAPActivityConfigById(poapId)
 		ginutils.RenderResp(c, item, err)
 	}
 }
@@ -173,7 +173,7 @@ func setPOAPH5Config(c *gin.Context) {
 // @Produce     json
 // @Param       page          query    integer false "page"
 // @Param       limit         query    integer false "limit"
-// @Param       activity_id   path     int    true "activity_id"
+// @Param       activity_id       path     string    true "activity_id"
 // @Success     200           {object} models.POAPResultQueryResult
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
@@ -184,12 +184,12 @@ func getPOAPAResultList(c *gin.Context) {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
 		return
 	}
-	activityId, err := strconv.Atoi(c.Param("activity_id"))
-	if err != nil {
+	poapId := c.Param("activity_id")
+	if poapId == "" {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	mints, err := models.FindAndCountPOAPResult(activityId, pagination.Offset(), pagination.Limit)
+	mints, err := models.FindAndCountPOAPResult(poapId, pagination.Offset(), pagination.Limit)
 	ginutils.RenderResp(c, mints, err)
 }
 
@@ -199,15 +199,15 @@ func getPOAPAResultList(c *gin.Context) {
 // @Description Get POAP Result
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       activity_id   path     int    true "activity_id"
+// @Param       activity_id   path     string    true "activity_id"
 // @Param       id            path     int    true "id"
 // @Success     200           {object} models.POAPResult
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/result/{activity_id}/{id} [get]
 func getPOAPAResult(c *gin.Context) {
-	activityId, err := strconv.Atoi(c.Param("activity_id"))
-	if err != nil {
+	poapId := c.Param("activity_id")
+	if poapId == "" {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
@@ -216,6 +216,6 @@ func getPOAPAResult(c *gin.Context) {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	resp, err := models.FindPOAPResultById(activityId, id)
+	resp, err := models.FindPOAPResultById(poapId, id)
 	ginutils.RenderResp(c, resp, err)
 }

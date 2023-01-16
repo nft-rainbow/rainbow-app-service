@@ -10,7 +10,7 @@ import (
 )
 
 type POAPRequest struct {
-	ActivityID int32 `json:"activity_id" binding:"required"`
+	ActivityID string `json:"activity_id" binding:"required"`
 	UserAddress string `json:"user_address" binding:"required"`
 	Command string `json:"command"`
 }
@@ -31,6 +31,13 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POA
 	config.AppId = *info.AppId
 	config.ContractAddress = *info.Address
 
+	poapId, err := getPoAPId(config.ContractAddress, config.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	config.ActivityID = poapId
+
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
 		return nil, res.Error
@@ -49,7 +56,7 @@ func POAPH5Config(config *models.H5Config) (*models.H5Config, error) {
 }
 
 func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error){
-	config, err := models.FindPOAPActivityConfigById(int(req.ActivityID))
+	config, err := models.FindPOAPActivityConfigById(req.ActivityID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,10 +95,11 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error){
 	}
 
 	item := &models.POAPResult{
-		ActivityID: int32(config.ID),
+		ConfigID: int32(config.ID),
 		Address: req.UserAddress,
 		ContractID: config.ContractID,
 		TxID: *resp.Id,
+		ActivityID: config.ActivityID,
 	}
 
 	res := models.GetDB().Create(&item)
@@ -102,7 +110,7 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error){
 }
 
 func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error){
-	config, err := models.FindPOAPActivityConfigById(int(req.ActivityID))
+	config, err := models.FindPOAPActivityConfigById(req.ActivityID)
 	if err != nil {
 		return nil, err
 	}
@@ -138,10 +146,11 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error){
 	}
 
 	item := &models.POAPResult{
-		ActivityID: int32(config.ID),
+		ConfigID: int32(config.ID),
 		Address: req.UserAddress,
 		ContractID: config.ContractID,
 		TxID: *resp.Id,
+		ActivityID: config.ActivityID,
 	}
 
 	res := models.GetDB().Create(&item)
@@ -180,7 +189,7 @@ func checkWhiteList(whiteList []models.WhiteListInfo, address string) bool{
 
 func checkAmount(config *models.POAPActivityConfig) error {
 	if config.Amount != -1 {
-		resp, err := models.FindAndCountPOAPResult(int(config.ID), 0, 10)
+		resp, err := models.FindAndCountPOAPResult(config.ActivityID,0, 10)
 		if err != nil {
 			return err
 		}
@@ -192,7 +201,7 @@ func checkAmount(config *models.POAPActivityConfig) error {
 }
 
 func checkLimitAmount(config *models.POAPActivityConfig, address string) error{
-	resp, err := models.FindAndCountPOAPResultByAddress(int(config.ID), 0, 10, address)
+	resp, err := models.FindAndCountPOAPResultByAddress(0, 10, address, config.ActivityID)
 	if err != nil {
 		return err
 	}
@@ -203,7 +212,7 @@ func checkLimitAmount(config *models.POAPActivityConfig, address string) error{
 }
 
 func checkWhiteListLimit(config *models.POAPActivityConfig, address string) error{
-	resp, err := models.FindAndCountPOAPResultByAddress(int(config.ID), 0, 10, address)
+	resp, err := models.FindAndCountPOAPResultByAddress(0, 10, address, config.ActivityID)
 	if err != nil {
 		return err
 	}

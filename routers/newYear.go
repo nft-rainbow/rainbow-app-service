@@ -7,7 +7,6 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 	"github.com/spf13/viper"
-	"strconv"
 )
 
 // @Tags        POAP
@@ -59,7 +58,7 @@ func updateBySharing(c *gin.Context){
 // @Description Get Common Mint Count
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       activity_id   path     int    true "activity_id"
+// @Param       activity_id   path     string true "activity_id"
 // @Param       address       path     string true "address"
 // @Success     200           {object} services.MintCountResponse
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
@@ -68,18 +67,14 @@ func updateBySharing(c *gin.Context){
 func getMintCount(c *gin.Context) {
 	var err error
 	address := c.Param("address")
-	activityIdStr := c.Param("activity_id")
-	activityId, err := strconv.Atoi(activityIdStr)
-	if err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
+	poapId := c.Param("activity_id")
+
 	var resp *services.MintCountResponse
-	if activityId == viper.GetInt("newYearEvent.newYearCommonId") {
-		resp, err = services.GetCommonMintCount(int32(activityId), address)
+	if poapId == viper.GetString("newYearEvent.newYearCommonId") {
+		resp, err = services.GetCommonMintCount(address, poapId)
 		ginutils.RenderResp(c, resp, err)
-	}else if activityId == viper.GetInt("newYearEvent.newYearSpecialId") {
-		res, err := services.GetSpecialMintCount(viper.GetInt("newYearEvent.newYearCommonId"), address)
+	}else if poapId == viper.GetString("newYearEvent.newYearSpecialId") {
+		res, err := services.GetSpecialMintCount(address, viper.GetString("newYearEvent.newYearCommonId"))
 		ginutils.RenderResp(c, res, err)
 	}else {
 		ginutils.RenderResp(c, 1, err)
