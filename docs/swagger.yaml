@@ -488,6 +488,8 @@ definitions:
     type: object
   models.NewYearConfig:
     properties:
+      activity_id:
+        type: string
       activity_picture_url:
         type: string
       amount:
@@ -541,6 +543,10 @@ definitions:
     type: object
   models.POAPActivityConfig:
     properties:
+      activity_id:
+        type: string
+      activity_picture_url:
+        type: string
       amount:
         type: integer
       app_id:
@@ -574,6 +580,8 @@ definitions:
         type: string
       rainbow_user_id:
         type: integer
+      sharing_content:
+        type: string
       start_time:
         type: integer
       updated_at:
@@ -605,9 +613,11 @@ definitions:
   models.POAPResult:
     properties:
       activity_id:
-        type: integer
+        type: string
       address:
         type: string
+      config_id:
+        type: integer
       contract_id:
         type: integer
       created_at:
@@ -714,7 +724,7 @@ definitions:
   services.MintCountResponse:
     properties:
       activity_id:
-        type: integer
+        type: string
       address:
         type: string
       count:
@@ -723,7 +733,7 @@ definitions:
   services.POAPRequest:
     properties:
       activity_id:
-        type: integer
+        type: string
       command:
         type: string
       user_address:
@@ -735,7 +745,7 @@ definitions:
   services.ShareRequest:
     properties:
       activity_id:
-        type: integer
+        type: string
       receiver:
         type: string
       sharer:
@@ -1276,16 +1286,16 @@ paths:
       summary: Set POAP Activity
       tags:
       - POAP
-  /poap/activity/{id}:
+  /poap/activity/{activity_id}:
     get:
       description: Get POAP Activity detail info
       operationId: GetPOAPActivityDetail
       parameters:
-      - description: id
+      - description: activity_id
         in: path
-        name: id
+        name: activity_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -1359,7 +1369,7 @@ paths:
         in: path
         name: activity_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -1389,7 +1399,7 @@ paths:
         in: path
         name: activity_id
         required: true
-        type: integer
+        type: string
       - description: id
         in: path
         name: id
@@ -1460,7 +1470,7 @@ paths:
         in: path
         name: activity_id
         required: true
-        type: integer
+        type: string
       - description: address
         in: path
         name: address

@@ -904,7 +904,7 @@
                         "in": "query"
                     },
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "activity_id",
                         "name": "activity_id",
                         "in": "path",
@@ -951,7 +951,7 @@
                 "operationId": "GetPOAPResult",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "activity_id",
                         "name": "activity_id",
                         "in": "path",
@@ -987,7 +987,7 @@
                 }
             }
         },
-        "/poap/activity/{id}": {
+        "/poap/activity/{activity_id}": {
             "get": {
                 "security": [
                     {
@@ -1005,9 +1005,9 @@
                 "operationId": "GetPOAPActivityDetail",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "id",
-                        "name": "id",
+                        "type": "string",
+                        "description": "activity_id",
+                        "name": "activity_id",
                         "in": "path",
                         "required": true
                     }
@@ -1108,7 +1108,7 @@
                 "operationId": "GetMintCount",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "activity_id",
                         "name": "activity_id",
                         "in": "path",
@@ -1953,6 +1953,9 @@
                 "start_time"
             ],
             "properties": {
+                "activity_id": {
+                    "type": "string"
+                },
                 "activity_picture_url": {
                     "type": "string"
                 },
@@ -2030,6 +2033,12 @@
                 "start_time"
             ],
             "properties": {
+                "activity_id": {
+                    "type": "string"
+                },
+                "activity_picture_url": {
+                    "type": "string"
+                },
                 "amount": {
                     "type": "integer"
                 },
@@ -2079,6 +2088,9 @@
                 "rainbow_user_id": {
                     "type": "integer"
                 },
+                "sharing_content": {
+                    "type": "string"
+                },
                 "start_time": {
                     "type": "integer"
                 },
@@ -2115,10 +2127,13 @@
             ],
             "properties": {
                 "activity_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "address": {
                     "type": "string"
+                },
+                "config_id": {
+                    "type": "integer"
                 },
                 "contract_id": {
                     "type": "integer"
@@ -2273,7 +2288,7 @@
             "type": "object",
             "properties": {
                 "activity_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "address": {
                     "type": "string"
@@ -2291,7 +2306,7 @@
             ],
             "properties": {
                 "activity_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "command": {
                     "type": "string"
@@ -2305,7 +2320,7 @@
             "type": "object",
             "properties": {
                 "activity_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "receiver": {
                     "type": "string"

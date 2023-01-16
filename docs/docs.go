@@ -915,7 +915,7 @@ var doc = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "activity_id",
                         "name": "activity_id",
                         "in": "path",
@@ -962,7 +962,7 @@ var doc = `{
                 "operationId": "GetPOAPResult",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "activity_id",
                         "name": "activity_id",
                         "in": "path",
@@ -998,7 +998,7 @@ var doc = `{
                 }
             }
         },
-        "/poap/activity/{id}": {
+        "/poap/activity/{activity_id}": {
             "get": {
                 "security": [
                     {
@@ -1016,9 +1016,9 @@ var doc = `{
                 "operationId": "GetPOAPActivityDetail",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "id",
-                        "name": "id",
+                        "type": "string",
+                        "description": "activity_id",
+                        "name": "activity_id",
                         "in": "path",
                         "required": true
                     }
@@ -1119,7 +1119,7 @@ var doc = `{
                 "operationId": "GetMintCount",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "activity_id",
                         "name": "activity_id",
                         "in": "path",
@@ -1964,6 +1964,9 @@ var doc = `{
                 "start_time"
             ],
             "properties": {
+                "activity_id": {
+                    "type": "string"
+                },
                 "activity_picture_url": {
                     "type": "string"
                 },
@@ -2041,6 +2044,12 @@ var doc = `{
                 "start_time"
             ],
             "properties": {
+                "activity_id": {
+                    "type": "string"
+                },
+                "activity_picture_url": {
+                    "type": "string"
+                },
                 "amount": {
                     "type": "integer"
                 },
@@ -2090,6 +2099,9 @@ var doc = `{
                 "rainbow_user_id": {
                     "type": "integer"
                 },
+                "sharing_content": {
+                    "type": "string"
+                },
                 "start_time": {
                     "type": "integer"
                 },
@@ -2126,10 +2138,13 @@ var doc = `{
             ],
             "properties": {
                 "activity_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "address": {
                     "type": "string"
+                },
+                "config_id": {
+                    "type": "integer"
                 },
                 "contract_id": {
                     "type": "integer"
@@ -2284,7 +2299,7 @@ var doc = `{
             "type": "object",
             "properties": {
                 "activity_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "address": {
                     "type": "string"
@@ -2302,7 +2317,7 @@ var doc = `{
             ],
             "properties": {
                 "activity_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "command": {
                     "type": "string"
@@ -2316,7 +2331,7 @@ var doc = `{
             "type": "object",
             "properties": {
                 "activity_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "receiver": {
                     "type": "string"
