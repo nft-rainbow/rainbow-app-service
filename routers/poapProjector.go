@@ -1,13 +1,15 @@
 package routers
 
 import (
+	"strconv"
+
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/gin-gonic/gin"
 	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 	"github.com/spf13/viper"
-	"strconv"
 )
 
 // @Tags        POAP
@@ -54,13 +56,18 @@ func poapMintByH5(c *gin.Context) {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
+	if _, err := cfxaddress.NewFromBase32(poapRequest.UserAddress); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+
 	var resp *models.POAPResult
 	var err error
 	if poapRequest.ActivityID == viper.GetString("newYearEvent.newYearCommonId") {
 		resp, err = services.HandleCommonNFTMint(poapRequest)
-	}else if poapRequest.ActivityID == viper.GetString("newYearEvent.newYearSpecialId"){
+	} else if poapRequest.ActivityID == viper.GetString("newYearEvent.newYearSpecialId") {
 		resp, err = services.HandleSpecialNFTMint(poapRequest)
-	}else{
+	} else {
 		resp, err = services.HandlePOAPH5Mint(poapRequest)
 	}
 	ginutils.RenderResp(c, resp, err)
@@ -83,14 +90,14 @@ func getPOAPActivity(c *gin.Context) {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	if poapId == viper.GetString("newYearEvent.newYearCommonId") || poapId == viper.GetString("newYearEvent.newYearSpecialId"){
+	if poapId == viper.GetString("newYearEvent.newYearCommonId") || poapId == viper.GetString("newYearEvent.newYearSpecialId") {
 		resp, err := models.FindNewYearConfigById(poapId)
 		if err != nil {
 			ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 			return
 		}
 		ginutils.RenderResp(c, resp, err)
-	}else{
+	} else {
 		item, err := models.FindPOAPActivityConfigById(poapId)
 		ginutils.RenderResp(c, item, err)
 	}

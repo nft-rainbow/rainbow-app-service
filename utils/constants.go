@@ -52,7 +52,7 @@ func ContractTypeByName(name string) (ContractType, error) {
 	}
 }
 
-func ChainTypeByTypeId(chainType uint)(string, error){
+func ChainTypeByTypeId(chainType uint) (string, error) {
 	switch chainType {
 	case 1:
 		return CONFLUX_TEST, nil
@@ -63,8 +63,8 @@ func ChainTypeByTypeId(chainType uint)(string, error){
 	}
 }
 
-func ContractTypeByTypeId(chainType uint)(string, error){
-	switch chainType {
+func ContractTypeByTypeId(contractType uint) (string, error) {
+	switch contractType {
 	case 1:
 		return ERC721, nil
 	case 2:

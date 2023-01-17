@@ -3,8 +3,13 @@ package middlewares
 import (
 	"encoding/json"
 	"errors"
-	jwt "github.com/appleboy/gin-jwt/v2"
 	"io/ioutil"
+
+	jwt "github.com/appleboy/gin-jwt/v2"
+
+	"net/http"
+	"runtime/debug"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
@@ -12,9 +17,6 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"net/http"
-	"runtime/debug"
-	"time"
 )
 
 var (
@@ -235,7 +237,7 @@ func GenPOAPOpenJWTByRainbowUserId(activity models.POAPActivityConfig) (string, 
 	return tokenString, nil
 }
 
-func GenNewYearOpenJWTByRainbowUserId(rainbowUserId, appId int32) (string, error) {
+func GenOpenJWTByRainbowUserId(rainbowUserId, appId int32) (string, error) {
 	kycType, err := getKycType(rainbowUserId)
 	if err != nil {
 		return "", err

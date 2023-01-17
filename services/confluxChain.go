@@ -20,11 +20,11 @@ func InitConfluxChainClient() {
 	var err error
 	cfxTestClient, err = sdk.NewClient(viper.GetString("rpcs.testnet"), option)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Init Conflux testnet client failed", err)
 	}
 	cfxMainClient, err = sdk.NewClient(viper.GetString("rpcs.mainnet"), option)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Init Conflux mainnet client failed", err)
 	}
 }
 
