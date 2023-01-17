@@ -110,7 +110,7 @@ func GetDoDoIslandInfo(islandId string) (st *dodoModel.GetIslandInfoRsp, err err
 }
 
 func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
-	tokenId, hash, err := getTokenInfo(id, "Bearer "+token)
+	tokenId, hash, status, err := getTokenInfo(id, "Bearer "+token)
 	if err != nil {
 		return nil, err
 	}
@@ -132,12 +132,13 @@ func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, 
 		ContractID: contractId,
 		TokenID:    tokenId,
 		Hash: hash,
+		Status: status,
 	})
 	return res, nil
 }
 
 func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
-	tokenId, hash, err := getTokenInfo(id, "Bearer "+token)
+	tokenId, hash, status, err := getTokenInfo(id, "Bearer "+token)
 	if err != nil {
 		return nil, err
 	}
@@ -159,13 +160,24 @@ func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, cha
 		ContractID: contractId,
 		TokenID:    tokenId,
 		Hash: hash,
+		Status: status,
 	})
 	return res, nil
 }
 
-func sendBurnNFTRequest(token string, dto openapiclient.ServicesBurnDto) (*openapiclient.ModelsBurnTask, error) {
-	fmt.Println("Start to burn")
-	resp, _, err := newClient().BurnsApi.BurnNft(context.Background()).Authorization(token).BurnDto(dto).Execute()
+//func sendBurnNFTRequest(token string, dto openapiclient.ServicesBurnDto) (*openapiclient.ModelsBurnTask, error) {
+//	fmt.Println("Start to burn")
+//	resp, _, err := newClient().BurnsApi.BurnNft(context.Background()).Authorization(token).BurnDto(dto).Execute()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return resp, nil
+//}
+
+func sendBatchBurnNFTRequest(token string, dto openapiclient.ServicesBurnBatchDto) ([]openapiclient.ModelsBurnTask, error) {
+	fmt.Println("Start to Batch burn")
+	resp, _, err := newClient().BurnsApi.BurnBatch(context.Background()).Authorization(token).BurnBatchDto(dto).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -185,23 +197,42 @@ func sendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto
 	return resp, nil
 }
 
-func getTokenInfo(id int32, token string) (string, string, error) {
+func getTokenInfo(id int32, token string) (string, string, int32, error) {
 	//configuration := openapiclient.NewConfiguration()
 	//apiClient := openapiclient.NewAPIClient(configuration)
 	//fmt.Println("Start to get token Id")
 	resp, _, err := newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
-		return "", "", err
+		return "", "", 0, err
 	}
 
 	for *resp.Status != 1 && *resp.Hash == ""{
 		resp, _, err = newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 		if err != nil {
-			return "", "", err
+			return "", "", 0, err
 		}
 		time.Sleep(3 * time.Second)
 	}
-	return *resp.TokenId, *resp.Hash, nil
+	return *resp.TokenId, *resp.Hash, resp.GetStatus(), nil
+}
+
+func getBurnInfo(id int32, token string) (int32, string, error) {
+	//configuration := openapiclient.NewConfiguration()
+	//apiClient := openapiclient.NewAPIClient(configuration)
+	//fmt.Println("Start to get token Id")
+	resp, _, err := newClient().BurnsApi.GetBurnDetail(context.Background(), id).Authorization(token).Execute()
+	if err != nil {
+		return 0, "", err
+	}
+
+	for *resp.Status != 1 && *resp.Hash == ""{
+		resp, _, err = newClient().BurnsApi.GetBurnDetail(context.Background(), id).Authorization(token).Execute()
+		if err != nil {
+			return 0, "", err
+		}
+		time.Sleep(3 * time.Second)
+	}
+	return *resp.Status, *resp.Hash, nil
 }
 
 func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, error) {
@@ -229,9 +260,20 @@ func newClient() *openapiclient.APIClient {
 
 func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 	logrus.Info("start task for syncing nft mint status")
-	tokenId, hash, _ := getTokenInfo(res.TxID, "Bearer "+token)
+	tokenId, hash, status, _ := getTokenInfo(res.TxID, "Bearer "+token)
 
 	res.TokenID = tokenId
+	res.Hash = hash
+	res.Status = status
+
+	models.GetDB().Save(&res)
+}
+
+func SyncNFTBurnTaskStatus(token string, res *models.BatchBurnResult) {
+	logrus.Info("start task for syncing nft mint status")
+	status, hash, _ := getBurnInfo(res.BurnID, "Bearer "+token)
+
+	res.Status = status
 	res.Hash = hash
 
 	models.GetDB().Save(&res)

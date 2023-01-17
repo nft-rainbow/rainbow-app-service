@@ -21,6 +21,7 @@ type CustomMintResult struct {
 	ContractID int32 `gorm:"type:integer" json:"contract_id"`
 	TokenID string `gorm:"type:varchar(256)" json:"token_id"`
 	Hash string `gorm:"type:string" json:"hash"`
+	Status int32 `gorm:"type:integer" json:"status"`
 }
 
 type POAPResult struct {
@@ -32,6 +33,7 @@ type POAPResult struct {
 	TokenID string `gorm:"type:varchar(256)" json:"token_id"`
 	Hash string `gorm:"type:string" json:"hash"`
 	ActivityID string `gorm:"type:string" json:"activity_id"`
+	Status int32 `gorm:"type:integer" json:"status"`
 }
 
 func StoreCustomMintResult(req CustomMintResult) error{

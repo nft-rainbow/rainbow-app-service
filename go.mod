@@ -11,7 +11,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
-	github.com/nft-rainbow/rainbow-sdk-go v0.1.4-0.20221220081223-929302b8de81
+	github.com/nft-rainbow/rainbow-sdk-go v0.1.8
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/viper v1.13.0
 	github.com/swaggo/files v0.0.0-20220728132757-551d4a08d97a
@@ -25,7 +25,6 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/btcsuite/btcd v0.21.0-beta // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect

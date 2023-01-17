@@ -48,3 +48,22 @@ func ERC1155BalanceOfBatch(contractAddr *cfxaddress.Address, accounts []*cfxaddr
 	bigBalance, err := nftCaller.BalanceOfBatch(nil, commonAddresses, ids)
 	return bigBalance, err
 }
+
+func CommonBalanceOfBatch(contract, user string)([]*big.Int, error) {
+	contractAddress := cfxaddress.MustNewFromBase32(contract)
+	userAddress := cfxaddress.MustNewFromBase32(user)
+	users := make([]*cfxaddress.Address, 5)
+
+	for i := range users {
+		users[i] = &userAddress
+	}
+
+	ids := []*big.Int{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5)}
+
+	resp ,err := ERC1155BalanceOfBatch(&contractAddress, users, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}

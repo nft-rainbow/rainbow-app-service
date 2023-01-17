@@ -1,13 +1,11 @@
 package services
 
 import (
-	cryptoRand "crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"math"
-	"math/big"
 	"math/rand"
 	"strconv"
 	"time"
@@ -84,7 +82,7 @@ func HandleSpecialNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	err = checkPersonalAmount(config.MaxMintCount, req.UserAddress, config.ActivityID)
+	err = checkPersonalAmount(config, req.UserAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +138,7 @@ func HandleCommonNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	err = checkPersonalAmount(config.MaxMintCount, req.UserAddress, config.ActivityID)
+	err = checkPersonalAmount(config, req.UserAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -148,22 +146,6 @@ func HandleCommonNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 	chainType, err := utils.ChainTypeByTypeId(uint(config.Chain))
 	if err != nil {
 		return nil, err
-	}
-
-	everyDay, err := models.FindEveryDayMintCount(req.UserAddress, req.ActivityID)
-	if err != nil {
-		return nil, err
-	}
-	if everyDay.Count != 0 {
-		_, err = models.UpdateEveryDayMintCount(req.UserAddress, req.ActivityID, -1)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		_, err = models.UpdateMintCount(req.UserAddress, req.ActivityID, -1)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	resp, index, err := randomMint(config, token, req.UserAddress, chainType)
@@ -182,6 +164,22 @@ func HandleCommonNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 
 	res := models.GetDB().Create(&item)
 
+	everyDay, err := models.FindEveryDayMintCount(req.UserAddress, req.ActivityID)
+	if err != nil {
+		return nil, err
+	}
+	if everyDay.Count != 0 {
+		_, err = models.UpdateEveryDayMintCount(req.UserAddress, req.ActivityID, -1)
+		if err != nil {
+			return nil, err
+		}
+	}else {
+		_, err = models.UpdateMintCount(req.UserAddress, req.ActivityID, -1)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	go SyncNFTMintTaskStatus(token, item)
 
 	return item, res.Error
@@ -193,43 +191,41 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 		return err
 	}
 	var amount = int32(1)
-	for i := 0; i < len(config.ContractInfos); i++ {
-		tmp, _ := models.FindAndCountPOAPResultByTokenId(
-			config.ActivityID,
-			int(config.ContractID),
-			0, 10,
-			config.ContractInfos[i].TokenID,
-			address,
-		)
-		contractType, err := utils.ContractTypeByTypeId(uint(config.ContractType))
-		if err != nil {
-			return err
-		}
-		result, _ := cryptoRand.Int(cryptoRand.Reader, big.NewInt(tmp.Count))
-
-		dto := &openapiclient.ServicesBurnDto{
-			Chain:           chainType,
-			ContractAddress: config.ContractAddress,
-			ContractType:    contractType,
-			User:            &address,
-			TokenId:         tmp.Items[result.Int64()].TokenID,
-			Amount:          &amount,
-		}
-
-		_, err = sendBurnNFTRequest("Bearer "+token, *dto)
-		if err != nil {
-			return err
-		}
-
-		record, err := models.FindPOAPResultById(config.ActivityID, int(tmp.Items[result.Int64()].ID))
-		if err != nil {
-			return err
-		}
-		res := models.GetDB().Delete(record)
-		if res.Error != nil {
-			return res.Error
-		}
+	items := make([]openapiclient.ServicesBurnItemDto, 0)
+	contractType, err := utils.ContractTypeByTypeId(uint(config.ContractType))
+	if err != nil {
+		return err
 	}
+
+	for i := 0; i < len(config.ContractInfos); i++ {
+		items = append(items, openapiclient.ServicesBurnItemDto{
+			Amount: &amount,
+			TokenId: strconv.Itoa(i + 1),
+		})
+
+	}
+	dto := &openapiclient.ServicesBurnBatchDto{
+		Chain: chainType,
+		ContractAddress: config.ContractAddress,
+		ContractType: contractType,
+		Items: items,
+		User: &address,
+	}
+
+	resp, err := sendBatchBurnNFTRequest("Bearer " + token, *dto)
+	if err != nil {
+		return err
+	}
+
+	item := &models.BatchBurnResult{
+		Address: address,
+		BurnID: *resp[0].Id,
+		Status: 0,
+		ActivityID: config.ActivityID,
+	}
+	models.GetDB().Create(&item)
+
+	go SyncNFTBurnTaskStatus("Bearer " + token, item)
 	return nil
 }
 
@@ -240,10 +236,12 @@ func UpdateBySharing(req ShareRequest) error {
 
 	err := checkAndCreateNewAccount(req.Receiver, req.ActivityID)
 	if err != nil {
-		return nil
+		return err
 	}
 	count, err := models.CountTodaySharerInfo(req.Sharer, req.ActivityID, clock)
-
+	if err != nil {
+		return err
+	}
 	if count < viper.GetInt64("newYearEvent.everyDaySharerLimit") {
 		resp, err := models.FindSharingInfo(req.Sharer, req.Receiver, req.ActivityID)
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -288,19 +286,26 @@ func GetSpecialMintCount(address, poapId string) (*MintCountResponse, error) {
 		return nil, err
 	}
 	res := int64(math.MaxInt64)
-	for i := 0; i < viper.GetInt("newYearEvent.commonMintLimit"); i++ {
-		resp, err := models.FindAndCountPOAPResultByTokenId(config.ActivityID, int(config.ContractID), 0, 10, config.ContractInfos[i].TokenID, address)
-		if err != nil {
-			return nil, err
-		}
-		if resp.Count < res {
-			res = resp.Count
+
+	resp, err := CommonBalanceOfBatch(config.ContractAddress, address)
+	if err != nil {
+		return nil, err
+	}
+	for i := range resp {
+		if resp[i].Int64() < res {
+			res = resp[i].Int64()
 		}
 	}
+
+	tmp, err := models.CountUnhandledBurnResult(viper.GetString("newYearEvent.newYearSpecialId"), address)
+	if err != nil {
+		return nil, err
+	}
+
 	return &MintCountResponse{
 		Address:    address,
 		ActivityID: viper.GetString("newYearEvent.newYearSpecialId"),
-		Count:      int32(res),
+		Count: int32(res) - int32(tmp),
 	}, nil
 }
 
@@ -327,21 +332,41 @@ func GetCommonMintCount(address, poapId string) (*MintCountResponse, error) {
 
 func UpdateEveryday() {
 	resp, err := models.GetClock(viper.GetString("newYearEvent.newYearCommonId"))
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		now := time.Now()
+	if errors.Is(err, gorm.ErrRecordNotFound){
 		models.GetDB().Create(&models.ClockTime{
-			Time:       now,
+			Time: viper.GetTime("startTime"),
 			ActivityID: viper.GetString("newYearEvent.newYearCommonId"),
 		})
-		clock = now
-	} else {
+		clock = viper.GetTime("startTime")
+	}else {
 		clock = resp.Time
 	}
 	var c <-chan time.Time
 	if viper.GetString("env") == "dev" {
-		c = time.Tick(viper.GetDuration("testMinuteDuration") * time.Minute)
-	} else if viper.GetString("env") == "prod" {
-		c = time.Tick(24 * time.Hour)
+		target := resp.Time.Add(viper.GetDuration("testMinuteDuration") * time.Minute)
+
+		for target.Unix() < time.Now().Unix() {
+			target = target.Add(viper.GetDuration("testMinuteDuration") * time.Minute)
+		}
+
+		models.GetDB().Model(&models.ClockTime{}).
+			Where("activity_id = ?",
+				viper.GetInt32("newYearEvent.newYearCommonId")).
+			Update("time", target.Add(-viper.GetDuration("testMinuteDuration") * time.Minute))
+
+		c = time.Tick(target.Sub(time.Now()))
+
+	}else if viper.GetString("env") == "prod"{
+		target := resp.Time.Add(24 * time.Minute)
+		for target.Unix() < time.Now().Unix() {
+			target = target.Add(24 * time.Minute)
+		}
+		models.GetDB().Model(&models.ClockTime{}).
+			Where("activity_id = ?",
+				viper.GetInt32("newYearEvent.newYearCommonId")).
+			Update("time", target.Add(-24 * time.Minute))
+
+		c = time.Tick(target.Sub(time.Now()))
 	}
 
 	go func() {
@@ -359,16 +384,18 @@ func UpdateEveryday() {
 	}()
 }
 
-func checkEnough(config *models.NewYearConfig, address string) error {
-	for i := range config.ContractInfos {
-		resp, err := models.FindAndCountPOAPResultByTokenId(config.ActivityID, int(config.ContractID), 0, 10, config.ContractInfos[i].TokenID, address)
-		if err != nil {
-			return err
-		}
-		if resp.Count <= 0 {
+
+func checkEnough(config *models.NewYearConfig, address string)error{
+	resp, err := CommonBalanceOfBatch(config.ContractAddress, address)
+	if err != nil {
+		return err
+	}
+	for i := range resp {
+		if resp[i].Int64() <= 0 {
 			return fmt.Errorf("The common NFTs are not enough")
 		}
 	}
+
 	return nil
 }
 
@@ -462,16 +489,18 @@ func checkMintCount(address, poapId string) error {
 	return nil
 }
 
-func checkPersonalAmount(max int32, address, poapId string) error {
-	if max == -1 {
+
+func checkPersonalAmount(config *models.NewYearConfig, user string)error{
+	if config.MaxMintCount == -1 {
 		return nil
 	}
-	resp, err := models.FindAndCountPOAPResultByAddress(0, 10, address, poapId)
+
+	resp, err := models.FindAndCountPOAPResultByAddress(0, 10, user, config.ActivityID)
 	if err != nil {
 		return err
 	}
 
-	if int32(resp.Count) >= max {
+	if int32(resp.Count) >= config.MaxMintCount{
 		return fmt.Errorf("The mint amount has exceeded the personal limit")
 	}
 	return nil

@@ -140,16 +140,14 @@ func FindPOAPResultById(poapId string, id int) (*POAPResult, error) {
 	return resp, nil
 }
 
-func FindAndCountPOAPResultByTokenId(poapId string, contractId, offset, limit int, tokenId, userAddress string) (*POAPResultQueryResult, error) {
+func FindAndCountUnhandledPOAPResult(poapId string, offset, limit int, userAddress string) (*POAPResultQueryResult, error) {
 	var items []*POAPResult
 	cond := &POAPResult{}
 	cond.ActivityID = poapId
 	cond.Address = userAddress
-	cond.ContractID = int32(contractId)
-	cond.TokenID = tokenId
 
 	var count int64
-	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
+	if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
 		return nil, err
 	}
 

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"github.com/spf13/viper"
 	"time"
 )
@@ -46,6 +45,15 @@ type ShareInfo struct {
 	Sharer string `gorm:"type:string" json:"sharer"`
 	Receiver string `gorm:"type:string" json:"receiver"`
 	ActivityID string `gorm:"type:string" json:"activity_id"`
+}
+
+type BatchBurnResult struct {
+	BaseModel
+	ActivityID string `gorm:"type:string" json:"activity_id"`
+	Address string `gorm:"type:string" json:"address"`
+	Status int32 `gorm:"type:integer" json:"status"`
+	BurnID int32 `gorm:"type:integer" json:"burn_id"`
+	Hash   string `gorm:"type:string" json:"hash"`
 }
 
 type ClockTime struct {
@@ -122,9 +130,7 @@ func UpdateEveryDayMintCount(address, poapId string, updateCount int32) (*EveryD
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(item)
 	item.Count += updateCount
-	fmt.Println(item)
 
 	db.Save(&item)
 
@@ -177,4 +183,17 @@ func GetClock(poapId string) (*ClockTime, error){
 
 	res := db.Where("activity_id = ?", poapId).First(&item)
 	return &item, res.Error
+}
+
+func CountUnhandledBurnResult(poapId string, userAddress string) (int64, error) {
+	cond := &BatchBurnResult{}
+	cond.ActivityID = poapId
+	cond.Address = userAddress
+
+	var count int64
+	if err := db.Model(&BatchBurnResult{}).Where(cond).Not("status = ?", 1).Count(&count).Error; err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
