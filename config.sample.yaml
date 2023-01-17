@@ -28,3 +28,4 @@ testMinuteDuration: 30
 rpcs:
   mainnet: https://main.confluxrpc.com
   testnet: https://test.confluxrpc.com
+startTime: 1673937000
