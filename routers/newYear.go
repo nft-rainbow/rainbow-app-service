@@ -42,7 +42,7 @@ func setNewYearConfig(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/sharer [post]
-func updateBySharing(c *gin.Context){
+func updateBySharing(c *gin.Context) {
 	var req services.ShareRequest
 	if err := c.ShouldBind(&req); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
@@ -73,10 +73,14 @@ func getMintCount(c *gin.Context) {
 	if poapId == viper.GetString("newYearEvent.newYearCommonId") {
 		resp, err = services.GetCommonMintCount(address, poapId)
 		ginutils.RenderResp(c, resp, err)
-	}else if poapId == viper.GetString("newYearEvent.newYearSpecialId") {
+	} else if poapId == viper.GetString("newYearEvent.newYearSpecialId") {
 		res, err := services.GetSpecialMintCount(address, viper.GetString("newYearEvent.newYearCommonId"))
 		ginutils.RenderResp(c, res, err)
-	}else {
-		ginutils.RenderResp(c, 1, err)
+	} else {
+		ginutils.RenderResp(c, &services.MintCountResponse{
+			Address:    address,
+			Count:      1,
+			ActivityID: poapId,
+		}, err)
 	}
 }
