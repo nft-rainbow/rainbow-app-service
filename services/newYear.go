@@ -299,12 +299,13 @@ func GetSpecialMintCount(address, poapId string) (*MintCountResponse, error) {
 		return nil, err
 	}
 	for i := range resp {
+		fmt.Println(resp[i].Int64())
 		if resp[i].Int64() < res {
 			res = resp[i].Int64()
 		}
 	}
 
-	tmp, err := models.CountUnhandledBurnResult(viper.GetString("newYearEvent.newYearSpecialId"), address)
+	tmp, err := models.CountUnhandledBurnResult(viper.GetString("newYearEvent.newYearCommonId"), address)
 	if err != nil {
 		return nil, err
 	}

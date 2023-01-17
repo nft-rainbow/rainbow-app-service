@@ -224,8 +224,7 @@ func getBurnInfo(id int32, token string) (int32, string, error) {
 	if err != nil {
 		return 0, "", err
 	}
-
-	for *resp.Status != 1 && *resp.Hash == ""{
+	for *resp.Status == 0 && *resp.Hash == ""{
 		resp, _, err = newClient().BurnsApi.GetBurnDetail(context.Background(), id).Authorization(token).Execute()
 		if err != nil {
 			return 0, "", err
@@ -270,8 +269,8 @@ func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 }
 
 func SyncNFTBurnTaskStatus(token string, res *models.BatchBurnResult) {
-	logrus.Info("start task for syncing nft mint status")
-	status, hash, _ := getBurnInfo(res.BurnID, "Bearer "+token)
+	logrus.Info("start task for syncing nft burn status")
+	status, hash, _ := getBurnInfo(res.BurnID, token)
 
 	res.Status = status
 	res.Hash = hash
