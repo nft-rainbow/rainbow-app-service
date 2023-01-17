@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -34,6 +35,24 @@ func CheckCfxAddress(chain string, addr string) (*cfxaddress.Address, error) {
 		return nil, fmt.Errorf("invalid conflux network address, want %v, got %v", addrItem.GetNetworkID(), uint32(chainId))
 	}
 	return &addrItem, nil
+}
+
+func IsCfxAddress(addr string) error {
+	tmp := strings.Split(addr, ":")
+	if tmp[0] == "cfx" {
+		_, err := CheckCfxAddress(CONFLUX, addr)
+		if err != nil {
+			return err
+		}
+	}else if tmp[0] == "cfxtest" {
+		_, err := CheckCfxAddress(CONFLUX_TEST, addr)
+		if err != nil {
+			return err
+		}
+	}else {
+		return fmt.Errorf("Invalid conflux network")
+	}
+	return nil
 }
 
 func CurrentMonthStr() string {

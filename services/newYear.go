@@ -233,8 +233,15 @@ func UpdateBySharing(req ShareRequest) error {
 	if req.Sharer == req.Receiver {
 		return fmt.Errorf("Can not share to yourself")
 	}
-
-	err := checkAndCreateNewAccount(req.Receiver, req.ActivityID)
+	err := utils.IsCfxAddress(req.Sharer)
+	if err != nil {
+		return err
+	}
+	err = utils.IsCfxAddress(req.Receiver)
+	if err != nil {
+		return err
+	}
+	err = checkAndCreateNewAccount(req.Receiver, req.ActivityID)
 	if err != nil {
 		return err
 	}
