@@ -271,7 +271,7 @@ func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 func SyncNFTBurnTaskAndMint(token, address, chain string, res *models.BatchBurnResult, config *models.NewYearConfig){
 	logrus.Info("start task for syncing nft burn status")
 	status, hash, err := getBurnInfo(res.BurnID, "Bearer " + token)
-	if err != nil {
+	if err != nil || status != 1{
 		logrus.Info(fmt.Printf("failed to burn NFTs for %v", res.BurnID))
 		return
 	}
