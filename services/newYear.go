@@ -248,6 +248,8 @@ func UpdateBySharing(req ShareRequest) error {
 				if resp.UpdatedAt.Unix() > clock.Unix() &&
 					resp.UpdatedAt.Unix() < clock.Add(24*time.Hour).Unix() {
 					return fmt.Errorf("The sharer has shared the link to receiver")
+				} else if resp.UpdatedAt.Unix() > clock.Add(24*time.Hour).Unix() {
+
 				}
 			}
 		} else {
@@ -351,14 +353,14 @@ func UpdateEveryday() {
 		c = time.Tick(target.Sub(time.Now()))
 
 	}else if viper.GetString("env") == "prod"{
-		target := resp.Time.Add(24 * time.Minute)
+		target := resp.Time.Add(24 * time.Hour)
 		for target.Unix() < time.Now().Unix() {
-			target = target.Add(24 * time.Minute)
+			target = target.Add(24 * time.Hour)
 		}
 		models.GetDB().Model(&models.ClockTime{}).
 			Where("activity_id = ?",
 				viper.GetInt32("newYearEvent.newYearCommonId")).
-			Update("time", target.Add(-24 * time.Minute))
+			Update("time", target.Add(-24 * time.Hour))
 
 		c = time.Tick(target.Sub(time.Now()))
 	}
