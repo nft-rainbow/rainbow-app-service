@@ -191,7 +191,7 @@ func CountUnhandledBurnResult(poapId string, userAddress string) (int64, error) 
 	cond.Address = userAddress
 
 	var count int64
-	if err := db.Model(&BatchBurnResult{}).Where(cond).Not("status = ?", 1).Count(&count).Error; err != nil {
+	if err := db.Model(&BatchBurnResult{}).Where(cond).Not("status = ? or status = ?", 1, 2).Count(&count).Error; err != nil {
 		return 0, err
 	}
 

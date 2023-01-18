@@ -225,7 +225,10 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 	}
 	models.GetDB().Create(&item)
 
-	go SyncNFTBurnTaskStatus("Bearer " + token, item)
+	err = SyncNFTBurnTaskStatus("Bearer " + token, item)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -392,7 +395,6 @@ func UpdateEveryday() {
 	}()
 }
 
-
 func checkEnough(config *models.NewYearConfig, address string)error{
 	resp, err := CommonBalanceOfBatch(config.ContractAddress, address)
 	if err != nil {
@@ -496,7 +498,6 @@ func checkMintCount(address, poapId string) error {
 	}
 	return nil
 }
-
 
 func checkPersonalAmount(config *models.NewYearConfig, user string)error{
 	if config.MaxMintCount == -1 {

@@ -160,6 +160,38 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error){
 	return item, res.Error
 }
 
+func GetMintCount(activityID, address string) (*MintCountResponse, error){
+	config, err := models.FindPOAPActivityConfigById(activityID)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := models.FindAndCountPOAPResultByAddress(0, 10, address, activityID)
+	if err != nil {
+		return nil, err
+	}
+	var count int32
+	remainedMinted := int32(int64(config.MaxMintCount) - resp.Count)
+
+	if config.Amount == -1 {
+		count = remainedMinted
+	}else {
+		res, err := models.FindAndCountPOAPResult(address, 0, 10)
+		if err != nil {
+			return nil, err
+		}
+		if config.Amount - int32(res.Count) < remainedMinted {
+			count = config.Amount - int32(res.Count)
+		}else {
+			count = remainedMinted
+		}
+	}
+	return &MintCountResponse{
+		Address: address,
+		ActivityID: activityID,
+		Count: count,
+	}, nil
+}
+
 func commonCheck(config *models.POAPActivityConfig, req *POAPRequest)error{
 	if req.Command != config.Command{
 		return fmt.Errorf("The command is worng")

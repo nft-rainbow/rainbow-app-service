@@ -268,12 +268,17 @@ func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 	models.GetDB().Save(&res)
 }
 
-func SyncNFTBurnTaskStatus(token string, res *models.BatchBurnResult) {
+func SyncNFTBurnTaskStatus(token string, res *models.BatchBurnResult) error{
 	logrus.Info("start task for syncing nft burn status")
-	status, hash, _ := getBurnInfo(res.BurnID, token)
+	status, hash, err := getBurnInfo(res.BurnID, token)
+	if err != nil {
+		return err
+	}
 
 	res.Status = status
 	res.Hash = hash
 
 	models.GetDB().Save(&res)
+
+	return nil
 }

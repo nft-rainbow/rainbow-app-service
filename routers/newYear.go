@@ -74,13 +74,10 @@ func getMintCount(c *gin.Context) {
 		resp, err = services.GetCommonMintCount(address, poapId)
 		ginutils.RenderResp(c, resp, err)
 	} else if poapId == viper.GetString("newYearEvent.newYearSpecialId") {
-		res, err := services.GetSpecialMintCount(address, viper.GetString("newYearEvent.newYearCommonId"))
-		ginutils.RenderResp(c, res, err)
+		resp, err = services.GetSpecialMintCount(address, viper.GetString("newYearEvent.newYearCommonId"))
+		ginutils.RenderResp(c, resp, err)
 	} else {
-		ginutils.RenderResp(c, &services.MintCountResponse{
-			Address:    address,
-			Count:      1,
-			ActivityID: poapId,
-		}, err)
+		resp, err = services.GetMintCount(poapId, address)
+		ginutils.RenderResp(c, resp, err)
 	}
 }
