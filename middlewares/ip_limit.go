@@ -38,6 +38,7 @@ func IpLimitMiddleware() gin.HandlerFunc {
 
 // reset at 0 o'clock everyday
 func loopResetIpCounter() {
+	log.Print("ip limit everyday", limitCount)
 	for {
 		resetIpCounter()
 		tommorow := utils.TomorrowBegin()
