@@ -24,14 +24,15 @@ func IpLimitMiddleware() gin.HandlerFunc {
 		go loopResetIpCounter()
 	})
 	return func(c *gin.Context) {
-		ip := c.RemoteIP()
+		ip := c.ClientIP()
 		v, _ := ipCounter.LoadOrStore(ip, 0)
-		ipCounter.Store(ip, v.(int)+1)
+		log.Printf("ip count: %v %v\n", ip, v)
 		if v.(int) >= viper.GetInt("newYearEvent.ipLimitEveryday") {
 			ginutils.RenderRespError(c, appService_errors.ERR_TOO_MANY_REQUEST_COMMON)
 			c.Abort()
 			return
 		}
+		ipCounter.Store(ip, v.(int)+1)
 	}
 }
 

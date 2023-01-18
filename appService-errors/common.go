@@ -13,6 +13,7 @@ func init() {
 
 	// INTERNAL SERVER ERRORS
 	RainbowAppServiceErrorInfos[ERR_INTERNAL_SERVER_COMMON] = RainbowAppServiceErrorInfo{"Internal Server error", http.StatusInternalServerError}
+	RainbowAppServiceErrorInfos[ERR_TOO_MANY_REQUEST_COMMON] = RainbowAppServiceErrorInfo{"Too many request", http.StatusTooManyRequests}
 }
 
 // VALIDATION ERRORS
