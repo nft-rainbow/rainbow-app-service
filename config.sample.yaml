@@ -21,6 +21,7 @@ newYearEvent:
   newYearSpecialId: 15
   commonMintLimit: 5
   everyDaySharerLimit: 3
+  ipLimitEveryday: 100
 rainbowDashboardApi: https://console.nftrainbow.cn
 rainbowOpenApi: https://api.nftrainbow.cn
 env: dev

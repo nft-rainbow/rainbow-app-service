@@ -1,10 +1,11 @@
 package routers
 
 import (
-	swaggerFiles "github.com/swaggo/files"
-	gs "github.com/swaggo/gin-swagger"
 	"net/http"
 	"strconv"
+
+	swaggerFiles "github.com/swaggo/files"
+	gs "github.com/swaggo/gin-swagger"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/nft-rainbow/rainbow-app-service/docs"
@@ -48,7 +49,7 @@ func SetupRoutes(router *gin.Engine) {
 		discordCustomProjector.GET("/activity/:id", getDiscordCustomActivity)
 	}
 
-	poap.POST("/h5", poapMintByH5)
+	poap.POST("/h5", middlewares.IpLimitMiddleware(), poapMintByH5)
 	poap.GET("/activity/:activity_id", getPOAPActivity)
 	poap.GET("/activity/result/:activity_id", getPOAPAResultList)
 	poap.GET("/activity/result/:activity_id/:id", getPOAPAResult)

@@ -44,12 +44,12 @@ func IsCfxAddress(addr string) error {
 		if err != nil {
 			return err
 		}
-	}else if tmp[0] == "cfxtest" {
+	} else if tmp[0] == "cfxtest" {
 		_, err := CheckCfxAddress(CONFLUX_TEST, addr)
 		if err != nil {
 			return err
 		}
-	}else {
+	} else {
 		return fmt.Errorf("Invalid conflux network")
 	}
 	return nil
@@ -107,4 +107,9 @@ func InUint256(val *big.Int) bool {
 func MustNewBigIntByString(val string) *big.Int {
 	b, _ := new(big.Int).SetString(val, 0)
 	return b
+}
+
+func TomorrowBegin() time.Time {
+	t := time.Now().Add(time.Hour * 24)
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
