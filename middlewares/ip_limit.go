@@ -15,7 +15,6 @@ import (
 var (
 	ipCounter      sync.Map
 	ipCntResetOnce sync.Once
-	limitCount     = viper.GetInt("newYearEvent.ipLimitEveryday")
 )
 
 type any = interface{}
@@ -28,7 +27,7 @@ func IpLimitMiddleware() gin.HandlerFunc {
 		ip := c.RemoteIP()
 		v, _ := ipCounter.LoadOrStore(ip, 0)
 		ipCounter.Store(ip, v.(int)+1)
-		if v.(int) >= limitCount {
+		if v.(int) >= viper.GetInt("newYearEvent.ipLimitEveryday") {
 			ginutils.RenderRespError(c, appService_errors.ERR_TOO_MANY_REQUEST_COMMON)
 			c.Abort()
 			return
@@ -38,7 +37,7 @@ func IpLimitMiddleware() gin.HandlerFunc {
 
 // reset at 0 o'clock everyday
 func loopResetIpCounter() {
-	log.Print("ip limit everyday", limitCount)
+	log.Print("ip limit everyday", viper.GetInt("newYearEvent.ipLimitEveryday"))
 	for {
 		resetIpCounter()
 		tommorow := utils.TomorrowBegin()
