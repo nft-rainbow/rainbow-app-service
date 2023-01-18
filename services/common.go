@@ -268,17 +268,33 @@ func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 	models.GetDB().Save(&res)
 }
 
-func SyncNFTBurnTaskStatus(token string, res *models.BatchBurnResult) error{
+func SyncNFTBurnTaskAndMint(token, address, chain string, res *models.BatchBurnResult, config *models.NewYearConfig){
 	logrus.Info("start task for syncing nft burn status")
-	status, hash, err := getBurnInfo(res.BurnID, token)
+	status, hash, err := getBurnInfo(res.BurnID, "Bearer " + token)
 	if err != nil {
-		return err
+		logrus.Info(fmt.Printf("failed to burn NFTs for %v", res.BurnID))
+		return
 	}
-
 	res.Status = status
 	res.Hash = hash
 
 	models.GetDB().Save(&res)
 
-	return nil
+	resp, index, err := randomMint(config, token, address, chain)
+	if err != nil {
+		logrus.Info(fmt.Printf("failed to mint special NFTs for %v", ))
+	}
+
+	item := &models.POAPResult{
+		ConfigID:   int32(config.ID),
+		Address:    address,
+		ContractID: config.ContractID,
+		TxID:       *resp.Id,
+		TokenID:    config.ContractInfos[index].TokenID,
+		ActivityID: config.ActivityID,
+	}
+
+	models.GetDB().Create(&item)
+
+	go SyncNFTMintTaskStatus(token, item)
 }

@@ -1235,7 +1235,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rainbowsdk.ModelsMintTask"
+                            "$ref": "#/definitions/models.POAPResult"
                         }
                     },
                     "400": {
@@ -2162,6 +2162,9 @@ var doc = `{
                 "id": {
                     "type": "integer"
                 },
+                "status": {
+                    "type": "integer"
+                },
                 "token_id": {
                     "type": "string"
                 },
@@ -2329,6 +2332,11 @@ var doc = `{
         },
         "services.ShareRequest": {
             "type": "object",
+            "required": [
+                "activity_id",
+                "receiver",
+                "sharer"
+            ],
             "properties": {
                 "activity_id": {
                     "type": "string"

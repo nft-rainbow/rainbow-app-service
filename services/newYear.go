@@ -19,9 +19,9 @@ import (
 )
 
 type ShareRequest struct {
-	Sharer     string `json:"sharer"`
-	Receiver   string `json:"receiver"`
-	ActivityID string `json:"activity_id"`
+	Sharer     string `json:"sharer" binding:"required"`
+	Receiver   string `json:"receiver" binding:"required"`
+	ActivityID string `json:"activity_id" binding:"required"`
 }
 
 type MintCountResponse struct {
@@ -92,30 +92,18 @@ func HandleSpecialNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	err = burnNFTs(commonConfig, req.UserAddress, token, chainType)
+	item, err := burnNFTs(commonConfig, req.UserAddress, token, chainType)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, index, err := randomMint(config, token, req.UserAddress, chainType)
-	if err != nil {
-		return nil, err
-	}
+	go SyncNFTBurnTaskAndMint(token, req.UserAddress, chainType, item, config)
 
-	item := &models.POAPResult{
-		ConfigID:   int32(config.ID),
-		Address:    req.UserAddress,
-		ContractID: config.ContractID,
-		TxID:       *resp.Id,
-		TokenID:    config.ContractInfos[index].TokenID,
-		ActivityID: config.ActivityID,
-	}
-
-	res := models.GetDB().Create(&item)
-
-	go SyncNFTMintTaskStatus(token, item)
-
-	return item, res.Error
+	return &models.POAPResult{
+		Address: req.UserAddress,
+		ActivityID: req.ActivityID,
+		ContractID: int32(config.ID),
+	}, nil
 }
 
 func HandleCommonNFTMint(req *POAPRequest) (*models.POAPResult, error) {
@@ -185,16 +173,16 @@ func HandleCommonNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 	return item, res.Error
 }
 
-func burnNFTs(config *models.NewYearConfig, address, token, chainType string) error {
+func burnNFTs(config *models.NewYearConfig, address, token, chainType string) (*models.BatchBurnResult, error) {
 	err := checkEnough(config, address)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var amount = int32(1)
 	items := make([]openapiclient.ServicesBurnItemDto, 0)
 	contractType, err := utils.ContractTypeByTypeId(uint(config.ContractType))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for i := 0; i < len(config.ContractInfos); i++ {
@@ -214,7 +202,7 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 
 	resp, err := sendBatchBurnNFTRequest("Bearer " + token, *dto)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	item := &models.BatchBurnResult{
@@ -225,11 +213,7 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) er
 	}
 	models.GetDB().Create(&item)
 
-	err = SyncNFTBurnTaskStatus("Bearer " + token, item)
-	if err != nil {
-		return err
-	}
-	return nil
+	return item, nil
 }
 
 func UpdateBySharing(req ShareRequest) error {
@@ -302,7 +286,6 @@ func GetSpecialMintCount(address, poapId string) (*MintCountResponse, error) {
 		return nil, err
 	}
 	for i := range resp {
-		fmt.Println(resp[i].Int64())
 		if resp[i].Int64() < res {
 			res = resp[i].Int64()
 		}
