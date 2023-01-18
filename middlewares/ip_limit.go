@@ -2,12 +2,13 @@ package middlewares
 
 import (
 	"log"
-	"net/http"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
+	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 	"github.com/spf13/viper"
 )
 
@@ -28,7 +29,7 @@ func IpLimitMiddleware() gin.HandlerFunc {
 		v, _ := ipCounter.LoadOrStore(ip, 0)
 		ipCounter.Store(ip, v.(int)+1)
 		if v.(int) >= limitCount {
-			c.JSON(http.StatusTooManyRequests, map[string]string{"message": "too many requests"})
+			ginutils.RenderRespError(c, appService_errors.ERR_TOO_MANY_REQUEST_COMMON)
 			c.Abort()
 			return
 		}
@@ -41,7 +42,7 @@ func loopResetIpCounter() {
 		resetIpCounter()
 		tommorow := utils.TomorrowBegin()
 		dur := time.Until(tommorow)
-		log.Print("settle cost after ", dur)
+		log.Print("reset ip counter after ", dur)
 		<-time.After(dur)
 	}
 }

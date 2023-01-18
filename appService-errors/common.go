@@ -21,6 +21,11 @@ const (
 	ERR_INVALID_PAGINATION
 )
 
+// RATELIMIT ERRORS
+const (
+	ERR_TOO_MANY_REQUEST_COMMON RainbowAppServiceError = http.StatusTooManyRequests*100 + iota //42900
+)
+
 // INTERNAL SERVER ERRORS
 const (
 	ERR_INTERNAL_SERVER_COMMON RainbowAppServiceError = http.StatusInternalServerError*100 + iota //50000
