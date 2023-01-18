@@ -46,7 +46,7 @@ func poapMintByCSV(c *gin.Context) {
 // @security    ApiKeyAuth
 // @Produce     json
 // @Param       poap_h5_mint_dto body  services.POAPRequest true "poap_h5_mint_dto"
-// @Success     200           {object} rainbowsdk.ModelsMintTask
+// @Success     200           {object} models.POAPResult
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/h5 [post]
