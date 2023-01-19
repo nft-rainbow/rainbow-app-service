@@ -347,7 +347,7 @@ func UpdateEveryday() {
 
 		models.GetDB().Model(&models.ClockTime{}).
 			Where("activity_id = ?",
-				viper.GetInt32("newYearEvent.newYearCommonId")).
+				viper.GetString("newYearEvent.newYearCommonId")).
 			Update("time", target.Add(-viper.GetDuration("testMinuteDuration") * time.Minute))
 
 		c = time.Tick(target.Sub(time.Now()))
@@ -359,7 +359,7 @@ func UpdateEveryday() {
 		}
 		models.GetDB().Model(&models.ClockTime{}).
 			Where("activity_id = ?",
-				viper.GetInt32("newYearEvent.newYearCommonId")).
+				viper.GetString("newYearEvent.newYearCommonId")).
 			Update("time", target.Add(-24 * time.Hour))
 
 		c = time.Tick(target.Sub(time.Now()))
@@ -370,7 +370,7 @@ func UpdateEveryday() {
 			<-c
 			updateVal := time.Now()
 			models.GetDB().Model(&models.ClockTime{}).
-				Where("activity_id = ?", viper.GetInt32("newYearEvent.newYearCommonId")).Update("time", updateVal)
+				Where("activity_id = ?", viper.GetString("newYearEvent.newYearCommonId")).Update("time", updateVal)
 
 			clock = updateVal
 			var cond models.EveryDayMintCount
