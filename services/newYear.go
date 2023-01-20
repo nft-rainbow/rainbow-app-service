@@ -376,7 +376,11 @@ func UpdateEveryday() {
 			var cond models.EveryDayMintCount
 			cond.ActivityID = viper.GetString("newYearEvent.newYearCommonId")
 			models.GetDB().Model(models.EveryDayMintCount{}).Where(&cond).Not("count > ?", 0).Update("count", gorm.Expr("count + ?", 1))
-			c = time.Tick(24 * time.Hour)
+			if viper.GetString("env") == "prod" {
+				c = time.Tick(24 * time.Hour)
+			}else if viper.GetString("env") == "dev" {
+				c = time.Tick(viper.GetDuration("testMinuteDuration") * time.Minute)
+			}
 		}
 	}()
 }
