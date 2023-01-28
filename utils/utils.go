@@ -95,6 +95,11 @@ func MustNewBigIntByString(val string) *big.Int {
 	return b
 }
 
+func TodayDateStr() string {
+	now := time.Now()
+	return fmt.Sprintf("%04d-%02d-%02d", now.Year(), now.Month(), now.Day())
+}
+
 func TomorrowBegin() time.Time {
 	t := time.Now().Add(time.Hour * 24)
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())

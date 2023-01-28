@@ -41,6 +41,7 @@ func startGin() {
 	engine := gin.New()
 	engine.Use(gin.Logger())
 	engine.Use(cors.Default())
+	engine.Use(middlewares.Statistic())
 	routers.SetupRoutes(engine)
 
 	port := viper.GetString("port")

@@ -2,10 +2,11 @@ package models
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"time"
 )
 
 var (
@@ -49,6 +50,7 @@ func ConnectDB() {
 	db.AutoMigrate(&ShareInfo{})
 	db.AutoMigrate(&ClockTime{})
 	db.AutoMigrate(&BatchBurnResult{})
+	db.AutoMigrate(&Statistic{})
 }
 
 func GetDB() *gorm.DB {
