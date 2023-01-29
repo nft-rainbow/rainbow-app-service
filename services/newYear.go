@@ -506,27 +506,27 @@ func checkPersonalAmount(config *models.NewYearConfig, user string)error{
 }
 
 func checkAndCreateNewAccount(address string, poapId string) error {
-	resp, _ := models.CountSharerInfo(address, poapId)
+	//resp, _ := models.CountSharerInfo(address, poapId)
 
-	if resp == 0 {
-		_, err := models.FindShareMintCount(address, poapId)
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			item := &models.ShareMintCount{
-				Address:    address,
-				ActivityID: poapId,
-				Count:      0,
-			}
-
-			models.GetDB().Create(item)
-
-			everyDay := &models.EveryDayMintCount{
-				Address:    address,
-				ActivityID: poapId,
-				Count:      1,
-			}
-			models.GetDB().Create(everyDay)
+	//if resp == 0 {
+	_, err := models.FindShareMintCount(address, poapId)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		item := &models.ShareMintCount{
+			Address:    address,
+			ActivityID: poapId,
+			Count:      0,
 		}
+
+		models.GetDB().Create(item)
+
+		everyDay := &models.EveryDayMintCount{
+			Address:    address,
+			ActivityID: poapId,
+			Count:      1,
+		}
+		models.GetDB().Create(everyDay)
 	}
+	//}
 
 	return nil
 }
