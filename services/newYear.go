@@ -151,6 +151,10 @@ func HandleCommonNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	res := models.GetDB().Create(&item)
+	cache := models.Cache[config.ActivityID]
+	cache.Lock()
+	cache.Count += 1
+	cache.Unlock()
 
 	everyDay, err := models.FindEveryDayMintCount(req.UserAddress, req.ActivityID)
 	if err != nil {

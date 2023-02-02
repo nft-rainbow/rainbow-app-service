@@ -131,8 +131,8 @@ func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, 
 		UserID:     userID,
 		ContractID: contractId,
 		TokenID:    tokenId,
-		Hash: hash,
-		Status: status,
+		Hash:       hash,
+		Status:     status,
 	})
 	return res, nil
 }
@@ -159,8 +159,8 @@ func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, cha
 		UserID:     userID,
 		ContractID: contractId,
 		TokenID:    tokenId,
-		Hash: hash,
-		Status: status,
+		Hash:       hash,
+		Status:     status,
 	})
 	return res, nil
 }
@@ -206,7 +206,7 @@ func getTokenInfo(id int32, token string) (string, string, int32, error) {
 		return "", "", 0, err
 	}
 
-	for *resp.Status != 1 && *resp.Hash == ""{
+	for *resp.Status != 1 && *resp.Hash == "" {
 		resp, _, err = newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 		if err != nil {
 			return "", "", 0, err
@@ -224,7 +224,7 @@ func getBurnInfo(id int32, token string) (int32, string, error) {
 	if err != nil {
 		return 0, "", err
 	}
-	for *resp.Status == 0 && *resp.Hash == ""{
+	for *resp.Status == 0 && *resp.Hash == "" {
 		resp, _, err = newClient().BurnsApi.GetBurnDetail(context.Background(), id).Authorization(token).Execute()
 		if err != nil {
 			return 0, "", err
@@ -268,10 +268,10 @@ func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 	models.GetDB().Save(&res)
 }
 
-func SyncNFTBurnTaskAndMint(token, address, chain string, res *models.BatchBurnResult, config *models.NewYearConfig){
+func SyncNFTBurnTaskAndMint(token, address, chain string, res *models.BatchBurnResult, config *models.NewYearConfig) {
 	logrus.Info("start task for syncing nft burn status")
-	status, hash, err := getBurnInfo(res.BurnID, "Bearer " + token)
-	if err != nil || status != 1{
+	status, hash, err := getBurnInfo(res.BurnID, "Bearer "+token)
+	if err != nil || status != 1 {
 		logrus.Info(fmt.Printf("failed to burn NFTs for %v", res.BurnID))
 		return
 	}
@@ -282,7 +282,7 @@ func SyncNFTBurnTaskAndMint(token, address, chain string, res *models.BatchBurnR
 
 	resp, index, err := randomMint(config, token, address, chain)
 	if err != nil {
-		logrus.Info(fmt.Printf("failed to mint special NFTs for %v", ))
+		logrus.Info(fmt.Printf("failed to mint special NFTs for %v"))
 	}
 
 	item := &models.POAPResult{
@@ -295,6 +295,10 @@ func SyncNFTBurnTaskAndMint(token, address, chain string, res *models.BatchBurnR
 	}
 
 	models.GetDB().Create(&item)
+	cache := models.Cache[config.ActivityID]
+	cache.Lock()
+	cache.Count += 1
+	cache.Unlock()
 
 	go SyncNFTMintTaskStatus(token, item)
 }

@@ -1,5 +1,9 @@
 package models
 
+import (
+	"sync"
+)
+
 type POAPActivityConfig struct {
 	BaseModel
 	ContractID         int32           `gorm:"type:integer" json:"contract_id" binding:"required"`
@@ -46,6 +50,11 @@ type H5Config struct {
 	MobilePicURL     string `gorm:"type:string" json:"mobile_picture_url"`
 }
 
+type POAPResultCountCache struct {
+	sync.RWMutex
+	Count int64 `json:"count"`
+}
+
 type POAPActivityQueryResult struct {
 	Count int64                 `json:"count"`
 	Items []*POAPActivityConfig `json:"items"`
@@ -55,6 +64,8 @@ type POAPResultQueryResult struct {
 	Count int64         `json:"count"`
 	Items []*POAPResult `json:"items"`
 }
+
+var Cache = make(map[string]*POAPResultCountCache)
 
 func FindPOAPActivityConfig(name string, contractId int32) (*POAPActivityConfig, error) {
 	var item POAPActivityConfig
@@ -102,7 +113,8 @@ func FindAndCountPOAPResult(poapId string, offset int, limit int) (*POAPResultQu
 	cond.ActivityID = poapId
 
 	var count int64
-	if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
+	count, err := CountPOAPResult(poapId)
+	if err != nil {
 		return nil, err
 	}
 
@@ -118,8 +130,24 @@ func CountPOAPResult(poapId string) (int64, error) {
 	cond.ActivityID = poapId
 
 	var count int64
-	if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
-		return 0, err
+
+	countCache, ok := Cache[poapId]
+	if !ok {
+		countCache = &POAPResultCountCache{}
+	}
+	countCache.RLock()
+
+	if countCache.Count == 0 {
+		countCache.RUnlock()
+		countCache.Lock()
+		if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
+			return 0, err
+		}
+		countCache.Count = count
+		countCache.Unlock()
+	} else {
+		countCache.RUnlock()
+		count = countCache.Count
 	}
 
 	return count, nil
