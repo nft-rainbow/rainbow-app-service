@@ -134,6 +134,7 @@ func CountPOAPResult(poapId string) (int64, error) {
 	countCache, ok := Cache[poapId]
 	if !ok {
 		countCache = &POAPResultCountCache{}
+		Cache[poapId] = &POAPResultCountCache{}
 	}
 	countCache.RLock()
 
@@ -143,7 +144,7 @@ func CountPOAPResult(poapId string) (int64, error) {
 		if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
 			return 0, err
 		}
-		countCache.Count = count
+		Cache[poapId].Count = count
 		countCache.Unlock()
 	} else {
 		countCache.RUnlock()
