@@ -10,9 +10,9 @@ import (
 )
 
 type POAPRequest struct {
-	ActivityID string `json:"activity_id" binding:"required"`
+	ActivityID  string `json:"activity_id" binding:"required"`
 	UserAddress string `json:"user_address" binding:"required"`
-	Command string `json:"command"`
+	Command     string `json:"command"`
 }
 
 func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POAPActivityConfig, error) {
@@ -22,7 +22,7 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POA
 		return nil, err
 	}
 
-	info, err := GetContractInfo(config.ContractID, "Bearer " + token)
+	info, err := GetContractInfo(config.ContractID, "Bearer "+token)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func POAPH5Config(config *models.H5Config) (*models.H5Config, error) {
 	return config, nil
 }
 
-func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error){
+func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 	config, err := models.FindPOAPActivityConfigById(req.ActivityID)
 	if err != nil {
 		return nil, err
@@ -84,21 +84,21 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error){
 		return nil, err
 	}
 
-	resp, err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
-		Chain: chainType,
+	resp, err := sendCustomMintRequest("Bearer "+token, openapiclient.ServicesCustomMintDto{
+		Chain:           chainType,
 		ContractAddress: config.ContractAddress,
-		MintToAddress: req.UserAddress,
-		MetadataUri: &config.MetadataURI,
+		MintToAddress:   req.UserAddress,
+		MetadataUri:     &config.MetadataURI,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	item := &models.POAPResult{
-		ConfigID: int32(config.ID),
-		Address: req.UserAddress,
+		ConfigID:   int32(config.ID),
+		Address:    req.UserAddress,
 		ContractID: config.ContractID,
-		TxID: *resp.Id,
+		TxID:       *resp.Id,
 		ActivityID: config.ActivityID,
 	}
 
@@ -109,7 +109,7 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error){
 	return item, res.Error
 }
 
-func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error){
+func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	config, err := models.FindPOAPActivityConfigById(req.ActivityID)
 	if err != nil {
 		return nil, err
@@ -135,21 +135,21 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error){
 		return nil, err
 	}
 
-	resp, err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
-		Chain: chainType,
+	resp, err := sendCustomMintRequest("Bearer "+token, openapiclient.ServicesCustomMintDto{
+		Chain:           chainType,
 		ContractAddress: config.ContractAddress,
-		MintToAddress: req.UserAddress,
-		MetadataUri: &config.MetadataURI,
+		MintToAddress:   req.UserAddress,
+		MetadataUri:     &config.MetadataURI,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	item := &models.POAPResult{
-		ConfigID: int32(config.ID),
-		Address: req.UserAddress,
+		ConfigID:   int32(config.ID),
+		Address:    req.UserAddress,
 		ContractID: config.ContractID,
-		TxID: *resp.Id,
+		TxID:       *resp.Id,
 		ActivityID: config.ActivityID,
 	}
 
@@ -160,46 +160,46 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error){
 	return item, res.Error
 }
 
-func GetMintCount(activityID, address string) (*MintCountResponse, error){
+func GetMintCount(activityID, address string) (*MintCountResponse, error) {
 	config, err := models.FindPOAPActivityConfigById(activityID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := models.FindAndCountPOAPResultByAddress(0, 10, address, activityID)
+	resp, err := models.CountPOAPResultByAddress(address, activityID)
 	if err != nil {
 		return nil, err
 	}
 	var count int32
-	remainedMinted := int32(int64(config.MaxMintCount) - resp.Count)
+	remainedMinted := int32(int64(config.MaxMintCount) - resp)
 
 	if config.Amount == -1 {
 		count = remainedMinted
-	}else {
-		res, err := models.FindAndCountPOAPResult(address, 0, 10)
+	} else {
+		res, err := models.CountPOAPResult(address)
 		if err != nil {
 			return nil, err
 		}
-		if config.Amount - int32(res.Count) < remainedMinted {
-			count = config.Amount - int32(res.Count)
-		}else {
+		if config.Amount-int32(res) < remainedMinted {
+			count = config.Amount - int32(res)
+		} else {
 			count = remainedMinted
 		}
 	}
 	return &MintCountResponse{
-		Address: address,
+		Address:    address,
 		ActivityID: activityID,
-		Count: count,
+		Count:      count,
 	}, nil
 }
 
-func commonCheck(config *models.POAPActivityConfig, req *POAPRequest)error{
-	if req.Command != config.Command{
+func commonCheck(config *models.POAPActivityConfig, req *POAPRequest) error {
+	if req.Command != config.Command {
 		return fmt.Errorf("The command is worng")
 	}
 
 	if config.StartedTime != -1 &&
 		config.EndedTime != -1 &&
-		(time.Now().Unix() < config.StartedTime  || time.Now().Unix() > config.EndedTime) {
+		(time.Now().Unix() < config.StartedTime || time.Now().Unix() > config.EndedTime) {
 		return fmt.Errorf("The activity has already expired or has not been started")
 	}
 
@@ -210,7 +210,7 @@ func commonCheck(config *models.POAPActivityConfig, req *POAPRequest)error{
 	return nil
 }
 
-func checkWhiteList(whiteList []models.WhiteListInfo, address string) bool{
+func checkWhiteList(whiteList []models.WhiteListInfo, address string) bool {
 	for _, v := range whiteList {
 		if address == v.User {
 			return true
@@ -221,35 +221,35 @@ func checkWhiteList(whiteList []models.WhiteListInfo, address string) bool{
 
 func checkAmount(config *models.POAPActivityConfig) error {
 	if config.Amount != -1 {
-		resp, err := models.FindAndCountPOAPResult(config.ActivityID,0, 10)
+		resp, err := models.CountPOAPResult(config.ActivityID)
 		if err != nil {
 			return err
 		}
-		if int32(resp.Count) >= config.Amount{
+		if int32(resp) >= config.Amount {
 			return fmt.Errorf("The mint amount has exceeded the limit")
 		}
 	}
 	return nil
 }
 
-func checkLimitAmount(config *models.POAPActivityConfig, address string) error{
-	resp, err := models.FindAndCountPOAPResultByAddress(0, 10, address, config.ActivityID)
+func checkLimitAmount(config *models.POAPActivityConfig, address string) error {
+	resp, err := models.CountPOAPResultByAddress(address, config.ActivityID)
 	if err != nil {
 		return err
 	}
-	if resp.Count >= int64(config.MaxMintCount){
+	if resp >= int64(config.MaxMintCount) {
 		return fmt.Errorf("The mint amount has exceeded the mint limit")
 	}
 	return nil
 }
 
-func checkWhiteListLimit(config *models.POAPActivityConfig, address string) error{
-	resp, err := models.FindAndCountPOAPResultByAddress(0, 10, address, config.ActivityID)
+func checkWhiteListLimit(config *models.POAPActivityConfig, address string) error {
+	resp, err := models.CountPOAPResultByAddress(address, config.ActivityID)
 	if err != nil {
 		return err
 	}
 	for _, v := range config.WhiteListInfos {
-		if v.User == address && resp.Count >= int64(v.Count){
+		if v.User == address && resp >= int64(v.Count) {
 			return fmt.Errorf("The NFT minted by the account has exceeded the mint limit")
 		}
 	}

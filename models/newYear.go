@@ -7,81 +7,81 @@ import (
 
 type NewYearConfig struct {
 	BaseModel
-	Amount int32 `gorm:"type:integer" json:"amount" binding:"required"`
-	Name string `gorm:"type:string" json:"name" binding:"required"`
-	Description string `gorm:"type:string" json:"description" binding:"required"`
-	AppId int32 `gorm:"index" json:"app_id" binding:"required"`
-	Chain    int32   `gorm:"type:int" json:"chain_type"`
-	EndedTime int64 `gorm:"type:integer" json:"end_time" binding:"required"`
-	StartedTime int64 `gorm:"type:integer" json:"start_time" binding:"required"`
-	RainbowUserId int32 `gorm:"type:integer" json:"rainbow_user_id"`
-	ContractType int32 `gorm:"type:integer" json:"contract_type"`
-	ContractAddress string `gorm:"type:string" json:"contract_address"`
-	ContractID int32 `gorm:"type:integer" json:"contract_id" binding:"required"`
-	MaxMintCount int32 `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
-	ActivityPictureURL string `gorm:"type:string" json:"activity_picture_url"`
-	SharingContent string `gorm:"type:string" json:"sharing_content"`
-	ActivityID string `gorm:"type:string" json:"activity_id"`
-	ContractInfos []NFTContractInfo `json:"nft_contract_infos"`
+	Amount             int32             `gorm:"type:integer" json:"amount" binding:"required"`
+	Name               string            `gorm:"type:string" json:"name" binding:"required"`
+	Description        string            `gorm:"type:string" json:"description" binding:"required"`
+	AppId              int32             `gorm:"index" json:"app_id" binding:"required"`
+	Chain              int32             `gorm:"type:int" json:"chain_type"`
+	EndedTime          int64             `gorm:"type:integer" json:"end_time" binding:"required"`
+	StartedTime        int64             `gorm:"type:integer" json:"start_time" binding:"required"`
+	RainbowUserId      int32             `gorm:"type:integer" json:"rainbow_user_id"`
+	ContractType       int32             `gorm:"type:integer" json:"contract_type"`
+	ContractAddress    string            `gorm:"type:string" json:"contract_address"`
+	ContractID         int32             `gorm:"type:integer" json:"contract_id" binding:"required"`
+	MaxMintCount       int32             `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
+	ActivityPictureURL string            `gorm:"type:string" json:"activity_picture_url"`
+	SharingContent     string            `gorm:"type:string" json:"sharing_content"`
+	ActivityID         string            `gorm:"type:string;index" json:"activity_id"`
+	ContractInfos      []NFTContractInfo `json:"nft_contract_infos"`
 }
 
 type ShareMintCount struct {
 	BaseModel
-	Address string `gorm:"type:string" json:"address"`
-	Count int32 `gorm:"type:integer" json:"count"`
-	ActivityID string `gorm:"type:string" json:"activity_id"`
+	Address    string `gorm:"type:string" json:"address"`
+	Count      int32  `gorm:"type:integer" json:"count"`
+	ActivityID string `gorm:"type:string;index" json:"activity_id"`
 }
 
 type NFTContractInfo struct {
 	BaseModel
-	MetadataURI string `gorm:"type:string" json:"metadata_uri" binding:"required"`
-	Probability float32 `gorm:"type:varchar(256)" json:"probability" binding:"required"`
-	TokenID    string `gorm:"type:string" json:"token_id" binding:"required"`
+	MetadataURI     string  `gorm:"type:string" json:"metadata_uri" binding:"required"`
+	Probability     float32 `gorm:"type:varchar(256)" json:"probability" binding:"required"`
+	TokenID         string  `gorm:"type:string" json:"token_id" binding:"required"`
 	NewYearConfigID uint
 }
 
 type ShareInfo struct {
 	BaseModel
-	Sharer string `gorm:"type:string" json:"sharer"`
-	Receiver string `gorm:"type:string" json:"receiver"`
-	ActivityID string `gorm:"type:string" json:"activity_id"`
+	Sharer     string `gorm:"type:string" json:"sharer"`
+	Receiver   string `gorm:"type:string" json:"receiver"`
+	ActivityID string `gorm:"type:string;index" json:"activity_id"`
 }
 
 type BatchBurnResult struct {
 	BaseModel
-	ActivityID string `gorm:"type:string" json:"activity_id"`
-	Address string `gorm:"type:string" json:"address"`
-	Status int32 `gorm:"type:integer" json:"status"`
-	BurnID int32 `gorm:"type:integer" json:"burn_id"`
-	Hash   string `gorm:"type:string" json:"hash"`
+	ActivityID string `gorm:"type:string;index" json:"activity_id"`
+	Address    string `gorm:"type:string" json:"address"`
+	Status     int32  `gorm:"type:integer" json:"status"`
+	BurnID     int32  `gorm:"type:integer" json:"burn_id"`
+	Hash       string `gorm:"type:string" json:"hash"`
 }
 
 type ClockTime struct {
 	BaseModel
-	Time time.Time `json:"time"`
-	ActivityID string `gorm:"type:string" json:"activity_id"`
+	Time       time.Time `json:"time"`
+	ActivityID string    `gorm:"type:string;index" json:"activity_id"`
 }
 
 type NewYearConfigQueryResult struct {
-	Count int64       `json:"count"`
+	Count int64            `json:"count"`
 	Items []*NewYearConfig `json:"items"`
 }
 
 type NewYearSpecialConfigQueryResult struct {
-	Count int64       `json:"count"`
+	Count int64            `json:"count"`
 	Items []*NewYearConfig `json:"items"`
 }
 
 type EveryDayMintCount struct {
 	BaseModel
-	Address string `gorm:"type:string" json:"address"`
-	Count int32 `gorm:"type:integer" json:"count"`
-	ActivityID string `gorm:"type:string" json:"activity_id"`
+	Address    string `gorm:"type:string" json:"address"`
+	Count      int32  `gorm:"type:integer" json:"count"`
+	ActivityID string `gorm:"type:string;index" json:"activity_id"`
 }
 
-func FindNewYearConfigById(id string) (*NewYearConfig, error){
+func FindNewYearConfigById(id string) (*NewYearConfig, error) {
 	var item NewYearConfig
-	err := db.Where("activity_id = ?", id).First(&item).Error
+	err := db.Model(&NewYearConfig{}).Where("activity_id = ?", id).First(&item).Error
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func FindNewYearConfigById(id string) (*NewYearConfig, error){
 	return &item, err
 }
 
-func FindShareMintCount(address string, activityId string) (*ShareMintCount, error){
+func FindShareMintCount(address string, activityId string) (*ShareMintCount, error) {
 	var cond ShareMintCount
 	var item ShareMintCount
 	cond.Address = address
@@ -103,7 +103,7 @@ func FindShareMintCount(address string, activityId string) (*ShareMintCount, err
 	return &item, err
 }
 
-func FindEveryDayMintCount(address string, activityId string)(*EveryDayMintCount, error) {
+func FindEveryDayMintCount(address string, activityId string) (*EveryDayMintCount, error) {
 	var cond EveryDayMintCount
 	var item EveryDayMintCount
 	cond.Address = address
@@ -113,7 +113,7 @@ func FindEveryDayMintCount(address string, activityId string)(*EveryDayMintCount
 	return &item, err
 }
 
-func UpdateMintCount(address, poapId string, updateCount int32) (*ShareMintCount, error){
+func UpdateMintCount(address, poapId string, updateCount int32) (*ShareMintCount, error) {
 	item, err := FindShareMintCount(address, poapId)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func UpdateMintCount(address, poapId string, updateCount int32) (*ShareMintCount
 	return item, nil
 }
 
-func UpdateEveryDayMintCount(address, poapId string, updateCount int32) (*EveryDayMintCount, error){
+func UpdateEveryDayMintCount(address, poapId string, updateCount int32) (*EveryDayMintCount, error) {
 	item, err := FindEveryDayMintCount(address, poapId)
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func UpdateEveryDayMintCount(address, poapId string, updateCount int32) (*EveryD
 	return item, nil
 }
 
-func FindSharingInfo(sharer, receiver, poapId string) (*ShareInfo, error){
+func FindSharingInfo(sharer, receiver, poapId string) (*ShareInfo, error) {
 	var cond ShareInfo
 	var item ShareInfo
 	cond.Sharer = sharer
@@ -148,24 +148,23 @@ func FindSharingInfo(sharer, receiver, poapId string) (*ShareInfo, error){
 	return &item, res.Error
 }
 
-func CountTodaySharerInfo(sharer, poapId string, now time.Time)(int64, error) {
-	var item []*ShareInfo
+func CountTodaySharerInfo(sharer, poapId string, now time.Time) (int64, error) {
 	var cond ShareInfo
 	cond.Sharer = sharer
 	cond.ActivityID = poapId
 	var count int64
 	if viper.GetString("env") == "dev" {
-		db.Find(&item).Where(&cond).
-			Where("updated_at > ? and updated_at < ?", now, now.Add(viper.GetDuration("testMinuteDuration") * time.Minute)).Count(&count)
-	}else if viper.GetString("env") == "prod"{
-		db.Find(&item).Where(&cond).
-			Where("updated_at > ? and updated_at < ?", now, now.Add(24 * time.Hour)).Count(&count)
+		db.Where(&cond).
+			Where("updated_at > ? and updated_at < ?", now, now.Add(viper.GetDuration("testMinuteDuration")*time.Minute)).Count(&count)
+	} else if viper.GetString("env") == "prod" {
+		db.Where(&cond).
+			Where("updated_at > ? and updated_at < ?", now, now.Add(24*time.Hour)).Count(&count)
 	}
 
 	return count, nil
 }
 
-func CountSharerInfo(sharer, poapId string)(int64, error) {
+func CountSharerInfo(sharer, poapId string) (int64, error) {
 	var cond ShareInfo
 	cond.Sharer = sharer
 	cond.ActivityID = poapId
@@ -176,7 +175,7 @@ func CountSharerInfo(sharer, poapId string)(int64, error) {
 	return count, res.Error
 }
 
-func GetClock(poapId string) (*ClockTime, error){
+func GetClock(poapId string) (*ClockTime, error) {
 	var item ClockTime
 	var cond ClockTime
 	cond.ActivityID = poapId
