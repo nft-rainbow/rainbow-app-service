@@ -3,6 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/bwmarrin/discordgo"
 	dodoModel "github.com/dodo-open/dodo-open-go/model"
 	"github.com/nft-rainbow/rainbow-app-service/models"
@@ -10,8 +13,6 @@ import (
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"net/http"
-	"time"
 )
 
 func bindCFXAddressWithDiscord(req *models.BindCFXWithDiscord) error {
@@ -269,6 +270,11 @@ func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 }
 
 func SyncNFTBurnTaskAndMint(token, address, chain string, res *models.BatchBurnResult, config *models.NewYearConfig) {
+	// TMP CHECK code
+	if res == nil || config == nil {
+		logrus.Info(fmt.Printf("nil address ========================="))
+		return
+	}
 	logrus.Info("start task for syncing nft burn status")
 	status, hash, err := getBurnInfo(res.BurnID, "Bearer "+token)
 	if err != nil || status != 1 {
