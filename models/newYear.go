@@ -81,7 +81,7 @@ type EveryDayMintCount struct {
 
 func FindNewYearConfigById(id string) (*NewYearConfig, error) {
 	var item NewYearConfig
-	err := db.Model(&NewYearConfig{}).Where("activity_id = ?", id).First(&item).Error
+	err := db.Where("activity_id = ?", id).First(&item).Error
 	if err != nil {
 		return nil, err
 	}
@@ -153,11 +153,12 @@ func CountTodaySharerInfo(sharer, poapId string, now time.Time) (int64, error) {
 	cond.Sharer = sharer
 	cond.ActivityID = poapId
 	var count int64
+
 	if viper.GetString("env") == "dev" {
-		db.Where(&cond).
+		db.Model(&ShareInfo{}).Where(&cond).
 			Where("updated_at > ? and updated_at < ?", now, now.Add(viper.GetDuration("testMinuteDuration")*time.Minute)).Count(&count)
 	} else if viper.GetString("env") == "prod" {
-		db.Where(&cond).
+		db.Model(&ShareInfo{}).Where(&cond).
 			Where("updated_at > ? and updated_at < ?", now, now.Add(24*time.Hour)).Count(&count)
 	}
 
