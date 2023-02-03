@@ -302,6 +302,10 @@ func SyncNFTBurnTaskAndMint(token, address, chain string, res *models.BatchBurnR
 
 	models.GetDB().Create(&item)
 	cache := models.Cache[config.ActivityID]
+	if cache == nil {
+		logrus.Info(fmt.Printf("nil address ========================="))
+		return
+	}
 	cache.Lock()
 	cache.Count += 1
 	cache.Unlock()
