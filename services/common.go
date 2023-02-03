@@ -270,11 +270,6 @@ func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 }
 
 func SyncNFTBurnTaskAndMint(token, address, chain string, res *models.BatchBurnResult, config *models.NewYearConfig) {
-	// TMP CHECK code
-	if res == nil || config == nil {
-		logrus.Info(fmt.Printf("nil address ========================="))
-		return
-	}
 	logrus.Info("start task for syncing nft burn status")
 	status, hash, err := getBurnInfo(res.BurnID, "Bearer "+token)
 	if err != nil || status != 1 {
@@ -302,10 +297,6 @@ func SyncNFTBurnTaskAndMint(token, address, chain string, res *models.BatchBurnR
 
 	models.GetDB().Create(&item)
 	cache := models.Cache[config.ActivityID]
-	if cache == nil {
-		logrus.Info(fmt.Printf("nil address ========================="))
-		return
-	}
 	cache.Lock()
 	cache.Count += 1
 	cache.Unlock()

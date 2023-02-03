@@ -84,6 +84,11 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
+	_, err = models.CountPOAPResult(req.ActivityID)
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := sendCustomMintRequest("Bearer "+token, openapiclient.ServicesCustomMintDto{
 		Chain:           chainType,
 		ContractAddress: config.ContractAddress,
@@ -103,6 +108,10 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	res := models.GetDB().Create(&item)
+	cache := models.Cache[config.ActivityID]
+	cache.Lock()
+	cache.Count += 1
+	cache.Unlock()
 
 	go SyncNFTMintTaskStatus(token, item)
 
@@ -126,6 +135,11 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	err = checkLimitAmount(config, req.UserAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = models.CountPOAPResult(req.ActivityID)
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +168,10 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	res := models.GetDB().Create(&item)
+	cache := models.Cache[config.ActivityID]
+	cache.Lock()
+	cache.Count += 1
+	cache.Unlock()
 
 	go SyncNFTMintTaskStatus(token, item)
 

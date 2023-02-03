@@ -87,6 +87,11 @@ func HandleSpecialNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
+	_, err = models.CountPOAPResult(req.ActivityID)
+	if err != nil {
+		return nil, err
+	}
+
 	chainType, err := utils.ChainTypeByTypeId(uint(config.Chain))
 	if err != nil {
 		return nil, err
@@ -127,6 +132,11 @@ func HandleCommonNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	err = checkPersonalAmount(config, req.UserAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = models.CountPOAPResult(req.ActivityID)
 	if err != nil {
 		return nil, err
 	}

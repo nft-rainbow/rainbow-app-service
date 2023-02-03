@@ -2,8 +2,6 @@ package models
 
 import (
 	"sync"
-
-	"github.com/spf13/viper"
 )
 
 type POAPActivityConfig struct {
@@ -132,14 +130,6 @@ func CountPOAPResult(poapId string) (int64, error) {
 	cond.ActivityID = poapId
 
 	var count int64
-
-	// TMP code by pana, can be removed later
-	if poapId != viper.GetString("newYearEvent.newYearCommonId") {
-		if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
-			return 0, err
-		}
-		return count, nil
-	}
 
 	countCache, ok := Cache[poapId]
 	if !ok {
