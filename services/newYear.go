@@ -231,10 +231,20 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) (*
 }
 
 func UpdateBySharing(req ShareRequest) error {
+	config, err := models.FindNewYearConfigById(req.ActivityID)
+	if err != nil {
+		return err
+	}
+
+	err = newYearCommonCheck(config.StartedTime, config.EndedTime, config.ActivityID, config.Amount)
+	if err != nil {
+		return err
+	}
+
 	if req.Sharer == req.Receiver {
 		return fmt.Errorf("Can not share to yourself")
 	}
-	err := utils.IsCfxAddress(req.Sharer)
+	err = utils.IsCfxAddress(req.Sharer)
 	if err != nil {
 		return err
 	}
