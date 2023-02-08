@@ -52,8 +52,6 @@ func SetupRoutes(router *gin.Engine) {
 	poap.POST("/h5", middlewares.IpLimitMiddleware(), poapMintByH5)
 	poap.GET("/activity/:activity_id", getPOAPActivity)
 	poap.GET("/activity/result/:activity_id", getPOAPAResultList)
-	poap.GET("/activity/result/:activity_id/poster", generateResultPoster)
-	poap.PUT("/activity/:activity_id/poster", generateActivityPoster)
 	poap.GET("/activity/result/:activity_id/:id", getPOAPAResult)
 	poap.GET("/count/:address/:activity_id", getMintCount)
 	poap.POST("/sharer", updateBySharing)

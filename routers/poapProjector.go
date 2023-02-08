@@ -225,14 +225,6 @@ func getPOAPAResultList(c *gin.Context) {
 	ginutils.RenderResp(c, mints, err)
 }
 
-func generateActivityPoster(c *gin.Context) {
-
-}
-
-func generateResultPoster(c *gin.Context) {
-
-}
-
 // @Tags        POAP
 // @ID          GetPOAPResult
 // @Summary     Get POAP Result

@@ -1,11 +1,22 @@
 package services
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/disintegration/imaging"
+	"github.com/fogleman/gg"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
+	"github.com/skip2/go-qrcode"
+	"github.com/spf13/viper"
+	"image"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"path"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -29,6 +40,10 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POA
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
 		return nil, res.Error
+	}
+	err = generateActivityPoster(config)
+	if err != nil {
+		return nil, err
 	}
 
 	return config, nil
@@ -78,7 +93,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 
 	if oldConfig.NFTConfigs != nil {
 		for _, v := range config.NFTConfigs {
-			tmp := strings.Split(v.Name, "/")
+			tmp := strings.Split(v.ImageURL, "/")
 			err = AddLogoAndUpload(v.ImageURL, tmp[len(tmp)-1], oldConfig.ActivityID)
 			if err != nil {
 				return nil, err
@@ -237,9 +252,200 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 
 	res := models.GetDB().Create(&item)
 
+	err = generateResultPoster(item, config.Name)
+	if err != nil {
+		return nil, err
+	}
+
 	go SyncNFTMintTaskStatus(token, item)
 
 	return item, res.Error
+}
+
+func generateActivityPoster(config *models.POAPActivityConfig) error {
+	templateImg, err := gg.LoadImage("./assets/images/Activity Poster.png")
+
+	dc := gg.NewContext(templateImg.Bounds().Dx(), templateImg.Bounds().Dy())
+	dc.DrawImage(templateImg, 0, 0)
+
+	resp, err := http.Get(config.ActivityPictureURL)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	imgData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	img, err := imaging.Decode(bytes.NewReader(imgData))
+	img = imaging.Fit(img, 1260, 1260, imaging.Lanczos)
+	dc.DrawImage(img, 120, 200)
+
+	// QR Code Generate
+	targetUrl := generateActivityURLById(config.ActivityID)
+	qrCode, _ := qrcode.New(targetUrl, qrcode.Low)
+	qrImg := qrCode.Image(268)
+	dc.DrawImage(qrImg, 1112, 2212)
+
+	// 增加文字
+	err = dc.LoadFontFace("./assets/fonts/PingFang SC Bold.ttf", 88)
+	if err != nil {
+		panic(err)
+	}
+	dc.SetHexColor("#05001F")
+	dc.DrawStringAnchored(config.Name, 120, 1580, 0, 0)
+
+	err = dc.LoadFontFace("./assets/fonts/PingFang SC Bold.ttf", 64)
+	if err != nil {
+		panic(err)
+	}
+	lines := []string{"", ""}
+	curLine := 0
+	var lineLen float64
+	for _, r := range config.Description {
+		w, _ := dc.MeasureString(string(r))
+		if lineLen+w > 1260 {
+			curLine++
+			lineLen = 0
+		}
+		lines[curLine] += string(r)
+		lineLen += w
+	}
+
+	dc.SetHexColor("#696679")
+	for i, line := range lines {
+		dc.DrawString(line, 120, float64(1732+i*96))
+	}
+	var start, end string
+	if config.StartedTime == -1 {
+		start = "不限时"
+	} else {
+		start = time.Unix(config.StartedTime, 0).Format("2006-01-02")
+	}
+	if config.EndedTime == -1 {
+		end = "不限时"
+	} else {
+		end = time.Unix(config.EndedTime, 0).Format("2006-01-02")
+	}
+	dc.DrawStringAnchored(fmt.Sprintf("开始时间：%v", start), 120, 1988, 0, 0)
+	dc.DrawStringAnchored(fmt.Sprintf("结束时间：%v", end), 120, 2100, 0, 0)
+	buf := new(bytes.Buffer)
+	dc.EncodePNG(buf)
+
+	bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
+	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.activity"), config.ActivityID+".png"), buf); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func generateResultPoster(result *models.POAPResult, name string) error {
+	templateImg, err := gg.LoadImage("./assets/images/Result Poster.png")
+
+	dc := gg.NewContext(templateImg.Bounds().Dx(), templateImg.Bounds().Dy())
+	dc.DrawImage(templateImg, 0, 0)
+
+	resp, err := http.Get(generateActivityUrlByFileUrl(result.FileURL, result.ActivityID))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	imgData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	img, err := imaging.Decode(bytes.NewReader(imgData))
+	img = imaging.Fit(img, 1260, 1260, imaging.Lanczos)
+	dc.DrawImage(img, 120, 200)
+
+	// QR Code Generate
+	targetUrl := generateActivityURLById(result.ActivityID)
+	qrCode, _ := qrcode.New(targetUrl, qrcode.Low)
+	qrImg := qrCode.Image(268)
+	dc.DrawImage(qrImg, 1112, 2212)
+
+	// 增加文字
+	err = dc.LoadFontFace("./assets/fonts/PingFang SC Bold.ttf", 88)
+	if err != nil {
+		return err
+	}
+	dc.SetHexColor("#05001F")
+	dc.DrawStringAnchored(name, 120, 1708, 0, 0)
+
+	err = dc.LoadFontFace("./assets/fonts/PingFang SC Bold.ttf", 64)
+	if err != nil {
+		return err
+	}
+	dc.SetHexColor("#696679")
+	x := 120.00
+	dc.DrawString("由「", x, 1580)
+	w, _ := dc.MeasureString("由「")
+	x += w
+	dc.SetHexColor("#6953EF")
+
+	dc.DrawString(fmt.Sprintf("%v", utils.SimpleAddress(result.Address)), x, 1580)
+	w, _ = dc.MeasureString(fmt.Sprintf("%v", utils.SimpleAddress(result.Address)))
+	x += w
+	dc.SetHexColor("#696679")
+	dc.DrawString("」拥有", x, 1580)
+
+	drawTimeStringWithColor(dc, "：", fmt.Sprintf("徽章编号：%v", result.TokenID), 120, 1908, "#6953EF")
+	drawTimeStringWithColor(dc, "：", fmt.Sprintf("领取时间：%v", result.CreatedAt.Format("2006-01-02")), 120, 2036, "#05001F")
+	buf := new(bytes.Buffer)
+	dc.EncodePNG(buf)
+
+	bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
+	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.result"), result.ActivityID, result.Address, strconv.Itoa(int(result.ID))+".png"), buf); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func AddLogoAndUpload(url, name, activity string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	imgData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	img, _, err := image.Decode(bytes.NewReader(imgData))
+	if err != nil {
+		return err
+	}
+
+	logoFile, err := os.Open("./assets/images/logo.png")
+	if err != nil {
+		return err
+	}
+	defer logoFile.Close()
+
+	logo, _, err := image.Decode(logoFile)
+	if err != nil {
+		return err
+	}
+
+	withLogo, err := addLogo(img, logo)
+	if err != nil {
+		return err
+	}
+
+	bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
+	if err := bucket.PutObject(path.Join(viper.GetString("imagesDir.minted"), activity, name), bytes.NewReader(withLogo)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetMintCount(activityID, address string) (*MintCountResponse, error) {

@@ -31,15 +31,15 @@ rpcs:
   testnet: https://test.confluxrpc.com
 startTime: 1673937000
 imagesDir:
-  minted: images/minted
-  nonMinted: images/nonMinted
+  minted: service/images/minted
+  nonMinted: service/images/nonMinted
 posterDir:
-  activity: activity/
-  result: result/
+  activity: service/activity/
+  result: service/result/
 oss:
   endpoint: oss-cn-hangzhou.aliyuncs.com
   accessKeyId: LTAI5tAgy431SQhh3EfvUzDg
   accessKeySecret: DITVEd9CwxT8YlvnVe4nVwipW7Ts6T
-  bucketName: nft-rainbow-service
+  bucketName: nft-rainbow
 url:
   activity: https://apps.nftrainbow.cn/
