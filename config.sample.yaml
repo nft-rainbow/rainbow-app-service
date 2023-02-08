@@ -4,7 +4,7 @@ mysql:
   port: 3306
   user: root
   password: new-password
-  db: rainbowApp
+  db: service
 discordBotToken: MTAwODczNzczODY2NjgwNzQxNg.GTER6T.4cNuhVz80DtwNvwIVOjNBphSX4VQfom072dNJY
 dodoBot:
   clientId: 78090178
@@ -17,16 +17,29 @@ customMint:
 proxy: http://0.0.0.0:7890
 advertise: Powered by NFTRainbow
 newYearEvent:
-  newYearCommonId: 14
-  newYearSpecialId: 15
+  newYearCommonId: c857bbe8
+  newYearSpecialId: 0c3ba1c4
   commonMintLimit: 5
   everyDaySharerLimit: 3
   ipLimitEveryday: 100
-rainbowDashboardApi: https://console.nftrainbow.cn
-rainbowOpenApi: https://api.nftrainbow.cn
+rainbowDashboardApi: https://dev.nftrainbow.xyz
+rainbowOpenApi: https://dev.nftrainbow.xyz
 env: dev
-testMinuteDuration: 30
+testMinuteDuration: 50
 rpcs:
   mainnet: https://main.confluxrpc.com
   testnet: https://test.confluxrpc.com
 startTime: 1673937000
+imagesDir:
+  minted: images/minted
+  nonMinted: images/nonMinted
+posterDir:
+  activity: activity/
+  result: result/
+oss:
+  endpoint: oss-cn-hangzhou.aliyuncs.com
+  accessKeyId: LTAI5tAgy431SQhh3EfvUzDg
+  accessKeySecret: DITVEd9CwxT8YlvnVe4nVwipW7Ts6T
+  bucketName: nft-rainbow-service
+url:
+  activity: https://apps.nftrainbow.cn/
