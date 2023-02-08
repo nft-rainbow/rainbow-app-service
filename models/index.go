@@ -51,6 +51,8 @@ func ConnectDB() {
 	db.AutoMigrate(&ClockTime{})
 	db.AutoMigrate(&BatchBurnResult{})
 	db.AutoMigrate(&Statistic{})
+	db.AutoMigrate(&NFTConfig{})
+	db.AutoMigrate(&MetadataAttribute{})
 }
 
 func GetDB() *gorm.DB {

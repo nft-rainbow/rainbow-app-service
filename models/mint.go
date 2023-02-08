@@ -34,6 +34,7 @@ type POAPResult struct {
 	Hash       string `gorm:"type:string" json:"hash"`
 	ActivityID string `gorm:"type:string;index" json:"activity_id"`
 	Status     int32  `gorm:"type:integer" json:"status"`
+	FileURL    string `gorm:"type:string" json:"file_url"`
 }
 
 func StoreCustomMintResult(req CustomMintResult) error {

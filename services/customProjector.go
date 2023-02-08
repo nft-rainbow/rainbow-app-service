@@ -8,7 +8,7 @@ import (
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 )
 
-func BindDiscordProjectConfig(config *models.DiscordCustomProjectConfig, id uint) error{
+func BindDiscordProjectConfig(config *models.DiscordCustomProjectConfig, id uint) error {
 	info, err := GetDiscordGuildInfo(config.GuildId)
 	if err != nil {
 		return err
@@ -19,12 +19,12 @@ func BindDiscordProjectConfig(config *models.DiscordCustomProjectConfig, id uint
 
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
-		return  res.Error
+		return res.Error
 	}
 	return nil
 }
 
-func BindDoDoProjectConfig(config *models.DoDoCustomProjectConfig, id uint) error{
+func BindDoDoProjectConfig(config *models.DoDoCustomProjectConfig, id uint) error {
 	info, err := GetDoDoIslandInfo(config.IslandId)
 	if err != nil {
 		return err
@@ -35,7 +35,7 @@ func BindDoDoProjectConfig(config *models.DoDoCustomProjectConfig, id uint) erro
 
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
-		return  res.Error
+		return res.Error
 	}
 	return nil
 }
@@ -56,7 +56,7 @@ func DiscordCustomActivityConfig(config *models.DiscordCustomActivityConfig, id 
 
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
-		return  res.Error
+		return res.Error
 	}
 
 	return nil
@@ -78,29 +78,29 @@ func DoDoCustomActivityConfig(config *models.DoDoCustomActivityConfig, id uint) 
 
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
-		return  res.Error
+		return res.Error
 	}
 
 	return nil
 }
 
-func HandleCustomMint(userId, channelId, platform string) (*openapiclient.ModelsMintTask, string, int32, error){
+func HandleCustomMint(userId, channelId, platform string) (*openapiclient.ModelsMintTask, string, int32, error) {
 	req := models.CustomMintReq{
-		UserID: userId,
+		UserID:    userId,
 		ChannelID: channelId,
 	}
 	if platform == "dodo" {
 		resp, token, contractId, err := dodoCustomMint(&req)
 		return resp, token, contractId, err
-	}else if platform == "discord" {
+	} else if platform == "discord" {
 		resp, token, contractId, err := discordCustomMint(&req)
 		return resp, token, contractId, err
-	}else {
+	} else {
 		return nil, "", 0, nil
 	}
 }
 
-func dodoCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask, string, int32, error){
+func dodoCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask, string, int32, error) {
 	config, err := models.FindDoDoCustomActivityConfigByChannelId(req.ChannelID)
 	if err != nil {
 		return nil, "", 0, err
@@ -120,16 +120,16 @@ func dodoCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask, s
 	}
 
 	token, _ := middlewares.GenerateDoDoOpenJWT(req.ChannelID)
-	chainType, err := utils.ChainTypeByTypeId(uint(config.Chain))
+	chain, err := utils.ChainById(uint(config.Chain))
 	if err != nil {
 		return nil, "", 0, err
 	}
 
-	resp , err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
-		Chain: chainType,
+	resp, err := sendCustomMintRequest("Bearer "+token, openapiclient.ServicesCustomMintDto{
+		Chain:           chain,
 		ContractAddress: config.ContractAddress,
-		MintToAddress: cfxAddress,
-		MetadataUri: &config.MetadataURI,
+		MintToAddress:   cfxAddress,
+		MetadataUri:     &config.MetadataURI,
 	})
 	if err != nil {
 		return nil, "", 0, err
@@ -138,7 +138,7 @@ func dodoCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask, s
 	return resp, token, config.ContractID, err
 }
 
-func discordCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask, string, int32, error){
+func discordCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask, string, int32, error) {
 	config, err := models.FindDiscordCustomActivityConfigByChannelId(req.ChannelID)
 	if err != nil {
 		return nil, "", 0, err
@@ -159,16 +159,16 @@ func discordCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask
 
 	token, _ := middlewares.GenerateDiscordOpenJWT(req.ChannelID)
 
-	chainType, err := utils.ChainTypeByTypeId(uint(config.Chain))
+	chain, err := utils.ChainById(uint(config.Chain))
 	if err != nil {
 		return nil, "", 0, err
 	}
 
-	resp , err := sendCustomMintRequest("Bearer " + token, openapiclient.ServicesCustomMintDto{
-		Chain: chainType,
+	resp, err := sendCustomMintRequest("Bearer "+token, openapiclient.ServicesCustomMintDto{
+		Chain:           chain,
 		ContractAddress: config.ContractAddress,
-		MintToAddress: cfxAddress,
-		MetadataUri: &config.MetadataURI,
+		MintToAddress:   cfxAddress,
+		MetadataUri:     &config.MetadataURI,
 	})
 	if err != nil {
 		return nil, "", 0, err

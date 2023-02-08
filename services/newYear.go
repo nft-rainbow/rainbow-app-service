@@ -44,7 +44,8 @@ func SetNewYearConfig(config *models.NewYearConfig, id uint) (*models.NewYearCon
 	}
 	config.ContractType = *info.Type
 	config.ContractAddress = *info.Address
-	config.Chain = *info.ChainType
+	config.ChainType = *info.ChainType
+	config.ChainId = *info.ChainId
 	config.AppId = *info.AppId
 	newYearId, err := getPoAPId(config.ContractAddress, config.Name)
 	if err != nil {
@@ -87,17 +88,17 @@ func HandleSpecialNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	chainType, err := utils.ChainTypeByTypeId(uint(config.Chain))
+	chain, err := utils.ChainById(uint(config.ChainId))
 	if err != nil {
 		return nil, err
 	}
 
-	item, err := burnNFTs(commonConfig, req.UserAddress, token, chainType)
+	item, err := burnNFTs(commonConfig, req.UserAddress, token, chain)
 	if err != nil {
 		return nil, err
 	}
 
-	go SyncNFTBurnTaskAndMint(token, req.UserAddress, chainType, item, config)
+	go SyncNFTBurnTaskAndMint(token, req.UserAddress, chain, item, config)
 
 	return &models.POAPResult{
 		Address:    req.UserAddress,
@@ -131,12 +132,12 @@ func HandleCommonNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	chainType, err := utils.ChainTypeByTypeId(uint(config.Chain))
+	chain, err := utils.ChainById(uint(config.ChainId))
 	if err != nil {
 		return nil, err
 	}
 
-	resp, index, err := randomMint(config, token, req.UserAddress, chainType)
+	resp, index, err := randomMint(config, token, req.UserAddress, chain)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +178,7 @@ func HandleCommonNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 	return item, res.Error
 }
 
-func burnNFTs(config *models.NewYearConfig, address, token, chainType string) (*models.BatchBurnResult, error) {
+func burnNFTs(config *models.NewYearConfig, address, token, chain string) (*models.BatchBurnResult, error) {
 	err := checkEnough(config, address)
 	if err != nil {
 		return nil, err
@@ -197,7 +198,7 @@ func burnNFTs(config *models.NewYearConfig, address, token, chainType string) (*
 
 	}
 	dto := &openapiclient.ServicesBurnBatchDto{
-		Chain:           chainType,
+		Chain:           chain,
 		ContractAddress: config.ContractAddress,
 		ContractType:    contractType,
 		Items:           items,
@@ -252,8 +253,6 @@ func UpdateBySharing(req ShareRequest) error {
 				if resp.UpdatedAt.Unix() > clock.Unix() &&
 					resp.UpdatedAt.Unix() < clock.Add(24*time.Hour).Unix() {
 					return fmt.Errorf("The sharer has shared the link to receiver")
-				} else if resp.UpdatedAt.Unix() > clock.Add(24*time.Hour).Unix() {
-
 				}
 			}
 		} else {
@@ -355,7 +354,6 @@ func UpdateEveryday() {
 			Update("time", target.Add(-viper.GetDuration("testMinuteDuration")*time.Minute))
 
 		c = time.Tick(target.Sub(time.Now()))
-
 	} else if viper.GetString("env") == "prod" {
 		target := resp.Time.Add(24 * time.Hour)
 		for target.Unix() < time.Now().Unix() {

@@ -11,7 +11,8 @@ type NewYearConfig struct {
 	Name               string            `gorm:"type:string" json:"name" binding:"required"`
 	Description        string            `gorm:"type:string" json:"description" binding:"required"`
 	AppId              int32             `gorm:"index" json:"app_id" binding:"required"`
-	Chain              int32             `gorm:"type:int" json:"chain_type"`
+	ChainType          int32             `gorm:"type:int" json:"chain_type"`
+	ChainId            int32             `gorm:"type:int" json:"chain_id"`
 	EndedTime          int64             `gorm:"type:integer" json:"end_time" binding:"required"`
 	StartedTime        int64             `gorm:"type:integer" json:"start_time" binding:"required"`
 	RainbowUserId      int32             `gorm:"type:integer" json:"rainbow_user_id"`

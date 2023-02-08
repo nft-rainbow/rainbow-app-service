@@ -6,24 +6,43 @@ import (
 
 type POAPActivityConfig struct {
 	BaseModel
-	ContractID         int32           `gorm:"type:integer" json:"contract_id" binding:"required"`
+	ContractID         int32           `gorm:"type:integer" json:"contract_id"`
 	Amount             int32           `gorm:"type:integer" json:"amount" binding:"required"`
 	Name               string          `gorm:"type:string" json:"name" binding:"required"`
 	Description        string          `gorm:"type:string" json:"description" binding:"required"`
 	AppId              int32           `gorm:"index" json:"app_id" binding:"required"`
 	ContractType       int32           `gorm:"type:int" json:"contract_type"`
 	ContractAddress    string          `gorm:"type:string" json:"contract_address"`
-	Chain              int32           `gorm:"type:int" json:"chain_type"`
-	MetadataURI        string          `gorm:"type:string" json:"metadata_uri" binding:"required"`
+	ChainId            int32           `gorm:"type:int" json:"chain_id"`
+	ChainType          int32           `gorm:"type:int" json:"chain_type"`
+	ActivityType       string          `gorm:"type:string" json:"activity_type" binding:"required" oneof:"blind_box single poap"`
 	Command            string          `gorm:"type:string" json:"command"`
 	EndedTime          int64           `gorm:"type:integer" json:"end_time" binding:"required"`
 	StartedTime        int64           `gorm:"type:integer" json:"start_time" binding:"required"`
 	RainbowUserId      int32           `gorm:"type:integer" json:"rainbow_user_id"`
-	MaxMintCount       uint            `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
+	MaxMintCount       int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
 	ActivityID         string          `gorm:"type:string;index" json:"activity_id"`
 	ActivityPictureURL string          `gorm:"type:string" json:"activity_picture_url"`
-	SharingContent     string          `gorm:"type:string" json:"sharing_content"`
 	WhiteListInfos     []WhiteListInfo `json:"white_list_infos"`
+	NFTConfigs         []NFTConfig     `json:"nft_configs"`
+}
+
+type NFTConfig struct {
+	BaseModel
+	ImageURL             string              `gorm:"type:string" json:"image_url"`
+	Name                 string              `gorm:"type:string" json:"name"`
+	Probability          float32             `gorm:"type:varchar(256)" json:"probability"`
+	MetadataAttributes   []MetadataAttribute `json:"metadata_attributes"`
+	POAPActivityConfigID uint
+}
+
+type MetadataAttribute struct {
+	BaseModel
+	Name        string `gorm:"type:varchar(256)"  json:"attribute_name"`
+	TraitType   string `gorm:"type:varchar(256)"  json:"trait_type"`
+	DisplayType string `gorm:"type:varchar(256)"  json:"display_type"`
+	Value       string `gorm:"type:varchar(256)"  json:"value"`
+	NFTConfigID uint
 }
 
 type WhiteListInfo struct {
@@ -83,6 +102,10 @@ func FindPOAPActivityConfigById(id string) (*POAPActivityConfig, error) {
 		return nil, err
 	}
 	err = db.Preload("WhiteListInfos").Find(&item).Error
+	if err != nil {
+		return nil, err
+	}
+	err = db.Preload("NFTConfigs").Find(&item).Error
 	if err != nil {
 		return nil, err
 	}

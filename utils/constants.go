@@ -52,14 +52,14 @@ func ContractTypeByName(name string) (ContractType, error) {
 	}
 }
 
-func ChainTypeByTypeId(chainType uint) (string, error) {
-	switch chainType {
+func ChainById(chainId uint) (string, error) {
+	switch chainId {
 	case 1:
 		return CONFLUX_TEST, nil
 	case 1029:
 		return CONFLUX, nil
 	default:
-		return "", fmt.Errorf("unknown chain type")
+		return "", fmt.Errorf("unknown chain id")
 	}
 }
 

@@ -3,19 +3,14 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"image"
-	"image/draw"
-	"image/jpeg"
+	_ "image/gif"
+	_ "image/png"
 	"math/big"
-	"net/http"
-	"os"
+	"strings"
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
-	"golang.org/x/image/math/fixed"
 )
 
 var (
@@ -49,43 +44,9 @@ func IsCfxAddress(addr string) error {
 	return err
 }
 
-func DrawLogo(url string) {
-	response, err := http.Get(url)
-	if err != nil {
-		panic(err)
-	}
-	defer response.Body.Close()
-
-	src, _, err := image.Decode(response.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	// 创建一个绘制对象
-	rgba := image.NewRGBA(src.Bounds())
-	draw.Draw(rgba, rgba.Bounds(), src, image.Point{0, 0}, draw.Src)
-
-	// 在绘制对象上绘制文字
-	point := fixed.Point26_6{fixed.Int26_6(rgba.Bounds().Min.X + 30*64), fixed.Int26_6(rgba.Bounds().Min.Y + 30*64)}
-	d := &font.Drawer{
-		Dst:  rgba,
-		Src:  image.Black,
-		Face: basicfont.Face7x13,
-		Dot:  point,
-	}
-	d.DrawString("Watermark")
-
-	// 将绘制对象保存为新的图片
-	newImg, err := os.Create("new.jpeg")
-	if err != nil {
-		panic(err)
-	}
-	defer newImg.Close()
-
-	err = jpeg.Encode(newImg, rgba, nil)
-	if err != nil {
-		panic(err)
-	}
+func SimpleAddress(addr string) string {
+	tmp := strings.Split(addr, ":")
+	return tmp[0] + ":" + tmp[1][:3] + "..." + tmp[1][:3]
 }
 
 func CurrentMonthStr() string {

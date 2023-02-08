@@ -173,6 +173,31 @@ func setPOAPH5Config(c *gin.Context) {
 }
 
 // @Tags        POAP
+// @ID          UpdatePOAPActivity
+// @Summary     Update POAP Activity
+// @Description Update POAP Activity
+// @security    ApiKeyAuth
+// @Produce     json
+// @Param       Authorization header   string true "Bearer JWT"
+// @Param       activity_id       path     string    true "activity_id"
+// @Param       poap_activity_config body  models.POAPActivityConfig true "poap_activity_config"
+// @Success     200           {object} models.POAPActivityConfig
+// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/{activity_id} [put]
+func updatePOAPConfig(c *gin.Context) {
+	var config *models.POAPActivityConfig
+	if err := c.ShouldBind(&config); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+	poapId := c.Param("activity_id")
+
+	resp, err := services.UpdatePOAPActivityConfig(config, poapId)
+	ginutils.RenderResp(c, resp, err)
+}
+
+// @Tags        POAP
 // @ID          GetPOAPResultList
 // @Summary     Get POAP Result list
 // @Description Get POAP Result list
@@ -198,6 +223,14 @@ func getPOAPAResultList(c *gin.Context) {
 	}
 	mints, err := models.FindAndCountPOAPResult(poapId, pagination.Offset(), pagination.Limit)
 	ginutils.RenderResp(c, mints, err)
+}
+
+func generateActivityPoster(c *gin.Context) {
+
+}
+
+func generateResultPoster(c *gin.Context) {
+
 }
 
 // @Tags        POAP

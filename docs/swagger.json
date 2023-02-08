@@ -1032,6 +1032,67 @@
                         }
                     }
                 }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update POAP Activity",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Update POAP Activity",
+                "operationId": "UpdatePOAPActivity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "activity_id",
+                        "name": "activity_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "poap_activity_config",
+                        "name": "poap_activity_config",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.POAPActivityConfig"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.POAPActivityConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
             }
         },
         "/poap/config": {
@@ -1383,13 +1444,19 @@
                 },
                 "thread_member": {
                     "description": "Thread member object for the current user, if they have joined the thread, only included on certain API endpoints",
-                    "type": "object",
-                    "$ref": "#/definitions/discordgo.ThreadMember"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/discordgo.ThreadMember"
+                        }
+                    ]
                 },
                 "thread_metadata": {
                     "description": "Thread-specific fields not needed by other channels",
-                    "type": "object",
-                    "$ref": "#/definitions/discordgo.ThreadMetadata"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/discordgo.ThreadMetadata"
+                        }
+                    ]
                 },
                 "topic": {
                     "description": "The topic of the channel.",
@@ -1397,13 +1464,46 @@
                 },
                 "type": {
                     "description": "The type of the channel.",
-                    "type": "integer"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/discordgo.ChannelType"
+                        }
+                    ]
                 },
                 "user_limit": {
                     "description": "The user limit of the voice channel.",
                     "type": "integer"
                 }
             }
+        },
+        "discordgo.ChannelType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                10,
+                11,
+                12,
+                13
+            ],
+            "x-enum-varnames": [
+                "ChannelTypeGuildText",
+                "ChannelTypeDM",
+                "ChannelTypeGuildVoice",
+                "ChannelTypeGroupDM",
+                "ChannelTypeGuildCategory",
+                "ChannelTypeGuildNews",
+                "ChannelTypeGuildStore",
+                "ChannelTypeGuildNewsThread",
+                "ChannelTypeGuildPublicThread",
+                "ChannelTypeGuildPrivateThread",
+                "ChannelTypeGuildStageVoice"
+            ]
         },
         "discordgo.PermissionOverwrite": {
             "type": "object",
@@ -1420,9 +1520,20 @@
                     "type": "string"
                 },
                 "type": {
-                    "type": "integer"
+                    "$ref": "#/definitions/discordgo.PermissionOverwriteType"
                 }
             }
+        },
+        "discordgo.PermissionOverwriteType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "PermissionOverwriteTypeRole",
+                "PermissionOverwriteTypeMember"
+            ]
         },
         "discordgo.ThreadMember": {
             "type": "object",
@@ -1519,7 +1630,11 @@
                 },
                 "public_flags": {
                     "description": "The public flags on a user's account.\nThis is a combination of bit masks; the presence of a certain flag can\nbe checked by performing a bitwise AND between this int and the flag.",
-                    "type": "integer"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/discordgo.UserFlags"
+                        }
+                    ]
                 },
                 "system": {
                     "description": "Whether the user is an Official Discord System user (part of the urgent message system).",
@@ -1539,8 +1654,52 @@
                 }
             }
         },
+        "discordgo.UserFlags": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                4,
+                8,
+                64,
+                128,
+                256,
+                512,
+                1024,
+                4096,
+                16384,
+                65536,
+                131072,
+                262144
+            ],
+            "x-enum-varnames": [
+                "UserFlagDiscordEmployee",
+                "UserFlagDiscordPartner",
+                "UserFlagHypeSquadEvents",
+                "UserFlagBugHunterLevel1",
+                "UserFlagHouseBravery",
+                "UserFlagHouseBrilliance",
+                "UserFlagHouseBalance",
+                "UserFlagEarlySupporter",
+                "UserFlagTeamUser",
+                "UserFlagSystem",
+                "UserFlagBugHunterLevel2",
+                "UserFlagVerifiedBot",
+                "UserFlagVerifiedBotDeveloper",
+                "UserFlagDiscordCertifiedModerator"
+            ]
+        },
         "gorm.DeletedAt": {
-            "$ref": "#/definitions/sql.NullTime"
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
+                }
+            }
         },
         "model.ChannelElement": {
             "type": "object",
@@ -1555,7 +1714,11 @@
                 },
                 "channelType": {
                     "description": "频道类型，1：文字频道，2：语音频道，4：帖子频道，5：链接频道，6：资料频道",
-                    "type": "integer"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.ChannelType"
+                        }
+                    ]
                 },
                 "defaultFlag": {
                     "description": "默认频道标识，0：否，1：是",
@@ -1570,6 +1733,23 @@
                     "type": "string"
                 }
             }
+        },
+        "model.ChannelType": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                4,
+                5,
+                6
+            ],
+            "x-enum-varnames": [
+                "TextChannel",
+                "VoiceChannel",
+                "ArticleChannel",
+                "LinkChannel",
+                "ResChannel"
+            ]
         },
         "models.DiscordActivityQueryResult": {
             "type": "object",
@@ -1622,7 +1802,6 @@
                     "type": "string"
                 },
                 "deleted_at": {
-                    "type": "object",
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "description": {
@@ -1671,7 +1850,6 @@
                     "type": "string"
                 },
                 "deleted_at": {
-                    "type": "object",
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "description": {
@@ -1759,7 +1937,6 @@
                     "type": "string"
                 },
                 "deleted_at": {
-                    "type": "object",
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "description": {
@@ -1808,7 +1985,6 @@
                     "type": "string"
                 },
                 "deleted_at": {
-                    "type": "object",
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "description": {
@@ -1852,7 +2028,7 @@
             ],
             "properties": {
                 "activity_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "button_word_color": {
                     "type": "integer"
@@ -1873,7 +2049,6 @@
                     "type": "string"
                 },
                 "deleted_at": {
-                    "type": "object",
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "id": {
@@ -1905,6 +2080,73 @@
                 }
             }
         },
+        "models.MetadataAttribute": {
+            "type": "object",
+            "properties": {
+                "attribute_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "display_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nftconfigID": {
+                    "type": "integer"
+                },
+                "trait_type": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.NFTConfig": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "metadata_attributes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MetadataAttribute"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "poapactivityConfigID": {
+                    "type": "integer"
+                },
+                "probability": {
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "models.NFTContractInfo": {
             "type": "object",
             "required": [
@@ -1917,7 +2159,6 @@
                     "type": "string"
                 },
                 "deleted_at": {
-                    "type": "object",
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "id": {
@@ -1965,6 +2206,9 @@
                 "app_id": {
                     "type": "integer"
                 },
+                "chain_id": {
+                    "type": "integer"
+                },
                 "chain_type": {
                     "type": "integer"
                 },
@@ -1981,7 +2225,6 @@
                     "type": "string"
                 },
                 "deleted_at": {
-                    "type": "object",
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "description": {
@@ -2022,13 +2265,12 @@
         "models.POAPActivityConfig": {
             "type": "object",
             "required": [
+                "activity_type",
                 "amount",
                 "app_id",
-                "contract_id",
                 "description",
                 "end_time",
                 "max_mint_count",
-                "metadata_uri",
                 "name",
                 "start_time"
             ],
@@ -2039,10 +2281,16 @@
                 "activity_picture_url": {
                     "type": "string"
                 },
+                "activity_type": {
+                    "type": "string"
+                },
                 "amount": {
                     "type": "integer"
                 },
                 "app_id": {
+                    "type": "integer"
+                },
+                "chain_id": {
                     "type": "integer"
                 },
                 "chain_type": {
@@ -2064,7 +2312,6 @@
                     "type": "string"
                 },
                 "deleted_at": {
-                    "type": "object",
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "description": {
@@ -2079,17 +2326,17 @@
                 "max_mint_count": {
                     "type": "integer"
                 },
-                "metadata_uri": {
-                    "type": "string"
-                },
                 "name": {
                     "type": "string"
                 },
+                "nft_configs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.NFTConfig"
+                    }
+                },
                 "rainbow_user_id": {
                     "type": "integer"
-                },
-                "sharing_content": {
-                    "type": "string"
                 },
                 "start_time": {
                     "type": "integer"
@@ -2142,8 +2389,10 @@
                     "type": "string"
                 },
                 "deleted_at": {
-                    "type": "object",
                     "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "file_url": {
+                    "type": "string"
                 },
                 "hash": {
                     "type": "string"
@@ -2189,7 +2438,6 @@
                     "type": "string"
                 },
                 "deleted_at": {
-                    "type": "object",
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "id": {
@@ -2251,7 +2499,6 @@
                     "type": "string"
                 },
                 "deleted_at": {
-                    "type": "object",
                     "$ref": "#/definitions/rainbowsdk.GormDeletedAt"
                 },
                 "error": {
@@ -2335,18 +2582,6 @@
                 },
                 "sharer": {
                     "type": "string"
-                }
-            }
-        },
-        "sql.NullTime": {
-            "type": "object",
-            "properties": {
-                "time": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if Time is not NULL",
-                    "type": "boolean"
                 }
             }
         }

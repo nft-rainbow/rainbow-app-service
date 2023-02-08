@@ -77,24 +77,51 @@ definitions:
           $ref: '#/definitions/discordgo.User'
         type: array
       thread_member:
-        $ref: '#/definitions/discordgo.ThreadMember'
+        allOf:
+        - $ref: '#/definitions/discordgo.ThreadMember'
         description: Thread member object for the current user, if they have joined
           the thread, only included on certain API endpoints
-        type: object
       thread_metadata:
-        $ref: '#/definitions/discordgo.ThreadMetadata'
+        allOf:
+        - $ref: '#/definitions/discordgo.ThreadMetadata'
         description: Thread-specific fields not needed by other channels
-        type: object
       topic:
         description: The topic of the channel.
         type: string
       type:
+        allOf:
+        - $ref: '#/definitions/discordgo.ChannelType'
         description: The type of the channel.
-        type: integer
       user_limit:
         description: The user limit of the voice channel.
         type: integer
     type: object
+  discordgo.ChannelType:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 10
+    - 11
+    - 12
+    - 13
+    type: integer
+    x-enum-varnames:
+    - ChannelTypeGuildText
+    - ChannelTypeDM
+    - ChannelTypeGuildVoice
+    - ChannelTypeGroupDM
+    - ChannelTypeGuildCategory
+    - ChannelTypeGuildNews
+    - ChannelTypeGuildStore
+    - ChannelTypeGuildNewsThread
+    - ChannelTypeGuildPublicThread
+    - ChannelTypeGuildPrivateThread
+    - ChannelTypeGuildStageVoice
   discordgo.PermissionOverwrite:
     properties:
       allow:
@@ -106,8 +133,16 @@ definitions:
       id:
         type: string
       type:
-        type: integer
+        $ref: '#/definitions/discordgo.PermissionOverwriteType'
     type: object
+  discordgo.PermissionOverwriteType:
+    enum:
+    - 0
+    - 1
+    type: integer
+    x-enum-varnames:
+    - PermissionOverwriteTypeRole
+    - PermissionOverwriteTypeMember
   discordgo.ThreadMember:
     properties:
       flags:
@@ -190,11 +225,12 @@ definitions:
           Only available when the request is authorized via a Bearer token.
         type: integer
       public_flags:
+        allOf:
+        - $ref: '#/definitions/discordgo.UserFlags'
         description: |-
           The public flags on a user's account.
           This is a combination of bit masks; the presence of a certain flag can
           be checked by performing a bitwise AND between this int and the flag.
-        type: integer
       system:
         description: Whether the user is an Official Discord System user (part of
           the urgent message system).
@@ -211,8 +247,46 @@ definitions:
         description: Whether the user's email is verified.
         type: boolean
     type: object
+  discordgo.UserFlags:
+    enum:
+    - 1
+    - 2
+    - 4
+    - 8
+    - 64
+    - 128
+    - 256
+    - 512
+    - 1024
+    - 4096
+    - 16384
+    - 65536
+    - 131072
+    - 262144
+    type: integer
+    x-enum-varnames:
+    - UserFlagDiscordEmployee
+    - UserFlagDiscordPartner
+    - UserFlagHypeSquadEvents
+    - UserFlagBugHunterLevel1
+    - UserFlagHouseBravery
+    - UserFlagHouseBrilliance
+    - UserFlagHouseBalance
+    - UserFlagEarlySupporter
+    - UserFlagTeamUser
+    - UserFlagSystem
+    - UserFlagBugHunterLevel2
+    - UserFlagVerifiedBot
+    - UserFlagVerifiedBotDeveloper
+    - UserFlagDiscordCertifiedModerator
   gorm.DeletedAt:
-    $ref: '#/definitions/sql.NullTime'
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
   model.ChannelElement:
     properties:
       channelId:
@@ -222,8 +296,9 @@ definitions:
         description: 频道名称
         type: string
       channelType:
+        allOf:
+        - $ref: '#/definitions/model.ChannelType'
         description: 频道类型，1：文字频道，2：语音频道，4：帖子频道，5：链接频道，6：资料频道
-        type: integer
       defaultFlag:
         description: 默认频道标识，0：否，1：是
         type: integer
@@ -234,6 +309,20 @@ definitions:
         description: 分组名称
         type: string
     type: object
+  model.ChannelType:
+    enum:
+    - 1
+    - 2
+    - 4
+    - 5
+    - 6
+    type: integer
+    x-enum-varnames:
+    - TextChannel
+    - VoiceChannel
+    - ArticleChannel
+    - LinkChannel
+    - ResChannel
   models.DiscordActivityQueryResult:
     properties:
       count:
@@ -263,7 +352,6 @@ definitions:
         type: string
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
-        type: object
       description:
         type: string
       event:
@@ -299,7 +387,6 @@ definitions:
         type: string
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
-        type: object
       description:
         type: string
       guild_id:
@@ -357,7 +444,6 @@ definitions:
         type: string
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
-        type: object
       description:
         type: string
       event:
@@ -393,7 +479,6 @@ definitions:
         type: string
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
-        type: object
       description:
         type: string
       id:
@@ -425,7 +510,7 @@ definitions:
   models.H5Config:
     properties:
       activity_id:
-        type: integer
+        type: string
       button_word_color:
         type: integer
       claim_button_color:
@@ -440,7 +525,6 @@ definitions:
         type: string
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
-        type: object
       id:
         type: integer
       link:
@@ -462,13 +546,56 @@ definitions:
     required:
     - link
     type: object
+  models.MetadataAttribute:
+    properties:
+      attribute_name:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      display_type:
+        type: string
+      id:
+        type: integer
+      nftconfigID:
+        type: integer
+      trait_type:
+        type: string
+      updated_at:
+        type: string
+      value:
+        type: string
+    type: object
+  models.NFTConfig:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      image_url:
+        type: string
+      metadata_attributes:
+        items:
+          $ref: '#/definitions/models.MetadataAttribute'
+        type: array
+      name:
+        type: string
+      poapactivityConfigID:
+        type: integer
+      probability:
+        type: number
+      updated_at:
+        type: string
+    type: object
   models.NFTContractInfo:
     properties:
       created_at:
         type: string
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
-        type: object
       id:
         type: integer
       metadata_uri:
@@ -496,6 +623,8 @@ definitions:
         type: integer
       app_id:
         type: integer
+      chain_id:
+        type: integer
       chain_type:
         type: integer
       contract_address:
@@ -508,7 +637,6 @@ definitions:
         type: string
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
-        type: object
       description:
         type: string
       end_time:
@@ -547,9 +675,13 @@ definitions:
         type: string
       activity_picture_url:
         type: string
+      activity_type:
+        type: string
       amount:
         type: integer
       app_id:
+        type: integer
+      chain_id:
         type: integer
       chain_type:
         type: integer
@@ -565,7 +697,6 @@ definitions:
         type: string
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
-        type: object
       description:
         type: string
       end_time:
@@ -574,14 +705,14 @@ definitions:
         type: integer
       max_mint_count:
         type: integer
-      metadata_uri:
-        type: string
       name:
         type: string
+      nft_configs:
+        items:
+          $ref: '#/definitions/models.NFTConfig'
+        type: array
       rainbow_user_id:
         type: integer
-      sharing_content:
-        type: string
       start_time:
         type: integer
       updated_at:
@@ -591,13 +722,12 @@ definitions:
           $ref: '#/definitions/models.WhiteListInfo'
         type: array
     required:
+    - activity_type
     - amount
     - app_id
-    - contract_id
     - description
     - end_time
     - max_mint_count
-    - metadata_uri
     - name
     - start_time
     type: object
@@ -624,7 +754,8 @@ definitions:
         type: string
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
-        type: object
+      file_url:
+        type: string
       hash:
         type: string
       id:
@@ -658,7 +789,6 @@ definitions:
         type: string
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
-        type: object
       id:
         type: integer
       poapactivityConfigID:
@@ -700,7 +830,6 @@ definitions:
         type: string
       deleted_at:
         $ref: '#/definitions/rainbowsdk.GormDeletedAt'
-        type: object
       error:
         type: string
       hash:
@@ -756,14 +885,6 @@ definitions:
     - activity_id
     - receiver
     - sharer
-    type: object
-  sql.NullTime:
-    properties:
-      time:
-        type: string
-      valid:
-        description: Valid is true if Time is not NULL
-        type: boolean
     type: object
 host: console.nftrainbow.cn
 info:
@@ -1320,6 +1441,46 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get POAP Activity detail
+      tags:
+      - POAP
+    put:
+      description: Update POAP Activity
+      operationId: UpdatePOAPActivity
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: activity_id
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: poap_activity_config
+        in: body
+        name: poap_activity_config
+        required: true
+        schema:
+          $ref: '#/definitions/models.POAPActivityConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.POAPActivityConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Update POAP Activity
       tags:
       - POAP
   /poap/activity/h5:
