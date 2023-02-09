@@ -448,7 +448,7 @@ func AddLogoAndUpload(url, name, activity string) error {
 	return nil
 }
 
-func GetMintCount(activityID, address string) (*MintCountResponse, error) {
+func GetMintCount(activityID, address string) (*int32, error) {
 	config, err := models.FindPOAPActivityConfigById(activityID)
 	if err != nil {
 		return nil, err
@@ -473,11 +473,7 @@ func GetMintCount(activityID, address string) (*MintCountResponse, error) {
 			count = remainedMinted
 		}
 	}
-	return &MintCountResponse{
-		Address:    address,
-		ActivityID: activityID,
-		Count:      count,
-	}, nil
+	return &count, nil
 }
 
 func commonCheck(config *models.POAPActivityConfig, req *POAPRequest) error {

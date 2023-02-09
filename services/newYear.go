@@ -279,20 +279,20 @@ func UpdateBySharing(req ShareRequest) error {
 	return res.Error
 }
 
-func GetSpecialMintCount(address, poapId string) (*MintCountResponse, error) {
+func GetSpecialMintCount(address, poapId string) (*int32, error) {
 	config, err := models.FindNewYearConfigById(poapId)
 	if err != nil {
 		return nil, err
 	}
-	res := int64(math.MaxInt64)
+	cur := int64(math.MaxInt64)
 
 	resp, err := CommonBalanceOfBatch(config.ContractAddress, address)
 	if err != nil {
 		return nil, err
 	}
 	for i := range resp {
-		if resp[i].Int64() < res {
-			res = resp[i].Int64()
+		if resp[i].Int64() < cur {
+			cur = resp[i].Int64()
 		}
 	}
 
@@ -301,14 +301,12 @@ func GetSpecialMintCount(address, poapId string) (*MintCountResponse, error) {
 		return nil, err
 	}
 
-	return &MintCountResponse{
-		Address:    address,
-		ActivityID: viper.GetString("newYearEvent.newYearSpecialId"),
-		Count:      int32(res) - int32(tmp),
-	}, nil
+	res := int32(cur) - int32(tmp)
+
+	return &res, nil
 }
 
-func GetCommonMintCount(address, poapId string) (*MintCountResponse, error) {
+func GetCommonMintCount(address, poapId string) (*int32, error) {
 	err := checkAndCreateNewAccount(address, poapId)
 	if err != nil {
 		return nil, err
@@ -318,15 +316,12 @@ func GetCommonMintCount(address, poapId string) (*MintCountResponse, error) {
 		return nil, err
 	}
 
-	res, err := models.FindEveryDayMintCount(address, poapId)
+	tmp, err := models.FindEveryDayMintCount(address, poapId)
 	if err != nil {
 		return nil, err
 	}
-	return &MintCountResponse{
-		Address:    address,
-		ActivityID: poapId,
-		Count:      resp.Count + res.Count,
-	}, nil
+	res := resp.Count + tmp.Count
+	return &res, nil
 }
 
 func UpdateEveryday() {
