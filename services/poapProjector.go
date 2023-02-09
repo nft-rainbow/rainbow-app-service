@@ -92,6 +92,17 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 	oldConfig.WhiteListInfos = config.WhiteListInfos
 
 	if oldConfig.NFTConfigs != nil {
+		deleteObjects := make([]string, 0)
+		for _, v := range oldConfig.NFTConfigs {
+			tmp := strings.Split(v.ImageURL, "/")
+			deleteObjects = append(deleteObjects, path.Join(viper.GetString("imagesDir.minted"), oldConfig.ActivityID, tmp[len(tmp)-1]))
+		}
+		bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
+
+		_, err = bucket.DeleteObjects(deleteObjects)
+		if err != nil {
+			return nil, err
+		}
 		for _, v := range config.NFTConfigs {
 			tmp := strings.Split(v.ImageURL, "/")
 			err = AddLogoAndUpload(v.ImageURL, tmp[len(tmp)-1], oldConfig.ActivityID)
