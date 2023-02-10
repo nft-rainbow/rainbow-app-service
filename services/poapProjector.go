@@ -214,11 +214,12 @@ func commonCheck(config *models.POAPActivityConfig, req *POAPRequest) error {
 	if req.Command != config.Command {
 		return fmt.Errorf("The command is worng")
 	}
+	if config.StartedTime != -1 && time.Now().Unix() < config.StartedTime {
+		return fmt.Errorf("The activity has not been started")
+	}
 
-	if config.StartedTime != -1 &&
-		config.EndedTime != -1 &&
-		(time.Now().Unix() < config.StartedTime || time.Now().Unix() > config.EndedTime) {
-		return fmt.Errorf("The activity has already expired or has not been started")
+	if config.EndedTime != -1 && time.Now().Unix() > config.EndedTime {
+		return fmt.Errorf("The activity has been expired")
 	}
 
 	err := checkAmount(config)
