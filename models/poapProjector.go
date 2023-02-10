@@ -19,7 +19,7 @@ type POAPActivityConfig struct {
 	EndedTime          int64           `gorm:"type:integer" json:"end_time" binding:"required"`
 	StartedTime        int64           `gorm:"type:integer" json:"start_time" binding:"required"`
 	RainbowUserId      int32           `gorm:"type:integer" json:"rainbow_user_id"`
-	MaxMintCount       uint            `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
+	MaxMintCount       int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
 	ActivityID         string          `gorm:"type:string;index" json:"activity_id"`
 	ActivityPictureURL string          `gorm:"type:string" json:"activity_picture_url"`
 	SharingContent     string          `gorm:"type:string" json:"sharing_content"`

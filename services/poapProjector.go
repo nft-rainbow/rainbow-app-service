@@ -71,6 +71,11 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
+	err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
+	if err != nil {
+		return nil, err
+	}
+
 	if len(config.WhiteListInfos) == 0 || !checkWhiteList(config.WhiteListInfos, req.UserAddress) {
 		return nil, fmt.Errorf("The address is not listed in the white list")
 	}
@@ -128,13 +133,18 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("common check", time.Now().Unix(), config.StartedTime)
 	err = commonCheck(config, req)
 	if err != nil {
 		return nil, err
 	}
 
 	err = checkLimitAmount(config, req.UserAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
 	if err != nil {
 		return nil, err
 	}

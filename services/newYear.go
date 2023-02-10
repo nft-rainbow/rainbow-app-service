@@ -82,7 +82,7 @@ func HandleSpecialNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	err = checkPersonalAmount(config, req.UserAddress)
+	err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func HandleCommonNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	err = checkPersonalAmount(config, req.UserAddress)
+	err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
 	if err != nil {
 		return nil, err
 	}
@@ -513,17 +513,17 @@ func checkMintCount(address, poapId string) error {
 	return nil
 }
 
-func checkPersonalAmount(config *models.NewYearConfig, user string) error {
-	if config.MaxMintCount == -1 {
+func checkPersonalAmount(activityId, user string, max int32) error {
+	if max == -1 {
 		return nil
 	}
 
-	count, err := models.CountPOAPResultByAddress(user, config.ActivityID)
+	count, err := models.CountPOAPResultByAddress(user, activityId)
 	if err != nil {
 		return err
 	}
 
-	if int32(count) >= config.MaxMintCount {
+	if int32(count) >= max {
 		return fmt.Errorf("The mint amount has exceeded the personal limit")
 	}
 	return nil
