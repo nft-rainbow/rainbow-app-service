@@ -83,7 +83,7 @@ func HandleSpecialNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	err = checkPersonalAmount(config, req.UserAddress)
+	err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func HandleCommonNFTMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	err = checkPersonalAmount(config, req.UserAddress)
+	err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
 	if err != nil {
 		return nil, err
 	}
@@ -446,14 +446,14 @@ func newYearCommonCheck(startTime, endTime int64, poapId string, amount int32) e
 		return fmt.Errorf("The activity has been expired")
 	}
 
-	err := checkNewYearAmount(poapId, amount)
+	err := checkAmount(poapId, amount)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func checkNewYearAmount(poapId string, amount int32) error {
+func checkAmount(poapId string, amount int32) error {
 	if amount != -1 {
 		resp, err := models.CountPOAPResult(poapId)
 		if err != nil {
@@ -486,17 +486,17 @@ func checkMintCount(address, poapId string) error {
 	return nil
 }
 
-func checkPersonalAmount(config *models.NewYearConfig, user string) error {
-	if config.MaxMintCount == -1 {
+func checkPersonalAmount(activityId, user string, max int32) error {
+	if max == -1 {
 		return nil
 	}
 
-	count, err := models.CountPOAPResultByAddress(user, config.ActivityID)
+	count, err := models.CountPOAPResultByAddress(user, activityId)
 	if err != nil {
 		return err
 	}
 
-	if int32(count) >= config.MaxMintCount {
+	if int32(count) >= max {
 		return fmt.Errorf("The mint amount has exceeded the personal limit")
 	}
 	return nil

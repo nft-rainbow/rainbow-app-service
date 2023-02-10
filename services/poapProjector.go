@@ -213,7 +213,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	err = checkLimitAmount(config, req.UserAddress)
+	err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
 	if err != nil {
 		return nil, err
 	}
@@ -499,7 +499,7 @@ func commonCheck(config *models.POAPActivityConfig, req *POAPRequest) error {
 		return fmt.Errorf("The activity has been expired")
 	}
 
-	err := checkAmount(config)
+	err := checkAmount(config.ActivityID, config.Amount)
 	if err != nil {
 		return err
 	}
@@ -513,34 +513,6 @@ func checkWhiteList(whiteList []models.WhiteListInfo, address string) bool {
 		}
 	}
 	return false
-}
-
-func checkAmount(config *models.POAPActivityConfig) error {
-	if config.Amount != -1 {
-		resp, err := models.CountPOAPResult(config.ActivityID)
-		if err != nil {
-			return err
-		}
-		if int32(resp) >= config.Amount {
-			return fmt.Errorf("The mint amount has exceeded the limit")
-		}
-	}
-	return nil
-}
-
-func checkLimitAmount(config *models.POAPActivityConfig, address string) error {
-	resp, err := models.CountPOAPResultByAddress(address, config.ActivityID)
-	if err != nil {
-		return err
-	}
-
-	if config.MaxMintCount == -1 {
-		return nil
-	}
-	if resp >= int64(config.MaxMintCount) {
-		return fmt.Errorf("The mint amount has exceeded the mint limit")
-	}
-	return nil
 }
 
 func checkWhiteListLimit(config *models.POAPActivityConfig, address string) error {
