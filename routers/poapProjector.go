@@ -112,17 +112,25 @@ func getPOAPActivity(c *gin.Context) {
 // @Param       Authorization header   string true "Bearer JWT"
 // @Param       page          query    integer false "page"
 // @Param       limit         query    integer false "limit"
+// @Param       contract_address          query    string false "contract_address"
+// @Param       activity_id         query    string false "activity_id"
+// @Param       name         query    string false "name"
 // @Success     200           {object} models.POAPActivityQueryResult
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity [get]
-func getPOAPActivityList(c *gin.Context) {
+func getPOAPActivityListByParams(c *gin.Context) {
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
 		return
 	}
-	mints, err := models.FindAndCountPOAPActivity(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
+
+	contract := c.Query("contract_address")
+	activity := c.Query("activity_id")
+	name := c.Query("name")
+
+	mints, err := models.FindAndCountPOAPActivity(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit, name, activity, contract)
 	ginutils.RenderResp(c, mints, err)
 }
 

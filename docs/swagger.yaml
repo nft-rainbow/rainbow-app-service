@@ -1030,8 +1030,8 @@ paths:
       - CustomMint
   /custom/discord/projector/{id}:
     get:
-      description: Get DoDo custom project detail info
-      operationId: GetDoDoCustomProjectDetail
+      description: Get Discord custom project detail info
+      operationId: GetDiscordCustomProjectDetail
       parameters:
       - description: Bearer JWT
         in: header
@@ -1049,7 +1049,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.DoDoCustomProjectConfig'
+            $ref: '#/definitions/models.DiscordCustomProjectConfig'
         "400":
           description: Invalid request
           schema:
@@ -1060,7 +1060,7 @@ paths:
             $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
       security:
       - ApiKeyAuth: []
-      summary: Get DoDo custom project detail
+      summary: Get Discord custom project detail
       tags:
       - CustomMint
   /custom/discord/projector/activity:
@@ -1267,6 +1267,41 @@ paths:
       summary: Set DoDo custom project
       tags:
       - CustomMint
+  /custom/dodo/projector/{id}:
+    get:
+      description: Get DoDo custom project detail info
+      operationId: GetDoDoCustomProjectDetail
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DoDoCustomProjectConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get DoDo custom project detail
+      tags:
+      - CustomMint
   /custom/dodo/projector/activity:
     get:
       description: Get DoDo custom Activity list
@@ -1358,6 +1393,18 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: contract_address
+        in: query
+        name: contract_address
+        type: string
+      - description: activity_id
+        in: query
+        name: activity_id
+        type: string
+      - description: name
+        in: query
+        name: name
+        type: string
       produces:
       - application/json
       responses:

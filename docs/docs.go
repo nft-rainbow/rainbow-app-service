@@ -299,15 +299,15 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get DoDo custom project detail info",
+                "description": "Get Discord custom project detail info",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "CustomMint"
                 ],
-                "summary": "Get DoDo custom project detail",
-                "operationId": "GetDoDoCustomProjectDetail",
+                "summary": "Get Discord custom project detail",
+                "operationId": "GetDiscordCustomProjectDetail",
                 "parameters": [
                     {
                         "type": "string",
@@ -328,7 +328,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.DoDoCustomProjectConfig"
+                            "$ref": "#/definitions/models.DiscordCustomProjectConfig"
                         }
                     },
                     "400": {
@@ -663,6 +663,60 @@ const docTemplate = `{
                 }
             }
         },
+        "/custom/dodo/projector/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get DoDo custom project detail info",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CustomMint"
+                ],
+                "summary": "Get DoDo custom project detail",
+                "operationId": "GetDoDoCustomProjectDetail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DoDoCustomProjectConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/custom/dodo/{island_id}/channels": {
             "get": {
                 "security": [
@@ -741,6 +795,24 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "limit",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "contract_address",
+                        "name": "contract_address",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "activity_id",
+                        "name": "activity_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
                         "in": "query"
                     }
                 ],

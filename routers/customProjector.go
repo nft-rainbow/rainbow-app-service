@@ -202,7 +202,7 @@ func getDoDoCustomActivity(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/projector/ [get]
-func getDiscordCustomProjectList(c *gin.Context){
+func getDiscordCustomProjectList(c *gin.Context) {
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
@@ -225,7 +225,7 @@ func getDiscordCustomProjectList(c *gin.Context){
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/projector/ [get]
-func getDoDoCustomProjectList(c *gin.Context){
+func getDoDoCustomProjectList(c *gin.Context) {
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
@@ -247,7 +247,7 @@ func getDoDoCustomProjectList(c *gin.Context){
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/projector/{id} [get]
-func getDiscordCustomProject(c *gin.Context){
+func getDiscordCustomProject(c *gin.Context) {
 	ProjectorId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
@@ -268,8 +268,8 @@ func getDiscordCustomProject(c *gin.Context){
 // @Success     200           {object} models.DoDoCustomProjectConfig
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /custom/discord/projector/{id} [get]
-func getDoDoCustomProject(c *gin.Context){
+// @Router      /custom/dodo/projector/{id} [get]
+func getDoDoCustomProject(c *gin.Context) {
 	ProjectorId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)

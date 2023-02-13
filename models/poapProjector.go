@@ -112,10 +112,13 @@ func FindPOAPActivityConfigById(id string) (*POAPActivityConfig, error) {
 	return &item, err
 }
 
-func FindAndCountPOAPActivity(id uint, offset int, limit int) (*POAPActivityQueryResult, error) {
+func FindAndCountPOAPActivity(id uint, offset int, limit int, name, activity, contract string) (*POAPActivityQueryResult, error) {
 	var items []*POAPActivityConfig
 	cond := &POAPActivityConfig{}
 	cond.RainbowUserId = int32(id)
+	cond.Name = name
+	cond.ActivityID = activity
+	cond.ContractAddress = contract
 
 	var count int64
 	if err := db.Model(&POAPActivityConfig{}).Where(cond).Count(&count).Error; err != nil {

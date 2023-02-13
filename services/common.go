@@ -347,6 +347,11 @@ func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 	logrus.Info("start task for syncing nft mint status")
 	tokenId, hash, status, _ := getTokenInfo(res.TxID, "Bearer "+token)
 
+	if status == 2 {
+		models.GetDB().Delete(&res)
+		return
+	}
+
 	res.TokenID = tokenId
 	res.Hash = hash
 	res.Status = status
