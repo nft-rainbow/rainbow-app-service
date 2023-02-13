@@ -62,7 +62,6 @@ func SetupRoutes(router *gin.Engine) {
 		poap.PUT("/activity/:activity_id", updatePOAPConfig)
 		poap.POST("/activity/h5", setPOAPH5Config)
 		poap.GET("/activity", getPOAPActivityList)
-		poap.GET("/activity/params", getPOAPActivityListByParams)
 		poap.POST("/config", setNewYearConfig)
 	}
 }

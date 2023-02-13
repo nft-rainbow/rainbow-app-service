@@ -119,7 +119,7 @@ func getPOAPActivity(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity [get]
-func getPOAPActivityListByParams(c *gin.Context) {
+func getPOAPActivityList(c *gin.Context) {
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
