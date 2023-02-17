@@ -11,6 +11,7 @@ type POAPActivityConfig struct {
 	Name               string          `gorm:"type:string" json:"name" binding:"required"`
 	Description        string          `gorm:"type:string" json:"description" binding:"required"`
 	AppId              int32           `gorm:"index" json:"app_id" binding:"required"`
+	AppName            string          `gorm:"string" json:"app_name" binding:"required"`
 	ContractType       int32           `gorm:"type:int" json:"contract_type"`
 	ContractAddress    string          `gorm:"type:string" json:"contract_address"`
 	ChainId            int32           `gorm:"type:int" json:"chain_id"`
@@ -155,29 +156,12 @@ func CountPOAPResult(poapId string) (int64, error) {
 	cond := &POAPResult{}
 	cond.ActivityID = poapId
 
-	var count int64
-
-	countCache, ok := Cache[poapId]
-	if !ok {
-		countCache = &POAPResultCountCache{}
-		Cache[poapId] = &POAPResultCountCache{}
-	}
-	countCache.RLock()
-
-	if countCache.Count == 0 {
-		countCache.RUnlock()
-		countCache.Lock()
-		if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
-			return 0, err
-		}
-		Cache[poapId].Count = count
-		countCache.Unlock()
-	} else {
-		countCache.RUnlock()
-		count = countCache.Count
+	cache, err := InitCache(cond)
+	if err != nil {
+		return 0, err
 	}
 
-	return count, nil
+	return cache.Count, nil
 }
 
 func FindAndCountPOAPResultByAddress(offset int, limit int, address, poapId string) (*POAPResultQueryResult, error) {
@@ -238,4 +222,27 @@ func FindAndCountUnhandledPOAPResult(poapId string, offset, limit int, userAddre
 		return nil, err
 	}
 	return &POAPResultQueryResult{count, items}, nil
+}
+
+func InitCache(cond *POAPResult) (*POAPResultCountCache, error) {
+	var count int64
+	countCache, ok := Cache[cond.ActivityID]
+	if !ok {
+		countCache = &POAPResultCountCache{}
+		Cache[cond.ActivityID] = &POAPResultCountCache{}
+	}
+
+	if countCache.Count == 0 {
+		countCache.Lock()
+		if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
+			return nil, err
+		}
+		Cache[cond.ActivityID].Count = count
+		countCache.Unlock()
+	} else {
+		countCache.RLock()
+		count = countCache.Count
+		countCache.RUnlock()
+	}
+	return countCache, nil
 }

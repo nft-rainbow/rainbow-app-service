@@ -13,6 +13,7 @@ import (
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
 	"image"
 	"image/draw"
 	_ "image/gif"
@@ -343,7 +344,7 @@ func newClient() *openapiclient.APIClient {
 	return apiClient
 }
 
-func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
+func SyncNFTMintTaskStatus(token, configName string, res *models.POAPResult) {
 	logrus.Info("start task for syncing nft mint status")
 	tokenId, hash, status, _ := getTokenInfo(res.TxID, "Bearer "+token)
 
@@ -355,6 +356,15 @@ func SyncNFTMintTaskStatus(token string, res *models.POAPResult) {
 	res.TokenID = tokenId
 	res.Hash = hash
 	res.Status = status
+
+	group := new(errgroup.Group)
+	group.Go(func() error {
+		err := generateResultPoster(res, configName)
+		if err != nil {
+			fmt.Printf("Failed to generate poap result poster in activity %v for %v:%v \n", res.ActivityID, res.Address, err.Error())
+		}
+		return err
+	})
 
 	models.GetDB().Save(&res)
 }

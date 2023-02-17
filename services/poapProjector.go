@@ -89,6 +89,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 	}
 
 	oldConfig.NFTConfigs = config.NFTConfigs
+	oldConfig.AppName = config.AppName
 	oldConfig.ActivityType = config.ActivityType
 	oldConfig.Command = config.Command
 	oldConfig.StartedTime = config.StartedTime
@@ -140,7 +141,7 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	if config.WhiteListInfos == nil && len(config.WhiteListInfos) == 0 {
+	if len(config.WhiteListInfos) == 0 {
 		return nil, fmt.Errorf("The activity has not opened the white list")
 	}
 
@@ -154,7 +155,7 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	if len(config.WhiteListInfos) == 0 || !checkWhiteList(config.WhiteListInfos, req.UserAddress) {
+	if !checkWhiteList(config.WhiteListInfos, req.UserAddress) {
 		return nil, fmt.Errorf("The address is not listed in the white list")
 	}
 
@@ -209,21 +210,16 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	res := models.GetDB().Create(&item)
-	cache := models.Cache[config.ActivityID]
+
+	cache, err := models.InitCache(item)
+	if err != nil {
+		return nil, err
+	}
 	cache.Lock()
 	cache.Count += 1
 	cache.Unlock()
 
-	group := new(errgroup.Group)
-	group.Go(func() error {
-		err := generateResultPoster(item, config.Name)
-		if err != nil {
-			fmt.Printf("Failed to generate poap result poster in activity %v for %v:%v \n", config.ActivityID, req.UserAddress, err.Error())
-		}
-		return err
-	})
-
-	go SyncNFTMintTaskStatus(token, item)
+	go SyncNFTMintTaskStatus(token, config.Name, item)
 
 	return item, res.Error
 }
@@ -233,7 +229,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	if config.WhiteListInfos == nil && len(config.WhiteListInfos) == 0 {
+	if len(config.WhiteListInfos) != 0 {
 		return nil, fmt.Errorf("The activity has opened the white list")
 	}
 
@@ -295,7 +291,10 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	res := models.GetDB().Create(&item)
-	cache := models.Cache[config.ActivityID]
+	cache, err := models.InitCache(item)
+	if err != nil {
+		return nil, err
+	}
 	cache.Lock()
 	cache.Count += 1
 	cache.Unlock()
@@ -309,7 +308,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		return err
 	})
 
-	go SyncNFTMintTaskStatus(token, item)
+	go SyncNFTMintTaskStatus(token, config.Name, item)
 
 	return item, res.Error
 }
@@ -530,7 +529,7 @@ func GetMintCount(activityID, address string) (*int32, error) {
 
 func commonCheck(config *models.POAPActivityConfig, req *POAPRequest) error {
 	if req.Command != config.Command {
-		return fmt.Errorf("The command is worng")
+		return fmt.Errorf("The command is wrong")
 	}
 	if config.StartedTime != -1 && time.Now().Unix() < config.StartedTime {
 		return fmt.Errorf("The activity has not been started")
@@ -578,17 +577,18 @@ func createMetadata(config *models.POAPActivityConfig, token string, index int) 
 			TraitType:     &v.TraitType,
 			Value:         &v.Value,
 		})
-		now := time.Now().Format("2006-01-02 15:04:05 MST Mon")
-		name := "mint_time"
-		trait := "time"
-		display := "date"
-		attributes = append(attributes, openapiclient.ModelsExposedMetadataAttribute{
-			AttributeName: &name,
-			Value:         &now,
-			TraitType:     &trait,
-			DisplayType:   &display,
-		})
 	}
+
+	now := time.Now().Format("2006-01-02 15:04:05 MST Mon")
+	name := "mint_time"
+	trait := "time"
+	display := "date"
+	attributes = append(attributes, openapiclient.ModelsExposedMetadataAttribute{
+		AttributeName: &name,
+		Value:         &now,
+		TraitType:     &trait,
+		DisplayType:   &display,
+	})
 
 	resp, err := sendCreateMetadataRequest("Bearer "+token, openapiclient.ServicesMetadataDto{
 		Description: config.Description,
