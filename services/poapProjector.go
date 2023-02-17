@@ -2,6 +2,8 @@ package services
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
@@ -14,6 +16,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"image"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"path"
@@ -156,6 +159,10 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	err = checkWhiteListLimit(config, req.UserAddress)
+	if err != nil {
+		return nil, err
+	}
+	err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
 	if err != nil {
 		return nil, err
 	}
@@ -594,4 +601,65 @@ func createMetadata(config *models.POAPActivityConfig, token string, index int) 
 	}
 
 	return resp.Uri, nil
+}
+
+func getPOAPId(address string, name string) (string, error) {
+	hash := sha256.New()
+
+	_, err := hash.Write([]byte(address + name + strconv.FormatInt(time.Now().UnixNano(), 10)))
+	if err != nil {
+		return "", err
+	}
+	sum := hash.Sum(nil)
+
+	newYearId := hex.EncodeToString(sum)
+	return newYearId[:8], nil
+}
+
+func checkAmount(poapId string, amount int32) error {
+	if amount != -1 {
+		resp, err := models.CountPOAPResult(poapId)
+		if err != nil {
+			return err
+		}
+		if int32(resp) >= amount {
+			return fmt.Errorf("The mint amount has exceeded the limit")
+		}
+	}
+	return nil
+}
+
+func weightedRandomIndex(weights []float32) int {
+	if len(weights) == 1 {
+		return 0
+	}
+	var sum float32 = 0.0
+	for _, w := range weights {
+		sum += w
+	}
+	r := rand.Float32() * sum
+	var t float32 = 0.0
+	for i, w := range weights {
+		t += w
+		if t > r {
+			return i
+		}
+	}
+	return len(weights) - 1
+}
+
+func checkPersonalAmount(activityId, user string, max int32) error {
+	if max == -1 {
+		return nil
+	}
+
+	count, err := models.CountPOAPResultByAddress(user, activityId)
+	if err != nil {
+		return err
+	}
+
+	if int32(count) >= max {
+		return fmt.Errorf("The mint amount has exceeded the personal limit")
+	}
+	return nil
 }

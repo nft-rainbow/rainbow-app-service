@@ -259,24 +259,3 @@ func getMintCount(c *gin.Context) {
 	resp, err = services.GetMintCount(poapId, address)
 	ginutils.RenderResp(c, resp, err)
 }
-
-// @Tags        POAP
-// @ID          Update By Sharing
-// @Summary     Update By Sharing
-// @Description Update By Sharing
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       share_request body  services.ShareRequest true "share_request"
-// @Success     200           {object} string "success"
-// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/sharer [post]
-func updateBySharing(c *gin.Context) {
-	var req services.ShareRequest
-	if err := c.ShouldBind(&req); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	err := services.UpdateBySharing(req)
-	ginutils.RenderResp(c, "success", err)
-}
