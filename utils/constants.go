@@ -23,6 +23,12 @@ const (
 	CONTRACT_TYPE_ERC1155
 )
 
+const (
+	BLIND_BOX = iota + 1
+	SINGLE
+	POAP
+)
+
 // contract type names
 const ERC721 = "erc721"
 const ERC1155 = "erc1155"

@@ -11,6 +11,7 @@ import (
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/skip2/go-qrcode"
 	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
 	"image"
 	"io/ioutil"
 	"net/http"
@@ -30,7 +31,7 @@ type POAPRequest struct {
 func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POAPActivityConfig, error) {
 	config.RainbowUserId = int32(id)
 
-	poapId, err := getPoAPId(config.ContractAddress, config.Name)
+	poapId, err := getPOAPId(config.ContractAddress, config.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -41,10 +42,14 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POA
 	if res.Error != nil {
 		return nil, res.Error
 	}
-	err = generateActivityPoster(config)
-	if err != nil {
-		return nil, err
-	}
+	group := new(errgroup.Group)
+	group.Go(func() error {
+		err := generateActivityPoster(config)
+		if err != nil {
+			fmt.Printf("Failed to gen poster for activity %v:%v \n", config.ActivityID, err.Error())
+		}
+		return err
+	})
 
 	return config, nil
 }
@@ -98,17 +103,26 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 			deleteObjects = append(deleteObjects, path.Join(viper.GetString("imagesDir.minted"), oldConfig.ActivityID, tmp[len(tmp)-1]))
 		}
 		bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
+		group := new(errgroup.Group)
 
-		_, err = bucket.DeleteObjects(deleteObjects)
-		if err != nil {
-			return nil, err
-		}
+		group.Go(func() error {
+			_, err = bucket.DeleteObjects(deleteObjects)
+			if err != nil {
+				fmt.Printf("Failed to delete old NFTConfigs for %v: %v \n", config.ActivityID, err.Error())
+			}
+			return err
+		})
+
 		for _, v := range config.NFTConfigs {
 			tmp := strings.Split(v.ImageURL, "/")
-			err = AddLogoAndUpload(v.ImageURL, tmp[len(tmp)-1], oldConfig.ActivityID)
-			if err != nil {
-				return nil, err
-			}
+			group.Go(func() error {
+				err = AddLogoAndUpload(v.ImageURL, tmp[len(tmp)-1], oldConfig.ActivityID)
+				if err != nil {
+					fmt.Printf("Failed to add logo and upload new NFTConfigs for %v: %v \n", config.ActivityID, err.Error())
+				}
+				return err
+			})
+
 		}
 	}
 
@@ -151,12 +165,12 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	var metadataURI *string
-	if config.ActivityType == "single" {
+	if config.ActivityType == utils.SINGLE {
 		metadataURI, err = createMetadata(config, token, 0)
 		if err != nil {
 			return nil, err
 		}
-	} else if config.ActivityType == "blind_box" {
+	} else if config.ActivityType == utils.BLIND_BOX {
 		var index int
 		probabilities := make([]float32, 0)
 		for i := 0; i < len(config.NFTConfigs); i++ {
@@ -188,6 +202,19 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	res := models.GetDB().Create(&item)
+	cache := models.Cache[config.ActivityID]
+	cache.Lock()
+	cache.Count += 1
+	cache.Unlock()
+
+	group := new(errgroup.Group)
+	group.Go(func() error {
+		err := generateResultPoster(item, config.Name)
+		if err != nil {
+			fmt.Printf("Failed to generate poap result poster in activity %v for %v:%v \n", config.ActivityID, req.UserAddress, err.Error())
+		}
+		return err
+	})
 
 	go SyncNFTMintTaskStatus(token, item)
 
@@ -217,7 +244,6 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	chain, err := utils.ChainById(uint(config.ChainId))
 	if err != nil {
 		return nil, err
@@ -225,12 +251,12 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 
 	var metadataURI *string
 	var index int
-	if config.ActivityType == "single" {
+	if config.ActivityType == utils.SINGLE {
 		metadataURI, err = createMetadata(config, token, 0)
 		if err != nil {
 			return nil, err
 		}
-	} else if config.ActivityType == "blind_box" {
+	} else if config.ActivityType == utils.BLIND_BOX {
 		probabilities := make([]float32, 0)
 		for i := 0; i < len(config.NFTConfigs); i++ {
 			probabilities = append(probabilities, config.NFTConfigs[i].Probability)
@@ -262,11 +288,19 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	res := models.GetDB().Create(&item)
+	cache := models.Cache[config.ActivityID]
+	cache.Lock()
+	cache.Count += 1
+	cache.Unlock()
 
-	err = generateResultPoster(item, config.Name)
-	if err != nil {
-		return nil, err
-	}
+	group := new(errgroup.Group)
+	group.Go(func() error {
+		err := generateResultPoster(item, config.Name)
+		if err != nil {
+			fmt.Printf("Failed to generate poap result poster in activity %v for %v:%v \n", config.ActivityID, req.UserAddress, err.Error())
+		}
+		return err
+	})
 
 	go SyncNFTMintTaskStatus(token, item)
 
@@ -274,7 +308,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 }
 
 func generateActivityPoster(config *models.POAPActivityConfig) error {
-	templateImg, err := gg.LoadImage("./assets/images/Activity Poster.png")
+	templateImg, err := gg.LoadImage("./assets/images/activityPoster.png")
 
 	dc := gg.NewContext(templateImg.Bounds().Dx(), templateImg.Bounds().Dy())
 	dc.DrawImage(templateImg, 0, 0)
@@ -301,14 +335,14 @@ func generateActivityPoster(config *models.POAPActivityConfig) error {
 	dc.DrawImage(qrImg, 1112, 2212)
 
 	// 增加文字
-	err = dc.LoadFontFace("./assets/fonts/PingFang SC Bold.ttf", 88)
+	err = dc.LoadFontFace("./assets/fonts/PingFang.ttf", 88)
 	if err != nil {
 		panic(err)
 	}
 	dc.SetHexColor("#05001F")
 	dc.DrawStringAnchored(config.Name, 120, 1580, 0, 0)
 
-	err = dc.LoadFontFace("./assets/fonts/PingFang SC Bold.ttf", 64)
+	err = dc.LoadFontFace("./assets/fonts/PingFang.ttf", 64)
 	if err != nil {
 		panic(err)
 	}
@@ -354,7 +388,7 @@ func generateActivityPoster(config *models.POAPActivityConfig) error {
 }
 
 func generateResultPoster(result *models.POAPResult, name string) error {
-	templateImg, err := gg.LoadImage("./assets/images/Result Poster.png")
+	templateImg, err := gg.LoadImage("./assets/images/resultPoster.png")
 
 	dc := gg.NewContext(templateImg.Bounds().Dx(), templateImg.Bounds().Dy())
 	dc.DrawImage(templateImg, 0, 0)
@@ -381,14 +415,14 @@ func generateResultPoster(result *models.POAPResult, name string) error {
 	dc.DrawImage(qrImg, 1112, 2212)
 
 	// 增加文字
-	err = dc.LoadFontFace("./assets/fonts/PingFang SC Bold.ttf", 88)
+	err = dc.LoadFontFace("./assets/fonts/PingFang.ttf", 88)
 	if err != nil {
 		return err
 	}
 	dc.SetHexColor("#05001F")
 	dc.DrawStringAnchored(name, 120, 1708, 0, 0)
 
-	err = dc.LoadFontFace("./assets/fonts/PingFang SC Bold.ttf", 64)
+	err = dc.LoadFontFace("./assets/fonts/PingFang.ttf", 64)
 	if err != nil {
 		return err
 	}

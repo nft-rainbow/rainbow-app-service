@@ -16,12 +16,6 @@ customMint:
   mintRespPrefix: https://testnet.confluxscan.io/nft/
 proxy: http://0.0.0.0:7890
 advertise: Powered by NFTRainbow
-newYearEvent:
-  newYearCommonId: c857bbe8
-  newYearSpecialId: 0c3ba1c4
-  commonMintLimit: 5
-  everyDaySharerLimit: 3
-  ipLimitEveryday: 100
 rainbowDashboardApi: https://dev.nftrainbow.xyz
 rainbowOpenApi: https://dev.nftrainbow.xyz
 env: dev
@@ -29,7 +23,6 @@ testMinuteDuration: 50
 rpcs:
   mainnet: https://main.confluxrpc.com
   testnet: https://test.confluxrpc.com
-startTime: 1673937000
 imagesDir:
   minted: service/images/minted
   nonMinted: service/images/nonMinted
@@ -43,3 +36,4 @@ oss:
   bucketName: nft-
 url:
   activity: https://apps.nftrainbow.cn/
+ipLimitEveryday: 100

@@ -9,7 +9,6 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
-	"github.com/spf13/viper"
 )
 
 // @Tags        POAP
@@ -61,15 +60,7 @@ func poapMintByH5(c *gin.Context) {
 		return
 	}
 
-	var resp *models.POAPResult
-	var err error
-	if poapRequest.ActivityID == viper.GetString("newYearEvent.newYearCommonId") {
-		resp, err = services.HandleCommonNFTMint(poapRequest)
-	} else if poapRequest.ActivityID == viper.GetString("newYearEvent.newYearSpecialId") {
-		resp, err = services.HandleSpecialNFTMint(poapRequest)
-	} else {
-		resp, err = services.HandlePOAPH5Mint(poapRequest)
-	}
+	resp, err := services.HandlePOAPH5Mint(poapRequest)
 	ginutils.RenderResp(c, resp, err)
 }
 
@@ -86,21 +77,8 @@ func poapMintByH5(c *gin.Context) {
 // @Router      /poap/activity/{activity_id} [get]
 func getPOAPActivity(c *gin.Context) {
 	poapId := c.Param("activity_id")
-	if poapId == "" {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	if poapId == viper.GetString("newYearEvent.newYearCommonId") || poapId == viper.GetString("newYearEvent.newYearSpecialId") {
-		resp, err := models.FindNewYearConfigById(poapId)
-		if err != nil {
-			ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
-			return
-		}
-		ginutils.RenderResp(c, resp, err)
-	} else {
-		item, err := models.FindPOAPActivityConfigById(poapId)
-		ginutils.RenderResp(c, item, err)
-	}
+	item, err := models.FindPOAPActivityConfigById(poapId)
+	ginutils.RenderResp(c, item, err)
 }
 
 // @Tags        POAP
@@ -258,4 +236,47 @@ func getPOAPAResult(c *gin.Context) {
 	}
 	resp, err := models.FindPOAPResultById(poapId, id)
 	ginutils.RenderResp(c, resp, err)
+}
+
+// @Tags        POAP
+// @ID          GetMintCount
+// @Summary     Get Common Mint Count
+// @Description Get Common Mint Count
+// @security    ApiKeyAuth
+// @Produce     json
+// @Param       activity_id   path     string true "activity_id"
+// @Param       address       path     string true "address"
+// @Success     200           {object} int
+// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/count/{address}/{activity_id} [get]
+func getMintCount(c *gin.Context) {
+	var err error
+	address := c.Param("address")
+	poapId := c.Param("activity_id")
+
+	var resp *int32
+	resp, err = services.GetMintCount(poapId, address)
+	ginutils.RenderResp(c, resp, err)
+}
+
+// @Tags        POAP
+// @ID          Update By Sharing
+// @Summary     Update By Sharing
+// @Description Update By Sharing
+// @security    ApiKeyAuth
+// @Produce     json
+// @Param       share_request body  services.ShareRequest true "share_request"
+// @Success     200           {object} string "success"
+// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/sharer [post]
+func updateBySharing(c *gin.Context) {
+	var req services.ShareRequest
+	if err := c.ShouldBind(&req); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+	err := services.UpdateBySharing(req)
+	ginutils.RenderResp(c, "success", err)
 }

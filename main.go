@@ -120,6 +120,6 @@ func main() {
 	models.ConnectDB()
 	//go initDoDoBot()
 	//go initDiscordBot()
-	go services.UpdateEveryday()
+	//go services.UpdateEveryday()
 	startGin()
 }

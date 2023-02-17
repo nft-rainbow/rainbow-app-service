@@ -54,7 +54,6 @@ func SetupRoutes(router *gin.Engine) {
 	poap.GET("/activity/result/:activity_id", getPOAPAResultList)
 	poap.GET("/activity/result/:activity_id/:id", getPOAPAResult)
 	poap.GET("/count/:address/:activity_id", getMintCount)
-	poap.POST("/sharer", updateBySharing)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		poap.POST("/csv", poapMintByCSV)
@@ -62,7 +61,6 @@ func SetupRoutes(router *gin.Engine) {
 		poap.PUT("/activity/:activity_id", updatePOAPConfig)
 		poap.POST("/activity/h5", setPOAPH5Config)
 		poap.GET("/activity", getPOAPActivityList)
-		poap.POST("/config", setNewYearConfig)
 	}
 }
 

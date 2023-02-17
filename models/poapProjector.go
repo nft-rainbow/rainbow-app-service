@@ -15,7 +15,7 @@ type POAPActivityConfig struct {
 	ContractAddress    string          `gorm:"type:string" json:"contract_address"`
 	ChainId            int32           `gorm:"type:int" json:"chain_id"`
 	ChainType          int32           `gorm:"type:int" json:"chain_type"`
-	ActivityType       string          `gorm:"type:string" json:"activity_type" binding:"required" oneof:"blind_box single poap"`
+	ActivityType       uint            `gorm:"type:uint" json:"activity_type" binding:"required"`
 	Command            string          `gorm:"type:string" json:"command"`
 	EndedTime          int64           `gorm:"type:integer" json:"end_time" binding:"required"`
 	StartedTime        int64           `gorm:"type:integer" json:"start_time" binding:"required"`
@@ -31,16 +31,16 @@ type NFTConfig struct {
 	BaseModel
 	ImageURL             string              `gorm:"type:string" json:"image_url"`
 	Name                 string              `gorm:"type:string" json:"name"`
-	Probability          float32             `gorm:"type:varchar(256)" json:"probability"`
+	Probability          float32             `gorm:"type:float" json:"probability"`
 	MetadataAttributes   []MetadataAttribute `json:"metadata_attributes"`
 	POAPActivityConfigID uint
 }
 
 type MetadataAttribute struct {
 	BaseModel
-	Name        string `gorm:"type:varchar(256)"  json:"attribute_name"`
+	Name        string `gorm:"type:varchar(256)"  json:"attribute_name,omitempty"`
 	TraitType   string `gorm:"type:varchar(256)"  json:"trait_type"`
-	DisplayType string `gorm:"type:varchar(256)"  json:"display_type"`
+	DisplayType string `gorm:"type:varchar(256)"  json:"display_type,omitempty"`
 	Value       string `gorm:"type:varchar(256)"  json:"value"`
 	NFTConfigID uint
 }
