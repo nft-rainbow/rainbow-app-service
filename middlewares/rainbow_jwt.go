@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"strings"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 
@@ -232,6 +233,13 @@ func GenPOAPOpenJWTByRainbowUserId(activity models.POAPActivityConfig) (string, 
 	return tokenString, nil
 }
 
+func PrefixToken(token string) string {
+	if strings.HasPrefix(token, "Bearer ") {
+		return token
+	}
+	return "Bearer " + token
+}
+
 func GenOpenJWTByRainbowUserId(rainbowUserId, appId int32) (string, error) {
 	kycType, err := getKycType(rainbowUserId)
 	if err != nil {
@@ -273,7 +281,7 @@ func queryKycType(tokenString string) (float64, error) {
 		panic(err)
 	}
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+tokenString)
+	req.Header.Add("Authorization", PrefixToken(tokenString))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return 0, err

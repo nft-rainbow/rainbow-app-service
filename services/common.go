@@ -122,7 +122,7 @@ func GetDoDoIslandInfo(islandId string) (st *dodoModel.GetIslandInfoRsp, err err
 }
 
 func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
-	tokenId, hash, status, err := getTokenInfo(id, "Bearer "+token)
+	tokenId, hash, status, err := getTokenInfo(id, middlewares.PrefixToken(token))
 	if err != nil {
 		return nil, err
 	}
@@ -360,7 +360,7 @@ func SyncPOAPResultStatus() {
 			if err != nil {
 				fmt.Printf("Failed to generate open JWT for %v:%v \n", v.ConfigID, err.Error())
 			}
-			tokenId, hash, status, _ := getTokenInfo(v.TxID, "Bearer "+token)
+			tokenId, hash, status, _ := getTokenInfo(v.TxID, middlewares.PrefixToken(token))
 			if status == models.STATUS_FAIL {
 				models.GetDB().Delete(&v)
 				continue
