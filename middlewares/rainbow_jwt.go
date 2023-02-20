@@ -195,20 +195,15 @@ func GenDoDoOpenJWTByRainbowUserId(id uint) (string, error) {
 	return tokenString, nil
 }
 
-func GeneratePOAPOpenJWT(name string, contractId int32) (string, error) {
-	activity, err := models.FindPOAPActivityConfig(name, contractId)
-	if err != nil {
-		return "", err
-	}
-
-	kycType, err := getKycType(activity.RainbowUserId)
+func GeneratePOAPOpenJWT(userId, appId int32) (string, error) {
+	kycType, err := getKycType(userId)
 	if err != nil {
 		return "", err
 	}
 	data := &App{
-		Id:        uint(activity.AppId),
+		Id:        uint(appId),
 		KycType:   kycType,
-		AppUserId: uint(activity.RainbowUserId),
+		AppUserId: uint(userId),
 	}
 
 	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)

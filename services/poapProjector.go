@@ -145,7 +145,7 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, fmt.Errorf("The activity has not opened the white list")
 	}
 
-	token, err := middlewares.GeneratePOAPOpenJWT(config.Name, config.ContractID)
+	token, err := middlewares.GeneratePOAPOpenJWT(config.RainbowUserId, config.AppId)
 	if err != nil {
 		return nil, err
 	}
@@ -202,11 +202,13 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	item := &models.POAPResult{
-		ConfigID:   int32(config.ID),
-		Address:    req.UserAddress,
-		ContractID: config.ContractID,
-		TxID:       *resp.Id,
-		ActivityID: config.ActivityID,
+		ConfigID:    int32(config.ID),
+		Address:     req.UserAddress,
+		ContractID:  config.ContractID,
+		TxID:        *resp.Id,
+		ActivityID:  config.ActivityID,
+		ProjectorId: config.RainbowUserId,
+		AppId:       config.AppId,
 	}
 
 	res := models.GetDB().Create(&item)
@@ -218,8 +220,6 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 	cache.Lock()
 	cache.Count += 1
 	cache.Unlock()
-
-	go SyncNFTMintTaskStatus(token, config.Name, item)
 
 	return item, res.Error
 }
@@ -233,7 +233,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, fmt.Errorf("The activity has opened the white list")
 	}
 
-	token, err := middlewares.GeneratePOAPOpenJWT(config.Name, config.ContractID)
+	token, err := middlewares.GeneratePOAPOpenJWT(config.RainbowUserId, config.AppId)
 	if err != nil {
 		return nil, err
 	}
@@ -282,12 +282,14 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	item := &models.POAPResult{
-		ConfigID:   int32(config.ID),
-		Address:    req.UserAddress,
-		ContractID: config.ContractID,
-		TxID:       *resp.Id,
-		ActivityID: config.ActivityID,
-		FileURL:    config.NFTConfigs[index].ImageURL,
+		ConfigID:    int32(config.ID),
+		Address:     req.UserAddress,
+		ContractID:  config.ContractID,
+		TxID:        *resp.Id,
+		ActivityID:  config.ActivityID,
+		FileURL:     config.NFTConfigs[index].ImageURL,
+		ProjectorId: config.RainbowUserId,
+		AppId:       config.AppId,
 	}
 
 	res := models.GetDB().Create(&item)
@@ -307,9 +309,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		}
 		return err
 	})
-
-	go SyncNFTMintTaskStatus(token, config.Name, item)
-
+	
 	return item, res.Error
 }
 

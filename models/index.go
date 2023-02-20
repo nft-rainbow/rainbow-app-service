@@ -13,6 +13,12 @@ var (
 	db *gorm.DB
 )
 
+const (
+	STATUS_INIT = iota
+	STATUS_SUCCESS
+	STATUS_FAIL
+)
+
 type BaseModel struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`

@@ -118,6 +118,7 @@ func initDoDoBot() {
 // @schemes  http https
 func main() {
 	models.ConnectDB()
+	go services.SyncPOAPResultStatus()
 	//go initDoDoBot()
 	//go initDiscordBot()
 	//go services.UpdateEveryday()

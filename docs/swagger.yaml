@@ -590,85 +590,6 @@ definitions:
       updated_at:
         type: string
     type: object
-  models.NFTContractInfo:
-    properties:
-      created_at:
-        type: string
-      deleted_at:
-        $ref: '#/definitions/gorm.DeletedAt'
-      id:
-        type: integer
-      metadata_uri:
-        type: string
-      newYearConfigID:
-        type: integer
-      probability:
-        type: number
-      token_id:
-        type: string
-      updated_at:
-        type: string
-    required:
-    - metadata_uri
-    - probability
-    - token_id
-    type: object
-  models.NewYearConfig:
-    properties:
-      activity_id:
-        type: string
-      activity_picture_url:
-        type: string
-      amount:
-        type: integer
-      app_id:
-        type: integer
-      chain_id:
-        type: integer
-      chain_type:
-        type: integer
-      contract_address:
-        type: string
-      contract_id:
-        type: integer
-      contract_type:
-        type: integer
-      created_at:
-        type: string
-      deleted_at:
-        $ref: '#/definitions/gorm.DeletedAt'
-      description:
-        type: string
-      end_time:
-        type: integer
-      id:
-        type: integer
-      max_mint_count:
-        type: integer
-      name:
-        type: string
-      nft_contract_infos:
-        items:
-          $ref: '#/definitions/models.NFTContractInfo'
-        type: array
-      rainbow_user_id:
-        type: integer
-      sharing_content:
-        type: string
-      start_time:
-        type: integer
-      updated_at:
-        type: string
-    required:
-    - amount
-    - app_id
-    - contract_id
-    - description
-    - end_time
-    - max_mint_count
-    - name
-    - start_time
-    type: object
   models.POAPActivityConfig:
     properties:
       activity_id:
@@ -676,11 +597,13 @@ definitions:
       activity_picture_url:
         type: string
       activity_type:
-        type: string
+        type: integer
       amount:
         type: integer
       app_id:
         type: integer
+      app_name:
+        type: string
       chain_id:
         type: integer
       chain_type:
@@ -725,6 +648,7 @@ definitions:
     - activity_type
     - amount
     - app_id
+    - app_name
     - description
     - end_time
     - max_mint_count
@@ -746,6 +670,8 @@ definitions:
         type: string
       address:
         type: string
+      app_id:
+        type: integer
       config_id:
         type: integer
       contract_id:
@@ -759,6 +685,8 @@ definitions:
       hash:
         type: string
       id:
+        type: integer
+      projector_id:
         type: integer
       status:
         type: integer
@@ -852,15 +780,6 @@ definitions:
       updated_at:
         type: string
     type: object
-  services.MintCountResponse:
-    properties:
-      activity_id:
-        type: string
-      address:
-        type: string
-      count:
-        type: integer
-    type: object
   services.POAPRequest:
     properties:
       activity_id:
@@ -872,19 +791,6 @@ definitions:
     required:
     - activity_id
     - user_address
-    type: object
-  services.ShareRequest:
-    properties:
-      activity_id:
-        type: string
-      receiver:
-        type: string
-      sharer:
-        type: string
-    required:
-    - activity_id
-    - receiver
-    - sharer
     type: object
 host: console.nftrainbow.cn
 info:
@@ -1639,42 +1545,6 @@ paths:
       summary: Get POAP Result
       tags:
       - POAP
-  /poap/config:
-    post:
-      description: Set NewYear Activity
-      operationId: SetNewYearActivity
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: new_year_activity_config
-        in: body
-        name: new_year_activity_config
-        required: true
-        schema:
-          $ref: '#/definitions/models.NewYearConfig'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.NewYearConfig'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Set NewYear Activity
-      tags:
-      - POAP
   /poap/count/{address}/{activity_id}:
     get:
       description: Get Common Mint Count
@@ -1696,7 +1566,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/services.MintCountResponse'
+            type: integer
         "400":
           description: Invalid request
           schema:
@@ -1770,37 +1640,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: POAP Mint By H5
-      tags:
-      - POAP
-  /poap/sharer:
-    post:
-      description: Update By Sharing
-      operationId: Update By Sharing
-      parameters:
-      - description: share_request
-        in: body
-        name: share_request
-        required: true
-        schema:
-          $ref: '#/definitions/services.ShareRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: success
-          schema:
-            type: string
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Update By Sharing
       tags:
       - POAP
 schemes:

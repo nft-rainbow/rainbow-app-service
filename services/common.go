@@ -8,6 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	dodoModel "github.com/dodo-open/dodo-open-go/model"
 	"github.com/fogleman/gg"
+	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
@@ -344,27 +345,39 @@ func newClient() *openapiclient.APIClient {
 	return apiClient
 }
 
-func SyncNFTMintTaskStatus(token, configName string, res *models.POAPResult) {
+func SyncPOAPResultStatus() {
 	logrus.Info("start task for syncing nft mint status")
-	tokenId, hash, status, _ := getTokenInfo(res.TxID, "Bearer "+token)
-
-	if status == 2 {
-		models.GetDB().Delete(&res)
-		return
+	for {
+		var results []*models.POAPResult
+		models.GetDB().Where("status = ?", models.STATUS_INIT).Limit(100).Find(&results)
+		if len(results) == 0 {
+			time.Sleep(time.Second * 5)
+			continue
+		}
+		for _, v := range results {
+			config, _ := models.FindPOAPActivityConfigById(v.ActivityID)
+			token, err := middlewares.GeneratePOAPOpenJWT(v.ProjectorId, v.AppId)
+			if err != nil {
+				fmt.Printf("Failed to generate open JWT for %v:%v \n", v.ConfigID, err.Error())
+			}
+			tokenId, hash, status, _ := getTokenInfo(v.TxID, "Bearer "+token)
+			if status == models.STATUS_FAIL {
+				models.GetDB().Delete(&v)
+				continue
+			}
+			v.TokenID = tokenId
+			v.Hash = hash
+			v.Status = status
+			group := new(errgroup.Group)
+			group.Go(func() error {
+				err := generateResultPoster(v, config.Name)
+				if err != nil {
+					fmt.Printf("Failed to generate poap result poster in activity %v for %v:%v \n", v.ActivityID, v.Address, err.Error())
+				}
+				return err
+			})
+			models.GetDB().Save(&v)
+		}
 	}
 
-	res.TokenID = tokenId
-	res.Hash = hash
-	res.Status = status
-
-	group := new(errgroup.Group)
-	group.Go(func() error {
-		err := generateResultPoster(res, configName)
-		if err != nil {
-			fmt.Printf("Failed to generate poap result poster in activity %v for %v:%v \n", res.ActivityID, res.Address, err.Error())
-		}
-		return err
-	})
-
-	models.GetDB().Save(&res)
 }

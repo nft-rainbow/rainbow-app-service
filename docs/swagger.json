@@ -1167,62 +1167,6 @@
                 }
             }
         },
-        "/poap/config": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Set NewYear Activity",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Set NewYear Activity",
-                "operationId": "SetNewYearActivity",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "new_year_activity_config",
-                        "name": "new_year_activity_config",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.NewYearConfig"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.NewYearConfig"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
         "/poap/count/{address}/{activity_id}": {
             "get": {
                 "security": [
@@ -1259,7 +1203,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/services.MintCountResponse"
+                            "type": "integer"
                         }
                     },
                     "400": {
@@ -1358,55 +1302,6 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.POAPResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/poap/sharer": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Update By Sharing",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Update By Sharing",
-                "operationId": "Update By Sharing",
-                "parameters": [
-                    {
-                        "description": "share_request",
-                        "name": "share_request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/services.ShareRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "type": "string"
                         }
                     },
                     "400": {
@@ -2219,127 +2114,13 @@
                 }
             }
         },
-        "models.NFTContractInfo": {
-            "type": "object",
-            "required": [
-                "metadata_uri",
-                "probability",
-                "token_id"
-            ],
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "metadata_uri": {
-                    "type": "string"
-                },
-                "newYearConfigID": {
-                    "type": "integer"
-                },
-                "probability": {
-                    "type": "number"
-                },
-                "token_id": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.NewYearConfig": {
-            "type": "object",
-            "required": [
-                "amount",
-                "app_id",
-                "contract_id",
-                "description",
-                "end_time",
-                "max_mint_count",
-                "name",
-                "start_time"
-            ],
-            "properties": {
-                "activity_id": {
-                    "type": "string"
-                },
-                "activity_picture_url": {
-                    "type": "string"
-                },
-                "amount": {
-                    "type": "integer"
-                },
-                "app_id": {
-                    "type": "integer"
-                },
-                "chain_id": {
-                    "type": "integer"
-                },
-                "chain_type": {
-                    "type": "integer"
-                },
-                "contract_address": {
-                    "type": "string"
-                },
-                "contract_id": {
-                    "type": "integer"
-                },
-                "contract_type": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "end_time": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "max_mint_count": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "nft_contract_infos": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.NFTContractInfo"
-                    }
-                },
-                "rainbow_user_id": {
-                    "type": "integer"
-                },
-                "sharing_content": {
-                    "type": "string"
-                },
-                "start_time": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "models.POAPActivityConfig": {
             "type": "object",
             "required": [
                 "activity_type",
                 "amount",
                 "app_id",
+                "app_name",
                 "description",
                 "end_time",
                 "max_mint_count",
@@ -2354,13 +2135,16 @@
                     "type": "string"
                 },
                 "activity_type": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "amount": {
                     "type": "integer"
                 },
                 "app_id": {
                     "type": "integer"
+                },
+                "app_name": {
+                    "type": "string"
                 },
                 "chain_id": {
                     "type": "integer"
@@ -2451,6 +2235,9 @@
                 "address": {
                     "type": "string"
                 },
+                "app_id": {
+                    "type": "integer"
+                },
                 "config_id": {
                     "type": "integer"
                 },
@@ -2470,6 +2257,9 @@
                     "type": "string"
                 },
                 "id": {
+                    "type": "integer"
+                },
+                "projector_id": {
                     "type": "integer"
                 },
                 "status": {
@@ -2606,20 +2396,6 @@
                 }
             }
         },
-        "services.MintCountResponse": {
-            "type": "object",
-            "properties": {
-                "activity_id": {
-                    "type": "string"
-                },
-                "address": {
-                    "type": "string"
-                },
-                "count": {
-                    "type": "integer"
-                }
-            }
-        },
         "services.POAPRequest": {
             "type": "object",
             "required": [
@@ -2634,25 +2410,6 @@
                     "type": "string"
                 },
                 "user_address": {
-                    "type": "string"
-                }
-            }
-        },
-        "services.ShareRequest": {
-            "type": "object",
-            "required": [
-                "activity_id",
-                "receiver",
-                "sharer"
-            ],
-            "properties": {
-                "activity_id": {
-                    "type": "string"
-                },
-                "receiver": {
-                    "type": "string"
-                },
-                "sharer": {
                     "type": "string"
                 }
             }

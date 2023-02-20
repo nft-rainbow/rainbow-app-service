@@ -26,15 +26,17 @@ type CustomMintResult struct {
 
 type POAPResult struct {
 	BaseModel
-	Address    string `gorm:"type:string;index" json:"address" binding:"required"`
-	ConfigID   int32  `gorm:"type:integer" json:"config_id"`
-	ContractID int32  `gorm:"type:integer" json:"contract_id" binding:"required"`
-	TxID       int32  `gorm:"type:integer" json:"tx_id"`
-	TokenID    string `gorm:"type:varchar(256)" json:"token_id"`
-	Hash       string `gorm:"type:string" json:"hash"`
-	ActivityID string `gorm:"type:string;index" json:"activity_id"`
-	Status     int32  `gorm:"type:integer" json:"status"`
-	FileURL    string `gorm:"type:string" json:"file_url"`
+	Address     string `gorm:"type:string;index" json:"address" binding:"required"`
+	ConfigID    int32  `gorm:"type:integer" json:"config_id"`
+	ContractID  int32  `gorm:"type:integer" json:"contract_id" binding:"required"`
+	TxID        int32  `gorm:"type:integer" json:"tx_id"`
+	TokenID     string `gorm:"type:varchar(256)" json:"token_id"`
+	Hash        string `gorm:"type:string" json:"hash"`
+	ActivityID  string `gorm:"type:string;index" json:"activity_id"`
+	Status      int32  `gorm:"type:integer" json:"status"`
+	FileURL     string `gorm:"type:string" json:"file_url"`
+	ProjectorId int32  `gorm:"type:integer" json:"projector_id"`
+	AppId       int32  `gorm:"type:integer" json:"app_id"`
 }
 
 func StoreCustomMintResult(req CustomMintResult) error {
