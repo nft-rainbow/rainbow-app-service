@@ -11,6 +11,7 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
+	"github.com/sirupsen/logrus"
 	"github.com/skip2/go-qrcode"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
@@ -49,7 +50,7 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POA
 	group.Go(func() error {
 		err := generateActivityPoster(config)
 		if err != nil {
-			fmt.Printf("Failed to gen poster for activity %v:%v \n", config.ActivityID, err.Error())
+			logrus.Errorf("Failed to generate poster for activity %v:%v \n", config.ActivityID, err.Error())
 		}
 		return err
 	})
@@ -76,7 +77,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		if err != nil {
 			return nil, err
 		}
-		info, err := GetContractInfo(config.ContractID, "Bearer "+token)
+		info, err := GetContractInfo(config.ContractID, middlewares.PrefixToken(token))
 		if err != nil {
 			return nil, err
 		}
@@ -112,7 +113,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		group.Go(func() error {
 			_, err = bucket.DeleteObjects(deleteObjects)
 			if err != nil {
-				fmt.Printf("Failed to delete old NFTConfigs for %v: %v \n", config.ActivityID, err.Error())
+				logrus.Errorf("Failed to delete old NFTConfigs for %v: %v \n", config.ActivityID, err.Error())
 			}
 			return err
 		})
@@ -122,7 +123,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 			group.Go(func() error {
 				err = AddLogoAndUpload(v.ImageURL, tmp[len(tmp)-1], oldConfig.ActivityID)
 				if err != nil {
-					fmt.Printf("Failed to add logo and upload new NFTConfigs for %v: %v \n", config.ActivityID, err.Error())
+					logrus.Errorf("Failed to add logo and upload new NFTConfigs for %v: %v \n", config.ActivityID, err.Error())
 				}
 				return err
 			})
@@ -191,7 +192,7 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		}
 	}
 
-	resp, err := sendCustomMintRequest("Bearer "+token, openapiclient.ServicesCustomMintDto{
+	resp, err := sendCustomMintRequest(middlewares.PrefixToken(token), openapiclient.ServicesCustomMintDto{
 		Chain:           chain,
 		ContractAddress: config.ContractAddress,
 		MintToAddress:   req.UserAddress,
@@ -271,7 +272,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		}
 	}
 
-	resp, err := sendCustomMintRequest("Bearer "+token, openapiclient.ServicesCustomMintDto{
+	resp, err := sendCustomMintRequest(middlewares.PrefixToken(token), openapiclient.ServicesCustomMintDto{
 		Chain:           chain,
 		ContractAddress: config.ContractAddress,
 		MintToAddress:   req.UserAddress,
@@ -305,11 +306,11 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	group.Go(func() error {
 		err := generateResultPoster(item, config.Name)
 		if err != nil {
-			fmt.Printf("Failed to generate poap result poster in activity %v for %v:%v \n", config.ActivityID, req.UserAddress, err.Error())
+			logrus.Errorf("Failed to generate poap result poster in activity %v for %v:%v \n", config.ActivityID, req.UserAddress, err.Error())
 		}
 		return err
 	})
-	
+
 	return item, res.Error
 }
 
@@ -590,7 +591,7 @@ func createMetadata(config *models.POAPActivityConfig, token string, index int) 
 		DisplayType:   &display,
 	})
 
-	resp, err := sendCreateMetadataRequest("Bearer "+token, openapiclient.ServicesMetadataDto{
+	resp, err := sendCreateMetadataRequest(middlewares.PrefixToken(token), openapiclient.ServicesMetadataDto{
 		Description: config.Description,
 		Image:       config.NFTConfigs[index].ImageURL,
 		Name:        config.NFTConfigs[index].Name,

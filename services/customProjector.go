@@ -125,7 +125,7 @@ func dodoCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask, s
 		return nil, "", 0, err
 	}
 
-	resp, err := sendCustomMintRequest("Bearer "+token, openapiclient.ServicesCustomMintDto{
+	resp, err := sendCustomMintRequest(middlewares.PrefixToken(token), openapiclient.ServicesCustomMintDto{
 		Chain:           chain,
 		ContractAddress: config.ContractAddress,
 		MintToAddress:   cfxAddress,
@@ -164,7 +164,7 @@ func discordCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask
 		return nil, "", 0, err
 	}
 
-	resp, err := sendCustomMintRequest("Bearer "+token, openapiclient.ServicesCustomMintDto{
+	resp, err := sendCustomMintRequest(middlewares.PrefixToken(token), openapiclient.ServicesCustomMintDto{
 		Chain:           chain,
 		ContractAddress: config.ContractAddress,
 		MintToAddress:   cfxAddress,

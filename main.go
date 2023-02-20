@@ -93,13 +93,14 @@ func initDiscordBot() {
 
 func initDoDoBot() {
 	ws := services.InitInstance()
-	fmt.Println("Start to connect")
+	logrus.Info("Start to connect")
 
 	err := ws.Connect()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Start to listen")
+	logrus.Info("Start to listen")
+
 	err = ws.Listen()
 	if err != nil {
 		panic(err)

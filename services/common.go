@@ -3,7 +3,6 @@ package services
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/bwmarrin/discordgo"
 	dodoModel "github.com/dodo-open/dodo-open-go/model"
@@ -150,7 +149,7 @@ func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, 
 }
 
 func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
-	tokenId, hash, status, err := getTokenInfo(id, "Bearer "+token)
+	tokenId, hash, status, err := getTokenInfo(id, middlewares.PrefixToken(token))
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +177,7 @@ func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, cha
 }
 
 func sendBatchBurnNFTRequest(token string, dto openapiclient.ServicesBurnBatchDto) ([]openapiclient.ModelsBurnTask, error) {
-	fmt.Println("Start to Batch burn")
+	logrus.Info("Start to Batch burn")
 	resp, _, err := newClient().BurnsApi.BurnBatch(context.Background()).Authorization(token).BurnBatchDto(dto).Execute()
 	if err != nil {
 		return nil, err
@@ -188,9 +187,7 @@ func sendBatchBurnNFTRequest(token string, dto openapiclient.ServicesBurnBatchDt
 }
 
 func sendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto) (*openapiclient.ModelsMintTask, error) {
-	//configuration := openapiclient.NewConfiguration()
-	//apiClient := openapiclient.NewAPIClient(configuration)
-	fmt.Println("Start to mint")
+	logrus.Info("Start to mint")
 	resp, _, err := newClient().MintsApi.CustomMint(context.Background()).Authorization(token).CustomMintDto(dto).Execute()
 	if err != nil {
 		return nil, err
@@ -208,9 +205,6 @@ func sendCreateMetadataRequest(token string, dto openapiclient.ServicesMetadataD
 }
 
 func getTokenInfo(id int32, token string) (string, string, int32, error) {
-	//configuration := openapiclient.NewConfiguration()
-	//apiClient := openapiclient.NewAPIClient(configuration)
-	//fmt.Println("Start to get token Id")
 	resp, _, err := newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
 		return "", "", 0, err
@@ -227,9 +221,6 @@ func getTokenInfo(id int32, token string) (string, string, int32, error) {
 }
 
 func getBurnInfo(id int32, token string) (int32, string, error) {
-	//configuration := openapiclient.NewConfiguration()
-	//apiClient := openapiclient.NewAPIClient(configuration)
-	//fmt.Println("Start to get token Id")
 	resp, _, err := newClient().BurnsApi.GetBurnDetail(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
 		return 0, "", err
@@ -245,9 +236,7 @@ func getBurnInfo(id int32, token string) (int32, string, error) {
 }
 
 func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, error) {
-	//configuration := openapiclient.NewConfiguration()
-	//apiClient := openapiclient.NewAPIClient(configuration)
-	fmt.Println("Start to get contract information")
+	logrus.Info("Start to get contract information")
 	resp, _, err := newClient().ContractApi.GetContractInfo(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
 		return nil, err
@@ -346,7 +335,7 @@ func newClient() *openapiclient.APIClient {
 }
 
 func SyncPOAPResultStatus() {
-	logrus.Info("start task for syncing nft mint status")
+	logrus.Info("start task for syncing poap result status")
 	for {
 		var results []*models.POAPResult
 		models.GetDB().Where("status = ?", models.STATUS_INIT).Limit(100).Find(&results)
@@ -358,7 +347,7 @@ func SyncPOAPResultStatus() {
 			config, _ := models.FindPOAPActivityConfigById(v.ActivityID)
 			token, err := middlewares.GeneratePOAPOpenJWT(v.ProjectorId, v.AppId)
 			if err != nil {
-				fmt.Printf("Failed to generate open JWT for %v:%v \n", v.ConfigID, err.Error())
+				logrus.Errorf("Failed to generate open JWT for %v:%v \n", v.ConfigID, err.Error())
 			}
 			tokenId, hash, status, _ := getTokenInfo(v.TxID, middlewares.PrefixToken(token))
 			if status == models.STATUS_FAIL {
@@ -372,7 +361,7 @@ func SyncPOAPResultStatus() {
 			group.Go(func() error {
 				err := generateResultPoster(v, config.Name)
 				if err != nil {
-					fmt.Printf("Failed to generate poap result poster in activity %v for %v:%v \n", v.ActivityID, v.Address, err.Error())
+					logrus.Errorf("Failed to generate poap result poster in activity %v for %v:%v \n", v.ActivityID, v.Address, err.Error())
 				}
 				return err
 			})
