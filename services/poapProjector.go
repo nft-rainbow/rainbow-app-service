@@ -231,7 +231,9 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 	if len(config.WhiteListInfos) != 0 {
-		return nil, fmt.Errorf("The activity has opened the white list")
+		if !checkWhiteList(config.WhiteListInfos, req.UserAddress) {
+			return nil, fmt.Errorf("The address is not listed in the white list")
+		}
 	}
 
 	token, err := middlewares.GeneratePOAPOpenJWT(config.RainbowUserId, config.AppId)
