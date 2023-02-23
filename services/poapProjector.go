@@ -41,6 +41,9 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POA
 	}
 
 	config.ActivityID = poapId
+	if config.Command != "" {
+		config.CommandNeeded = true
+	}
 
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {

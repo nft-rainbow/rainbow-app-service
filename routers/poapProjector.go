@@ -78,6 +78,7 @@ func poapMintByH5(c *gin.Context) {
 func getPOAPActivity(c *gin.Context) {
 	poapId := c.Param("activity_id")
 	item, err := models.FindPOAPActivityConfigById(poapId)
+	item.Command = ""
 	ginutils.RenderResp(c, item, err)
 }
 

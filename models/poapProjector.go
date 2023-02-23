@@ -17,13 +17,14 @@ type POAPActivityConfig struct {
 	ChainId            int32           `gorm:"type:int" json:"chain_id"`
 	ChainType          int32           `gorm:"type:int" json:"chain_type"`
 	ActivityType       uint            `gorm:"type:uint" json:"activity_type" binding:"required"`
-	Command            string          `gorm:"type:string" json:"command"`
+	Command            string          `gorm:"type:string" json:"command,omitempty"`
 	EndedTime          int64           `gorm:"type:integer" json:"end_time" binding:"required"`
 	StartedTime        int64           `gorm:"type:integer" json:"start_time" binding:"required"`
 	RainbowUserId      int32           `gorm:"type:integer" json:"rainbow_user_id"`
 	MaxMintCount       int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
 	ActivityID         string          `gorm:"type:string;index" json:"activity_id"`
 	ActivityPictureURL string          `gorm:"type:string" json:"activity_picture_url"`
+	CommandNeeded      bool            `gorm:"type:bool" json:"command_needed"`
 	WhiteListInfos     []WhiteListInfo `json:"white_list_infos"`
 	NFTConfigs         []NFTConfig     `json:"nft_configs"`
 }
