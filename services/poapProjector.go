@@ -72,7 +72,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 	if err != nil {
 		return nil, err
 	}
-	if oldConfig.ContractID == 0 || config.ContractID != oldConfig.ContractID {
+	if config.ContractID != oldConfig.ContractID {
 		token, err := middlewares.GenPOAPOpenJWTByRainbowUserId(*oldConfig)
 		if err != nil {
 			return nil, err
