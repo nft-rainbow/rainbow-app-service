@@ -337,6 +337,9 @@ func generateActivityPoster(config *models.POAPActivityConfig) error {
 	}
 
 	img, err := imaging.Decode(bytes.NewReader(imgData))
+	if err != nil {
+		return err
+	}
 	img = imaging.Fit(img, 1260, 1260, imaging.Lanczos)
 	dc.DrawImage(img, 120, 200)
 
