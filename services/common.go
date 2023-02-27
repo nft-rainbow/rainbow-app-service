@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"context"
+	"errors"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/bwmarrin/discordgo"
 	dodoModel "github.com/dodo-open/dodo-open-go/model"
@@ -14,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
 	"image"
 	"image/draw"
 	_ "image/gif"
@@ -25,32 +27,38 @@ import (
 	"time"
 )
 
-func bindCFXAddressWithDiscord(req *models.BindCFXWithDiscord) error {
-	res := models.GetDB().Create(&req)
-	if res.Error != nil {
-		return res.Error
+func bindCFXAddress(req *models.BindCFX, flag string) error {
+	if flag == "discord" {
+		req.Bot = utils.Discord
+	} else {
+		req.Bot = utils.DoDo
 	}
+	_, err := models.FindBindingCFXAddressById(req.UserId, req.Bot)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		res := models.GetDB().Create(&req)
+		if res.Error != nil {
+			return res.Error
+		}
+	} else {
+		models.GetDB().Model(&req).Update("cfx_address", req.CFXAddress)
+	}
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func bindCFXAddressWithDoDo(req *models.BindCFXWithDoDo) error {
-	res := models.GetDB().Create(&req)
-	if res.Error != nil {
-		return res.Error
-	}
-	return nil
-}
-
-func GetDoDoBindCFXAddress(userID string) (string, error) {
-	resp, err := models.FindDoDoBindingCFXAddressById(userID)
+func GetDiscordBindCFXAddress(userID string) (string, error) {
+	resp, err := models.FindBindingCFXAddressById(userID, utils.Discord)
 	if err != nil {
 		return "", err
 	}
 	return resp.CFXAddress, nil
 }
 
-func GetDiscordBindCFXAddress(userID string) (string, error) {
-	resp, err := models.FindDiscordBindingCFXAddressById(userID)
+func GetDoDoBindCFXAddress(userID string) (string, error) {
+	resp, err := models.FindBindingCFXAddressById(userID, utils.DoDo)
 	if err != nil {
 		return "", err
 	}
@@ -65,15 +73,15 @@ func HandleBindCfxAddress(userId, userAddress, platform string) error {
 	}
 
 	if platform == "discord" {
-		err = bindCFXAddressWithDiscord(&models.BindCFXWithDiscord{
-			DiscordId:  userId,
+		err = bindCFXAddress(&models.BindCFX{
+			UserId:     userId,
 			CFXAddress: userAddress,
-		})
+		}, "discord")
 	} else if platform == "dodo" {
-		err = bindCFXAddressWithDoDo(&models.BindCFXWithDoDo{
-			DoDoId:     userId,
+		err = bindCFXAddress(&models.BindCFX{
+			UserId:     userId,
 			CFXAddress: userAddress,
-		})
+		}, "dodo")
 	}
 	if err != nil {
 		return err

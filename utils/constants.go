@@ -29,6 +29,11 @@ const (
 	POAP
 )
 
+const (
+	Discord = iota + 1
+	DoDo
+)
+
 // contract type names
 const ERC721 = "erc721"
 const ERC1155 = "erc1155"

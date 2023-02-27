@@ -510,19 +510,24 @@ func GetMintCount(activityID, address string) (*int32, error) {
 		return nil, err
 	}
 	var count int32
-	remainedMinted := int32(int64(config.MaxMintCount) - resp)
+	var remainedMinted int32
+	if config.MaxMintCount == -1 {
+		remainedMinted = -1
+	} else {
+		remainedMinted = int32(int64(config.MaxMintCount) - resp)
+	}
 
 	if config.Amount == -1 {
 		count = remainedMinted
 	} else {
-		res, err := models.CountPOAPResult(address)
-		if err != nil {
-			return nil, err
-		}
-		if config.Amount-int32(res) < remainedMinted {
-			count = config.Amount - int32(res)
+		if remainedMinted == -1 {
+			count = config.Amount - int32(resp)
 		} else {
-			count = remainedMinted
+			if config.Amount-int32(resp) < remainedMinted {
+				count = config.Amount - int32(resp)
+			} else {
+				count = remainedMinted
+			}
 		}
 	}
 	return &count, nil

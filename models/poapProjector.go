@@ -37,6 +37,12 @@ type NFTConfig struct {
 	POAPActivityConfigID uint
 }
 
+type Metadata struct {
+	Name         string `gorm:"type:string" json:"name"`
+	Description  string `gorm:"type:string" json:"description"`
+	ExternalLink string `gorm:"type:string" json:"external_link"`
+}
+
 type MetadataAttribute struct {
 	BaseModel
 	Name        string `gorm:"type:varchar(256)"  json:"attribute_name,omitempty"`

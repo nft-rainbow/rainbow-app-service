@@ -41,8 +41,7 @@ func ConnectDB() {
 	db.AutoMigrate(&DoDoCustomProjectConfig{})
 	db.AutoMigrate(&DiscordCustomActivityConfig{})
 	db.AutoMigrate(&DoDoCustomActivityConfig{})
-	db.AutoMigrate(&BindCFXWithDiscord{})
-	db.AutoMigrate(&BindCFXWithDoDo{})
+	db.AutoMigrate(&BindCFX{})
 	db.AutoMigrate(&CustomMintCount{})
 	db.AutoMigrate(&CustomMintResult{})
 	db.AutoMigrate(&POAPResult{})
@@ -52,6 +51,7 @@ func ConnectDB() {
 	db.AutoMigrate(&Statistic{})
 	db.AutoMigrate(&NFTConfig{})
 	db.AutoMigrate(&MetadataAttribute{})
+	db.AutoMigrate(&PushInfo{})
 }
 
 func GetDB() *gorm.DB {

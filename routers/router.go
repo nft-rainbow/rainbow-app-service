@@ -54,6 +54,9 @@ func SetupRoutes(router *gin.Engine) {
 	poap.GET("/activity/result/:activity_id", getPOAPAResultList)
 	poap.GET("/activity/result/:activity_id/:id", getPOAPAResult)
 	poap.GET("/count/:address/:activity_id", getMintCount)
+	poap.POST("/push/discord", pushActivity)
+	poap.GET("/push/discord")
+
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		poap.POST("/csv", poapMintByCSV)

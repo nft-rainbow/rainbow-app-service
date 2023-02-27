@@ -16,7 +16,6 @@ import (
 
 var instance dodoClient.Client
 
-
 func InitInstance() websocket.Client {
 	var err error
 	instance, err = dodo.NewInstance(viper.GetString("dodoBot.clientId"), viper.GetString("dodoBot.tokenId"), client.WithTimeout(time.Second*3))
@@ -32,36 +31,40 @@ func InitInstance() websocket.Client {
 					return err
 				}
 
-				if strings.Contains(messageBody.Content, "/claim custom") {
+				if strings.Contains(messageBody.Content, "/铸造") {
 					//contents := strings.Split(messageBody.Content, " ")
+					//activityId := contents[1]
+					//command := contents[2]
+					//
+					//HandlePOAPH5Mint(&POAPRequest{})
+
 					resp, token, contactId, err := HandleCustomMint(data.DodoId, data.ChannelId, "dodo")
-					if err != nil{
+					if err != nil {
 						processErrorMessage(&instance, data, err.Error())
 						return nil
 					}
 
 					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-						ChannelId: data.ChannelId,
+						ChannelId:   data.ChannelId,
 						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> Create mint task successfully. The correspding transaction hash is %s", data.DodoId, *resp.Hash)},
 					})
 
-					res, err := GenDoDoMintRes(token, resp.GetCreatedAt(), resp.GetContract(), resp.GetMintTo(),  data.DodoId, data.ChannelId, resp.GetId(), contactId)
-					if err != nil{
+					res, err := GenDoDoMintRes(token, resp.GetCreatedAt(), resp.GetContract(), resp.GetMintTo(), data.DodoId, data.ChannelId, resp.GetId(), contactId)
+					if err != nil {
 						processErrorMessage(&instance, data, err.Error())
 						return nil
 					}
 
 					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-						ChannelId: data.ChannelId,
+						ChannelId:   data.ChannelId,
 						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> Congratulate on minting NFT for %s successfully. Check this link to view it: %s \n  %s", data.DodoId, res.UserAddress, res.NFTAddress, viper.GetString("advertise"))},
 					})
 					return nil
-				}else if strings.Contains(messageBody.Content, "/bind CFX") {
-					fmt.Println("Start to bind CFX address")
+				} else if strings.Contains(messageBody.Content, "/bind CFX") {
 					contents := strings.Split(messageBody.Content, " ")
 					if len(contents) < 3 {
 						_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-							ChannelId: data.ChannelId,
+							ChannelId:   data.ChannelId,
 							MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoId, "The input is wrong")},
 						})
 						return nil
@@ -76,19 +79,19 @@ func InitInstance() websocket.Client {
 					}
 
 					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-						ChannelId: data.ChannelId,
+						ChannelId:   data.ChannelId,
 						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> success!", data.DodoId)},
 					})
 					return nil
 
-				}else if strings.Contains(messageBody.Content, "/address CFX") {
+				} else if strings.Contains(messageBody.Content, "/address CFX") {
 					resp, err := GetDoDoBindCFXAddress(data.DodoId)
 					if err != nil {
 						processErrorMessage(&instance, data, err.Error())
 						return nil
 					}
 					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-						ChannelId: data.ChannelId,
+						ChannelId:   data.ChannelId,
 						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoId, resp)},
 					})
 					return nil
@@ -111,11 +114,11 @@ func InitInstance() websocket.Client {
 
 func processErrorMessage(instance *client.Client, data *websocket.ChannelMessageEventBody, message string) {
 	_, _ = (*instance).SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-		ChannelId: data.ChannelId,
+		ChannelId:   data.ChannelId,
 		MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoId, message)},
 	})
 }
 
-func GetInstance() *dodoClient.Client{
+func GetInstance() *dodoClient.Client {
 	return &instance
 }

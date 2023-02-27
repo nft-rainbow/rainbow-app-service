@@ -1,17 +1,14 @@
 package models
 
-import "errors"
+import (
+	"errors"
+)
 
-type BindCFXWithDiscord struct {
+type BindCFX struct {
 	BaseModel
-	DiscordId  string `gorm:"type:varchar(256)" json:"discord_id" binding:"required"`
+	UserId     string `gorm:"type:varchar(256)" json:"user_id" binding:"required"`
 	CFXAddress string `gorm:"type:varchar(256)" json:"cfx_address" binding:"required"`
-}
-
-type BindCFXWithDoDo struct {
-	BaseModel
-	DoDoId     string `gorm:"type:varchar(256)" json:"do_do_id" binding:"required"`
-	CFXAddress string `gorm:"type:varchar(256)" json:"cfx_address" binding:"required"`
+	Bot        uint   `gorm:"type:integer" json:"bot" binding:"required"`
 }
 
 type CustomMintCount struct {
@@ -21,15 +18,9 @@ type CustomMintCount struct {
 	Count     uint   `gorm:"type:integer" json:"count" binding:"required"`
 }
 
-func FindDiscordBindingCFXAddressById(id string) (*BindCFXWithDiscord, error) {
-	var item BindCFXWithDiscord
-	err := db.Where("discord_id = ?", id).First(&item).Error
-	return &item, err
-}
-
-func FindDoDoBindingCFXAddressById(id string) (*BindCFXWithDoDo, error) {
-	var item BindCFXWithDoDo
-	err := db.Where("do_do_id = ?", id).First(&item).Error
+func FindBindingCFXAddressById(id string, bot uint) (*BindCFX, error) {
+	var item BindCFX
+	err := db.Where("user_id = ?", id).Where("bot = ?", bot).First(&item).Error
 	return &item, err
 }
 
@@ -124,3 +115,29 @@ func InsertCustomCount(id, channelId string) error {
 	}
 	return nil
 }
+
+//func CryptoDiscordId(id string) (string, error) {
+//	hash := sha256.New()
+//
+//	_, err := hash.Write([]byte(id + "discord"))
+//	if err != nil {
+//		return "", err
+//	}
+//	sum := hash.Sum(nil)
+//
+//	newYearId := hex.EncodeToString(sum)
+//	return newYearId[:8], nil
+//}
+//
+//func CryptoDoDoId(id string) (string, error) {
+//	hash := sha256.New()
+//
+//	_, err := hash.Write([]byte(id + "dodo"))
+//	if err != nil {
+//		return "", err
+//	}
+//	sum := hash.Sum(nil)
+//
+//	newYearId := hex.EncodeToString(sum)
+//	return newYearId[:8], nil
+//}
