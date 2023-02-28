@@ -7,6 +7,7 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
+	"strconv"
 )
 
 // @Tags        CustomMint
@@ -42,28 +43,68 @@ func getDoDoChannelInfo(c *gin.Context) {
 	ginutils.RenderResp(c, resp, err)
 }
 
+// @Tags        POAP
+// @ID          PushActivity
+// @Summary     Push Activity
+// @Description Push Activity Info
+// @security    ApiKeyAuth
+// @Produce     json
+// @Param       push_req     body     services.PushReq    true "push_req"
+// @Success     200           {object} string "success"
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/push [post]
 func pushActivity(c *gin.Context) {
-	var req *models.PushReq
+	var req *services.PushReq
 	if err := c.ShouldBind(&req); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
 
+	req.RainbowUserId = int32(GetIdFromJwtClaim(c))
+
 	if req.Bot == utils.Discord {
-		resp, err := services.DiscordPushActivity(req)
-		ginutils.RenderResp(c, resp, err)
+		_, err := services.DiscordPushActivity(req)
+		ginutils.RenderResp(c, "success", err)
+	} else if req.Bot == utils.DoDo {
+		_, err := services.DoDoPushActivity(req)
+		ginutils.RenderResp(c, "success", err)
+	} else {
+		ginutils.RenderRespError(c, nil, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
 	}
 }
 
-func GetPushDiscord(c *gin.Context) {
-	var req *models.PushReq
-	if err := c.ShouldBind(&req); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+// @Tags        POAP
+// @ID          GetPush
+// @Summary     Get Pushes List
+// @Description Get Pushes List
+// @security    ApiKeyAuth
+// @Produce     json
+// @Param       app_id        path     string   true "app_id"
+// @Param       bot           path     string   true "bot"
+// @Success     200           {object} models.PushInfoQueryResult
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/push/{app_id}/{bot} [get]
+func getPushes(c *gin.Context) {
+	pagination, err := GetPagination(c)
+	if err != nil {
+		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
+		return
+	}
+	appIdStr := c.Param("app_id")
+	appId, err := strconv.Atoi(appIdStr)
+	if err != nil {
+		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
 		return
 	}
 
-	if req.Bot == utils.Discord {
-		resp, err := services.DiscordPushActivity(req)
-		ginutils.RenderResp(c, resp, err)
+	botStr := c.Param("bot")
+	var bot uint
+	if botStr == "discord" {
+		bot = utils.Discord
+	} else {
+		bot = utils.DoDo
 	}
+	resp, err := models.FindAndCountPushInfo(pagination.Offset(), pagination.Limit, appId, int(GetIdFromJwtClaim(c)), bot)
+	ginutils.RenderResp(c, resp, err)
 }

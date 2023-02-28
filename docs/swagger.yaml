@@ -688,6 +688,10 @@ definitions:
         type: integer
       projector_id:
         type: integer
+      social_id:
+        type: string
+      social_type:
+        type: integer
       status:
         type: integer
       token_id:
@@ -707,6 +711,52 @@ definitions:
       items:
         items:
           $ref: '#/definitions/models.POAPResult'
+        type: array
+    type: object
+  models.PushInfo:
+    properties:
+      account_limit:
+        type: integer
+      activity_id:
+        type: string
+      activity_name:
+        type: string
+      activity_type:
+        type: integer
+      app_id:
+        type: integer
+      bot:
+        type: integer
+      contract:
+        type: string
+      contract_id:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      end_time:
+        type: integer
+      id:
+        type: integer
+      rainbow_user_id:
+        type: integer
+      server_id:
+        type: string
+      server_name:
+        type: string
+      start_time:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.PushInfoQueryResult:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.PushInfo'
         type: array
     type: object
   models.WhiteListInfo:
@@ -791,6 +841,43 @@ definitions:
     required:
     - activity_id
     - user_address
+    type: object
+  services.PushReq:
+    properties:
+      account_limit:
+        type: integer
+      activity_id:
+        type: string
+      app_id:
+        type: integer
+      bot:
+        type: integer
+      channel_id:
+        type: string
+      color:
+        type: string
+      content:
+        type: string
+      rainbow_user_id:
+        type: integer
+      roles:
+        items:
+          type: string
+        type: array
+      server_id:
+        type: string
+      server_name:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - activity_id
+    - bot
+    - channel_id
+    - roles
+    - server_id
+    - server_name
+    - user_id
     type: object
 host: console.nftrainbow.cn
 info:
@@ -1470,6 +1557,64 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Set H5 Config
+      tags:
+      - POAP
+  /poap/activity/push:
+    post:
+      description: Push Activity Info
+      operationId: PushActivity
+      parameters:
+      - description: push_req
+        in: body
+        name: push_req
+        required: true
+        schema:
+          $ref: '#/definitions/services.PushReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Push Activity
+      tags:
+      - POAP
+  /poap/activity/push/{app_id}/{bot}:
+    get:
+      description: Get Pushes List
+      operationId: GetPush
+      parameters:
+      - description: app_id
+        in: path
+        name: app_id
+        required: true
+        type: string
+      - description: bot
+        in: path
+        name: bot
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PushInfoQueryResult'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Pushes List
       tags:
       - POAP
   /poap/activity/result/{activity_id}:

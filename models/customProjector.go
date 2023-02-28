@@ -54,30 +54,26 @@ type DoDoCustomActivityConfig struct {
 	MetadataURI     string `gorm:"type:string" json:"metadata_uri"`
 }
 
-type PushReq struct {
-	ServerId     string `gorm:"type:varchar(256)" json:"server_id" binding:"required"`
-	ServerName   string `gorm:"type:varchar(256)" json:"server_name"`
-	ChannelId    string `gorm:"type:varchar(256)" json:"channel_id"`
-	Roles        string `gorm:"type:varchar(256)" json:"roles"`
-	AccountLimit string `gorm:"type:varchar(256)" json:"account_limit"`
-	Color        string `gorm:"type:varchar(256)" json:"color"`
-	Content      string `gorm:"type:varchar(256)" json:"content"`
-	Bot          uint   `gorm:"type:integer" json:"bot"`
-	UserId       uint   `gorm:"type:integer" json:"user_id"`
-	ActivityId   string `gorm:"type:string" json:"activity_id"`
-}
-
 type PushInfo struct {
 	BaseModel
-	ServerId     string `gorm:"type:varchar(256)" json:"server_id"`
-	ServerName   string `gorm:"type:varchar(256)" json:"server_name"`
-	ActivityId   string `gorm:"type:string" json:"activity_id"`
-	ActivityName string `gorm:"type:string" json:"activity_name"`
-	ContractID   int32  `gorm:"type:integer" json:"contract_id"`
-	EndedTime    int64  `gorm:"type:integer" json:"end_time"`
-	StartedTime  int64  `gorm:"type:integer" json:"start_time"`
-	ActivityType uint   `gorm:"type:uint" json:"activity_type"`
-	Contract     string `gorm:"type:string" json:"contract"`
+	ServerId      string `gorm:"type:varchar(256);index" json:"server_id"`
+	ServerName    string `gorm:"type:varchar(256)" json:"server_name"`
+	ActivityId    string `gorm:"type:string;index" json:"activity_id"`
+	ActivityName  string `gorm:"type:string" json:"activity_name"`
+	AccountLimit  int    `gorm:"type:integer" json:"account_limit"`
+	ContractID    int32  `gorm:"type:integer" json:"contract_id"`
+	EndedTime     int64  `gorm:"type:integer" json:"end_time"`
+	StartedTime   int64  `gorm:"type:integer" json:"start_time"`
+	ActivityType  uint   `gorm:"type:uint" json:"activity_type"`
+	Bot           uint   `gorm:"type:integer" json:"bot"`
+	Contract      string `gorm:"type:string" json:"contract"`
+	RainbowUserId int32  `gorm:"type:integer" json:"rainbow_user_id"`
+	AppId         int32  `gorm:"index" json:"app_id"`
+}
+
+type PushInfoQueryResult struct {
+	Count int64       `json:"count"`
+	Items []*PushInfo `json:"items"`
 }
 
 type DiscordActivityQueryResult struct {
@@ -98,6 +94,34 @@ type DiscordCustomProjectConfigQueryResult struct {
 type DoDoCustomProjectConfigQueryResult struct {
 	Count int64                      `json:"count"`
 	Items []*DoDoCustomProjectConfig `json:"items"`
+}
+
+func FindPushInfo(serverId, activityId string) (*PushInfo, error) {
+	var res PushInfo
+	var cond PushInfo
+	cond.ActivityId = activityId
+	cond.ServerId = serverId
+
+	err := db.Where(&cond).Last(&res).Error
+	return &res, err
+}
+
+func FindAndCountPushInfo(offset, limit, appId, userId int, bot uint) (*PushInfoQueryResult, error) {
+	var items []*PushInfo
+	var cond PushInfo
+	cond.RainbowUserId = int32(userId)
+	cond.AppId = int32(appId)
+	cond.Bot = bot
+
+	var count int64
+	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
+		return nil, err
+	}
+
+	if err := db.Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
+		return nil, err
+	}
+	return &PushInfoQueryResult{count, items}, nil
 }
 
 func FindDiscordCustomActivityConfigByChannelId(id string) (*DiscordCustomActivityConfig, error) {

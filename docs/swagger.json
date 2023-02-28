@@ -946,6 +946,97 @@
                 }
             }
         },
+        "/poap/activity/push": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Push Activity Info",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Push Activity",
+                "operationId": "PushActivity",
+                "parameters": [
+                    {
+                        "description": "push_req",
+                        "name": "push_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.PushReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/poap/activity/push/{app_id}/{bot}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Pushes List",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Get Pushes List",
+                "operationId": "GetPush",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "app_id",
+                        "name": "app_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "bot",
+                        "name": "bot",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PushInfoQueryResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/poap/activity/result/{activity_id}": {
             "get": {
                 "security": [
@@ -2262,6 +2353,12 @@
                 "projector_id": {
                     "type": "integer"
                 },
+                "social_id": {
+                    "type": "string"
+                },
+                "social_type": {
+                    "type": "integer"
+                },
                 "status": {
                     "type": "integer"
                 },
@@ -2286,6 +2383,76 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.POAPResult"
+                    }
+                }
+            }
+        },
+        "models.PushInfo": {
+            "type": "object",
+            "properties": {
+                "account_limit": {
+                    "type": "integer"
+                },
+                "activity_id": {
+                    "type": "string"
+                },
+                "activity_name": {
+                    "type": "string"
+                },
+                "activity_type": {
+                    "type": "integer"
+                },
+                "app_id": {
+                    "type": "integer"
+                },
+                "bot": {
+                    "type": "integer"
+                },
+                "contract": {
+                    "type": "string"
+                },
+                "contract_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "end_time": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "rainbow_user_id": {
+                    "type": "integer"
+                },
+                "server_id": {
+                    "type": "string"
+                },
+                "server_name": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PushInfoQueryResult": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PushInfo"
                     }
                 }
             }
@@ -2411,6 +2578,59 @@
                 },
                 "user_address": {
                     "type": "string"
+                }
+            }
+        },
+        "services.PushReq": {
+            "type": "object",
+            "required": [
+                "activity_id",
+                "bot",
+                "channel_id",
+                "roles",
+                "server_id",
+                "server_name",
+                "user_id"
+            ],
+            "properties": {
+                "account_limit": {
+                    "type": "integer"
+                },
+                "activity_id": {
+                    "type": "string"
+                },
+                "app_id": {
+                    "type": "integer"
+                },
+                "bot": {
+                    "type": "integer"
+                },
+                "channel_id": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "rainbow_user_id": {
+                    "type": "integer"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "server_id": {
+                    "type": "string"
+                },
+                "server_name": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         }

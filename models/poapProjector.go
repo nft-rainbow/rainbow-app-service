@@ -170,22 +170,18 @@ func CountPOAPResult(poapId string) (int64, error) {
 	return cache.Count, nil
 }
 
-func FindAndCountPOAPResultByAddress(offset int, limit int, address, poapId string) (*POAPResultQueryResult, error) {
-	var items []*POAPResult
+func CountPOAPResultBySocial(socialId, poapId string, socialType uint) (int64, error) {
 	cond := &POAPResult{}
 	cond.ActivityID = poapId
-	cond.Address = address
+	cond.SocialId = socialId
+	cond.SocialType = socialType
 
-	var count int64
-	if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
-		return nil, err
+	cache, err := InitCache(cond)
+	if err != nil {
+		return 0, err
 	}
 
-	if err := db.Model(&POAPResult{}).Where(cond).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
-		return nil, err
-	}
-
-	return &POAPResultQueryResult{count, items}, nil
+	return cache.Count, nil
 }
 
 func CountPOAPResultByAddress(address, poapId string) (int64, error) {

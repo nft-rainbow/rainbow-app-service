@@ -42,9 +42,6 @@ func bindCFXAddress(req *models.BindCFX, flag string) error {
 	} else {
 		models.GetDB().Model(&req).Update("cfx_address", req.CFXAddress)
 	}
-	if err != nil {
-		return err
-	}
 
 	return nil
 }

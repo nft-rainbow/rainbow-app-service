@@ -1,7 +1,5 @@
 package models
 
-import "gorm.io/gorm"
-
 type CustomMintResp struct {
 	UserAddress string `form:"user_address" json:"user_address"`
 	NFTAddress  string `form:"nft_address" json:"nft_address"`
@@ -37,6 +35,8 @@ type POAPResult struct {
 	FileURL     string `gorm:"type:string" json:"file_url"`
 	ProjectorId int32  `gorm:"type:integer" json:"projector_id"`
 	AppId       int32  `gorm:"type:integer" json:"app_id"`
+	SocialId    string `gorm:"type:string;index" json:"social_id"`
+	SocialType  uint   `gorm:"type:integer" json:"social_type"`
 }
 
 func StoreCustomMintResult(req CustomMintResult) error {
@@ -45,12 +45,4 @@ func StoreCustomMintResult(req CustomMintResult) error {
 		return res.Error
 	}
 	return nil
-}
-
-func StorePOAPResult(req POAPResult) (*gorm.DB, error) {
-	res := GetDB().Create(&req)
-	if res.Error != nil {
-		return nil, res.Error
-	}
-	return res, nil
 }

@@ -11,6 +11,21 @@ import (
 	"strconv"
 )
 
+type PushReq struct {
+	ServerId      string   `json:"server_id" binding:"required"`
+	ServerName    string   `json:"server_name"  binding:"required"`
+	ChannelId     string   `json:"channel_id"  binding:"required"`
+	Roles         []string `json:"roles" binding:"required"`
+	AccountLimit  int      `json:"account_limit"`
+	Color         string   `json:"color"`
+	Content       string   `json:"content"`
+	Bot           uint     `json:"bot" binding:"required"`
+	UserId        uint     `json:"user_id" binding:"required"`
+	ActivityId    string   `json:"activity_id" binding:"required"`
+	RainbowUserId int32    `gorm:"type:integer" json:"rainbow_user_id"`
+	AppId         int32    `gorm:"index" json:"app_id"`
+}
+
 var s *discordgo.Session
 
 var (
@@ -93,6 +108,9 @@ var (
 
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"mint": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !checkChannel(s, i.GuildID) {
+				return
+			}
 			options := i.ApplicationCommandData().Options
 			activityId := options[0].Value
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -110,6 +128,13 @@ var (
 			}
 
 			config, err := models.FindPOAPActivityConfigById(activityId.(string))
+			if err != nil {
+				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+					Embeds: failMessageEmbed(err.Error()),
+				})
+				return
+			}
+			err = checkSocialLimit(i.Interaction.GuildID, i.Interaction.Member.User.ID, config.ActivityID, utils.DoDo)
 			if err != nil {
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 					Embeds: failMessageEmbed(err.Error()),
@@ -145,6 +170,9 @@ var (
 
 		},
 		"bind": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !checkChannel(s, i.GuildID) {
+				return
+			}
 			options := i.ApplicationCommandData().Options
 			userAddress := options[0].Options[0].Value.(string)
 			startFlag := ""
@@ -171,6 +199,9 @@ var (
 			})
 		},
 		"address": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !checkChannel(s, i.GuildID) {
+				return
+			}
 			options := i.ApplicationCommandData().Options
 			switch options[0].Name {
 			case "conflux":
@@ -187,6 +218,9 @@ var (
 			}
 		},
 		"command": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !checkChannel(s, i.GuildID) {
+				return
+			}
 			options := i.ApplicationCommandData().Options
 			activity := options[0].Value
 			config, err := models.FindPOAPActivityConfigById(activity.(string))
@@ -215,9 +249,15 @@ var (
 			s.ChannelMessageSend(channel.ID, config.Command)
 		},
 		"guide": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !checkChannel(s, i.GuildID) {
+				return
+			}
 			s.ChannelMessageSend(i.ChannelID, fmt.Sprintf(i.Interaction.Member.User.Mention()+guide))
 		},
 		"create": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if !checkChannel(s, i.GuildID) {
+				return
+			}
 			s.ChannelMessageSend(i.ChannelID, fmt.Sprintf(i.Interaction.Member.User.Mention()+anywebH5))
 		},
 	}
@@ -310,7 +350,7 @@ func failMessageEmbed(message string) []*discordgo.MessageEmbed {
 	return embeds
 }
 
-func DiscordPushActivity(req *models.PushReq) (*discordgo.Message, error) {
+func DiscordPushActivity(req *PushReq) (*discordgo.Message, error) {
 	config, err := models.FindPOAPActivityConfigById(req.ActivityId)
 	if err != nil {
 		return nil, err
@@ -320,21 +360,28 @@ func DiscordPushActivity(req *models.PushReq) (*discordgo.Message, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	msg, err := s.ChannelMessageSendEmbeds(req.ChannelId, createPushEmbed(config, req.Roles, req.Content, int(color)))
+	roles := ""
+	for _, v := range req.Roles {
+		roles += fmt.Sprintf("<@&%s>", v)
+	}
+	msg, err := s.ChannelMessageSendEmbeds(req.ChannelId, createPushEmbed(config, roles, req.Content, int(color)))
 	if err != nil {
 		return nil, err
 	}
 
 	models.GetDB().Create(&models.PushInfo{
-		ServerId:     req.ServerId,
-		ServerName:   req.ServerName,
-		ContractID:   config.ContractID,
-		ActivityId:   req.ActivityId,
-		ActivityName: config.Name,
-		StartedTime:  config.StartedTime,
-		EndedTime:    config.EndedTime,
-		Contract:     config.ContractAddress,
+		ServerId:      req.ServerId,
+		ServerName:    req.ServerName,
+		ContractID:    config.ContractID,
+		ActivityId:    req.ActivityId,
+		ActivityName:  config.Name,
+		StartedTime:   config.StartedTime,
+		EndedTime:     config.EndedTime,
+		AccountLimit:  req.AccountLimit,
+		Contract:      config.ContractAddress,
+		AppId:         req.AppId,
+		Bot:           utils.Discord,
+		RainbowUserId: req.RainbowUserId,
 	})
 
 	return msg, nil
@@ -365,6 +412,20 @@ func createPushEmbed(config *models.POAPActivityConfig, roles, content string, c
 		},
 	}
 	return embeds
+}
+
+func checkChannel(s *discordgo.Session, guildId string) bool {
+	channels, err := s.GuildChannels(guildId)
+	if err != nil {
+		logrus.Errorf("Failed to find channel: %v", err.Error())
+		return false
+	}
+	for _, v := range channels {
+		if v.Name == channelName {
+			return true
+		}
+	}
+	return false
 }
 
 func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
