@@ -241,7 +241,7 @@ var (
 				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
 					Data: &discordgo.InteractionResponseData{
-						Content: fmt.Sprintf("%v The activity does not need command", i.Interaction.Member.User.Mention()),
+						Content: fmt.Sprintf("%v The command is not needed in this activity", i.Interaction.Member.User.Mention()),
 					},
 				})
 				return

@@ -18,6 +18,30 @@ import (
 )
 
 var instance dodoClient.Client
+var card = `{
+  "content": "",
+  "card": {
+    "type": "card",
+    "components": [
+      {
+        "type": "section",
+        "text": {
+          "type": "dodo-md",
+          "content": "{roles} {name}#{activity} 来了！\n在频道中发送【教程】，机器人将私信你领取教程"
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "dodo-md",
+          "content": "{content}"
+        }
+      }
+    ],
+    "theme": "{color}",
+    "title": "新活动发布啦！"
+  }
+}`
 
 func InitInstance() websocket.Client {
 	var err error
@@ -138,14 +162,13 @@ func InitInstance() websocket.Client {
 						return nil
 					}
 					if config.Command == "" {
-						processErrorMessage(&instance, data, fmt.Sprintf("<@!%s> The activity does not need command", data.DodoId))
+						processErrorMessage(&instance, data, fmt.Sprintf("<@!%s> The command is not needed in this activity", data.DodoId))
 						return nil
 					}
 					instance.SendDirectMessage(context.Background(), &model.SendDirectMessageReq{
 						DodoId:      data.DodoId,
 						MessageBody: &model.TextMessage{Content: config.Command},
 					})
-
 				}
 			}
 			return nil
@@ -170,30 +193,7 @@ func DoDoPushActivity(req *PushReq) (*model.SendChannelMessageRsp, error) {
 	}
 
 	var message model.CardMessage
-	card := `{
-  "content": "",
-  "card": {
-    "type": "card",
-    "components": [
-      {
-        "type": "section",
-        "text": {
-          "type": "dodo-md",
-          "content": "{roles} {name}#{activity} 来了！\n在频道中发送【教程】，机器人将私信你领取教程"
-        }
-      },
-      {
-        "type": "section",
-        "text": {
-          "type": "dodo-md",
-          "content": "{content}"
-        }
-      }
-    ],
-    "theme": "{color}",
-    "title": "新活动发布啦！"
-  }
-}`
+
 	roles := ""
 	if len(req.Roles) == 1 && req.Roles[0] == "all" {
 		roles = "<@all>"
