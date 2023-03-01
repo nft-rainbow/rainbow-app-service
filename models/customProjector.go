@@ -59,6 +59,7 @@ type PushInfo struct {
 	ServerId      string `gorm:"type:varchar(256);index" json:"server_id"`
 	ServerName    string `gorm:"type:varchar(256)" json:"server_name"`
 	ActivityId    string `gorm:"type:string;index" json:"activity_id"`
+	ChannelId     string `gorm:"type:string" json:"channel_id"`
 	ActivityName  string `gorm:"type:string" json:"activity_name"`
 	AccountLimit  int    `gorm:"type:integer" json:"account_limit"`
 	ContractID    int32  `gorm:"type:integer" json:"contract_id"`
@@ -100,6 +101,15 @@ func FindPushInfo(serverId, activityId string) (*PushInfo, error) {
 	var res PushInfo
 	var cond PushInfo
 	cond.ActivityId = activityId
+	cond.ServerId = serverId
+
+	err := db.Where(&cond).Last(&res).Error
+	return &res, err
+}
+
+func FindPushInfoByServer(serverId string) (*PushInfo, error) {
+	var res PushInfo
+	var cond PushInfo
 	cond.ServerId = serverId
 
 	err := db.Where(&cond).Last(&res).Error

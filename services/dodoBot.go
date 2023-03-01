@@ -49,17 +49,26 @@ func InitInstance() websocket.Client {
 	if err != nil {
 		panic(err)
 	}
+	bot, _ := instance.GetBotInfo(context.Background())
 	handlers := &websocket.MessageHandlers{
 		ChannelMessage: func(event *websocket.WSEventMessage, data *websocket.ChannelMessageEventBody) error {
+			push, _ := models.FindPushInfoByServer(data.IslandId)
+			if push.ChannelId != data.ChannelId {
+				return nil
+			}
 			switch data.MessageType {
 			case model.TextMsg:
 				messageBody := &model.TextMessage{}
 				if err := tools.JSON.Unmarshal(data.MessageBody, &messageBody); err != nil {
 					return err
 				}
+				if !strings.HasPrefix(messageBody.Content, fmt.Sprintf("<@!%v>", bot.DodoId)) {
+					return nil
+				}
+				commands := strings.Split(messageBody.Content, " ")
 
-				if strings.HasPrefix(messageBody.Content, "铸造") {
-					contents := strings.Split(messageBody.Content, "/")
+				if strings.HasPrefix(commands[1], "铸造") {
+					contents := strings.Split(commands[1], "/")
 					var activityId, command string
 					if len(contents) == 3 {
 						command = contents[2]
@@ -108,8 +117,8 @@ func InitInstance() websocket.Client {
 						break
 					}
 					return nil
-				} else if strings.HasPrefix(messageBody.Content, "绑定") {
-					contents := strings.Split(messageBody.Content, "/")
+				} else if strings.HasPrefix(commands[1], "绑定") {
+					contents := strings.Split(commands[1], "/")
 					if len(contents) > 3 {
 						_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
 							ChannelId:   data.ChannelId,
@@ -132,7 +141,7 @@ func InitInstance() websocket.Client {
 					})
 					return nil
 
-				} else if strings.HasPrefix(messageBody.Content, "查地址") {
+				} else if strings.HasPrefix(commands[1], "查地址") {
 					resp, err := GetDoDoBindCFXAddress(data.DodoId)
 					if err != nil {
 						processErrorMessage(&instance, data, err.Error())
@@ -143,18 +152,18 @@ func InitInstance() websocket.Client {
 						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoId, resp)},
 					})
 					return nil
-				} else if strings.HasPrefix(messageBody.Content, "教程") {
+				} else if strings.HasPrefix(commands[1], "教程") {
 					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
 						ChannelId:   data.ChannelId,
 						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoId, guide)},
 					})
-				} else if strings.HasPrefix(messageBody.Content, "创建") {
+				} else if strings.HasPrefix(commands[1], "创建") {
 					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
 						ChannelId:   data.ChannelId,
 						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoId, anywebH5)},
 					})
-				} else if strings.HasPrefix(messageBody.Content, "查口令") {
-					contents := strings.Split(messageBody.Content, "/")
+				} else if strings.HasPrefix(commands[1], "查口令") {
+					contents := strings.Split(commands[1], "/")
 					activity := contents[1]
 					config, err := models.FindPOAPActivityConfigById(activity)
 					if err != nil {
@@ -231,6 +240,7 @@ func DoDoPushActivity(req *PushReq) (*model.SendChannelMessageRsp, error) {
 		EndedTime:     config.EndedTime,
 		Contract:      config.ContractAddress,
 		AccountLimit:  req.AccountLimit,
+		ChannelId:     req.ChannelId,
 		AppId:         req.AppId,
 		Bot:           utils.DoDo,
 		RainbowUserId: req.RainbowUserId,

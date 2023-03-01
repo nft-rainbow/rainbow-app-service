@@ -108,7 +108,7 @@ var (
 
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"mint": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if !checkChannel(s, i.GuildID) {
+			if !checkDiscordChannel(i.ChannelID, i.GuildID) {
 				return
 			}
 			options := i.ApplicationCommandData().Options
@@ -170,7 +170,7 @@ var (
 
 		},
 		"bind": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if !checkChannel(s, i.GuildID) {
+			if !checkDiscordChannel(i.ChannelID, i.GuildID) {
 				return
 			}
 			options := i.ApplicationCommandData().Options
@@ -199,7 +199,7 @@ var (
 			})
 		},
 		"address": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if !checkChannel(s, i.GuildID) {
+			if !checkDiscordChannel(i.ChannelID, i.GuildID) {
 				return
 			}
 			options := i.ApplicationCommandData().Options
@@ -218,7 +218,7 @@ var (
 			}
 		},
 		"command": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if !checkChannel(s, i.GuildID) {
+			if !checkDiscordChannel(i.ChannelID, i.GuildID) {
 				return
 			}
 			options := i.ApplicationCommandData().Options
@@ -249,13 +249,13 @@ var (
 			s.ChannelMessageSend(channel.ID, config.Command)
 		},
 		"guide": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if !checkChannel(s, i.GuildID) {
+			if !checkDiscordChannel(i.ChannelID, i.GuildID) {
 				return
 			}
 			s.ChannelMessageSend(i.ChannelID, fmt.Sprintf(i.Interaction.Member.User.Mention()+guide))
 		},
 		"create": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			if !checkChannel(s, i.GuildID) {
+			if !checkDiscordChannel(i.ChannelID, i.GuildID) {
 				return
 			}
 			s.ChannelMessageSend(i.ChannelID, fmt.Sprintf(i.Interaction.Member.User.Mention()+anywebH5))
@@ -380,6 +380,7 @@ func DiscordPushActivity(req *PushReq) (*discordgo.Message, error) {
 		AccountLimit:  req.AccountLimit,
 		Contract:      config.ContractAddress,
 		AppId:         req.AppId,
+		ChannelId:     req.ChannelId,
 		Bot:           utils.Discord,
 		RainbowUserId: req.RainbowUserId,
 	})
@@ -414,18 +415,21 @@ func createPushEmbed(config *models.POAPActivityConfig, roles, content string, c
 	return embeds
 }
 
-func checkChannel(s *discordgo.Session, guildId string) bool {
-	channels, err := s.GuildChannels(guildId)
+func checkDiscordChannel(channelId, guildId string) bool {
+	push, err := models.FindPushInfoByServer(guildId)
 	if err != nil {
 		logrus.Errorf("Failed to find channel: %v", err.Error())
 		return false
 	}
-	for _, v := range channels {
-		if v.Name == channelName {
-			return true
-		}
+	if push.ChannelId != channelId {
+		return false
 	}
-	return false
+	//channels, err := s.GuildChannels(guildId)
+	//if err != nil {
+	//	logrus.Errorf("Failed to find channel: %v", err.Error())
+	//	return false
+	//}
+	return true
 }
 
 func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
