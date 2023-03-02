@@ -207,12 +207,12 @@ func getTokenInfo(id int32, token string) (string, string, int32, error) {
 		return "", "", 0, err
 	}
 
-	for *resp.Status != 1 && *resp.Hash == "" {
+	for *resp.Status == 0 {
 		resp, _, err = newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 		if err != nil {
 			return "", "", 0, err
 		}
-		time.Sleep(3 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 	return *resp.TokenId, *resp.Hash, resp.GetStatus(), nil
 }
