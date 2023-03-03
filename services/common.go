@@ -215,7 +215,7 @@ func getTokenInfo(id int32, token string) (string, string, int32, error) {
 		return "", "", 0, err
 	}
 
-	for *resp.Status != models.STATUS_SUCCESS && *resp.Hash == "" {
+	for *resp.Status == models.STATUS_INIT {
 		resp, _, err = newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 		if err != nil {
 			return "", "", 0, err
