@@ -121,7 +121,7 @@ func main() {
 	models.ConnectDB()
 	go services.SyncPOAPResultStatus()
 	go initDoDoBot()
-	go startGin()
-	initDiscordBot()
+	startGin()
+	//initDiscordBot()
 
 }
