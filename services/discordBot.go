@@ -379,7 +379,6 @@ func DiscordPushActivity(req *PushReq) (*discordgo.Message, error) {
 		EndedTime:     config.EndedTime,
 		AccountLimit:  req.AccountLimit,
 		Contract:      config.ContractAddress,
-		AppId:         req.AppId,
 		ChannelId:     req.ChannelId,
 		Bot:           utils.Discord,
 		RainbowUserId: req.RainbowUserId,
@@ -454,6 +453,32 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		logrus.Errorf("Failed to create channel: %v", err.Error())
 		return
 	}
+}
+
+func GetDiscordChannels(s *discordgo.Session, guild string) ([]*discordgo.Channel, error) {
+	channels, err := s.GuildChannels(guild)
+	if err != nil {
+		return nil, err
+	}
+
+	return channels, nil
+}
+
+func GetDiscordRoles(s *discordgo.Session, guild string) ([]*discordgo.Role, error) {
+	roles, err := s.GuildRoles(guild)
+	if err != nil {
+		return nil, err
+	}
+
+	return roles, nil
+}
+
+func CheckGuildIsActive(s *discordgo.Session, guild string) bool {
+	_, err := s.Guild(guild)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func InitSession() *discordgo.Session {

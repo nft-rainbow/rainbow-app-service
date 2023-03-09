@@ -125,6 +125,39 @@ func GetDoDoIslandInfo(islandId string) (st *dodoModel.GetIslandInfoRsp, err err
 	return info, err
 }
 
+func FindAuthUserServers(offset, limit, userId int, bot uint) (*models.UserServerQueryResult, error) {
+	var items []*models.UserServer
+	var cond models.UserServer
+	cond.RainbowUserId = int32(userId)
+	cond.Bot = bot
+
+	var count int64
+	if err := models.GetDB().Find(&items).Where(cond).Count(&count).Error; err != nil {
+		return nil, err
+	}
+
+	if err := models.GetDB().Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
+		return nil, err
+	}
+
+	if bot == utils.DoDo {
+		for i := range items {
+			if !CheckIslandIsActive(GetInstance(), items[i].ServerId) {
+				models.GetDB().Delete(&items[i])
+				items = append(items[:i], items[i+1:]...)
+			}
+		}
+	} else if bot == utils.Discord {
+		for i := range items {
+			if !CheckGuildIsActive(GetSession(), items[i].ServerId) {
+				models.GetDB().Delete(&items[i])
+				items = append(items[:i], items[i+1:]...)
+			}
+		}
+	}
+	return &models.UserServerQueryResult{count, items}, nil
+}
+
 func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
 	tokenId, hash, status, err := getTokenInfo(id, middlewares.PrefixToken(token))
 	if err != nil {

@@ -69,12 +69,25 @@ type PushInfo struct {
 	Bot           uint   `gorm:"type:integer" json:"bot"`
 	Contract      string `gorm:"type:string" json:"contract"`
 	RainbowUserId int32  `gorm:"type:integer" json:"rainbow_user_id"`
-	AppId         int32  `gorm:"index" json:"app_id"`
+}
+
+type UserServer struct {
+	BaseModel
+	ServerId      string `gorm:"type:varchar(256);index" json:"server_id" binding:"required"`
+	ServerName    string `gorm:"type:varchar(256)" json:"server_name"`
+	RainbowUserId int32  `gorm:"type:integer" json:"rainbow_user_id"`
+	UserId        int32  `gorm:"type:integer" json:"user_id"`
+	Bot           uint   `gorm:"type:integer" json:"bot" binding:"required"`
 }
 
 type PushInfoQueryResult struct {
 	Count int64       `json:"count"`
 	Items []*PushInfo `json:"items"`
+}
+
+type UserServerQueryResult struct {
+	Count int64         `json:"count"`
+	Items []*UserServer `json:"items"`
 }
 
 type DiscordActivityQueryResult struct {
@@ -116,11 +129,10 @@ func FindPushInfoByServer(serverId string) (*PushInfo, error) {
 	return &res, err
 }
 
-func FindAndCountPushInfo(offset, limit, appId, userId int, bot uint) (*PushInfoQueryResult, error) {
+func FindAndCountPushInfo(offset, limit, userId int, bot uint) (*PushInfoQueryResult, error) {
 	var items []*PushInfo
 	var cond PushInfo
 	cond.RainbowUserId = int32(userId)
-	cond.AppId = int32(appId)
 	cond.Bot = bot
 
 	var count int64
