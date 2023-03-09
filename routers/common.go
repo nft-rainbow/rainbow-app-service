@@ -7,7 +7,6 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
-	"strconv"
 )
 
 // @Tags        CustomMint
@@ -75,6 +74,29 @@ func pushActivity(c *gin.Context) {
 }
 
 // @Tags        POAP
+// @ID          BindServerInfo
+// @Summary     Bind Server Info
+// @Description Bind Server Info
+// @security    ApiKeyAuth
+// @Produce     json
+// @Param       user_server     body     models.UserServer    true "user_server"
+// @Success     200           {object} string "success"
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/server [post]
+func bindServerInfo(c *gin.Context) {
+	var req *models.UserServer
+	if err := c.ShouldBind(&req); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+
+	req.RainbowUserId = int32(GetIdFromJwtClaim(c))
+
+	res := models.GetDB().Create(&req)
+	ginutils.RenderResp(c, "success", res.Error)
+}
+
+// @Tags        POAP
 // @ID          GetPush
 // @Summary     Get Pushes List
 // @Description Get Pushes List
@@ -84,15 +106,9 @@ func pushActivity(c *gin.Context) {
 // @Param       bot           path     string   true "bot"
 // @Success     200           {object} models.PushInfoQueryResult
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/push/{app_id}/{bot} [get]
+// @Router      /poap/activity/push/{bot} [get]
 func getPushes(c *gin.Context) {
 	pagination, err := GetPagination(c)
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
-		return
-	}
-	appIdStr := c.Param("app_id")
-	appId, err := strconv.Atoi(appIdStr)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
 		return
@@ -105,6 +121,98 @@ func getPushes(c *gin.Context) {
 	} else {
 		bot = utils.DoDo
 	}
-	resp, err := models.FindAndCountPushInfo(pagination.Offset(), pagination.Limit, appId, int(GetIdFromJwtClaim(c)), bot)
+	resp, err := models.FindAndCountPushInfo(pagination.Offset(), pagination.Limit, int(GetIdFromJwtClaim(c)), bot)
+	ginutils.RenderResp(c, resp, err)
+}
+
+// @Tags        POAP
+// @ID          GetServers
+// @Summary     Get Server List
+// @Description Get Server List
+// @security    ApiKeyAuth
+// @Produce     json
+// @Param       bot           path     string   true "bot"
+// @Success     200           {object} models.UserServerQueryResult
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/servers/{bot} [get]
+func getServers(c *gin.Context) {
+	pagination, err := GetPagination(c)
+	if err != nil {
+		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
+		return
+	}
+
+	botStr := c.Param("bot")
+	var bot uint
+	if botStr == "discord" {
+		bot = utils.Discord
+	} else {
+		bot = utils.DoDo
+	}
+	resp, err := services.FindAuthUserServers(pagination.Offset(), pagination.Limit, int(GetIdFromJwtClaim(c)), bot)
+	ginutils.RenderResp(c, resp, err)
+}
+
+// @Tags        POAP
+// @ID          GetDiscordChannels
+// @Summary     Get Discord Channels
+// @Description Get Discord Channels
+// @security    ApiKeyAuth
+// @Produce     json
+// @Param       bot           path     string   true "guild_id"
+// @Success     200           {array} model.Channel
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/channels/discord/{guild_id} [get]
+func getDiscordChannels(c *gin.Context) {
+	guild := c.Param("guild_id")
+	resp, err := services.GetDiscordChannels(services.GetSession(), guild)
+	ginutils.RenderResp(c, resp, err)
+}
+
+// @Tags        POAP
+// @ID          GetDiscordRoles
+// @Summary     Get Discord Roles
+// @Description Get Discord Roles
+// @security    ApiKeyAuth
+// @Produce     json
+// @Param       bot           path     string   true "guild_id"
+// @Success     200           {array} model.Role
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/roles/discord/{guild_id} [get]
+func getDiscordRoles(c *gin.Context) {
+	guild := c.Param("guild_id")
+	resp, err := services.GetDiscordRoles(services.GetSession(), guild)
+	ginutils.RenderResp(c, resp, err)
+}
+
+// @Tags        POAP
+// @ID          GetDoDoChannels
+// @Summary     Get DoDo Channels
+// @Description Get DoDo Channels
+// @security    ApiKeyAuth
+// @Produce     json
+// @Param       bot           path     string   true "island_id"
+// @Success     200           {array} model.Channel
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/channels/dodo/{island_id} [get]
+func getDoDoChannels(c *gin.Context) {
+	guild := c.Param("island_id")
+	resp, err := services.GetDoDoChannels(services.GetInstance(), guild)
+	ginutils.RenderResp(c, resp, err)
+}
+
+// @Tags        POAP
+// @ID          GetDoDoRoles
+// @Summary     Get DoDo Roles
+// @Description Get DoDo Roles
+// @security    ApiKeyAuth
+// @Produce     json
+// @Param       bot           path     string   true "island_id"
+// @Success     200           {array} model.Role
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/roles/dodo/{island_id} [get]
+func getDoDoRoles(c *gin.Context) {
+	guild := c.Param("island_id")
+	resp, err := services.GetDoDoRoles(services.GetInstance(), guild)
 	ginutils.RenderResp(c, resp, err)
 }

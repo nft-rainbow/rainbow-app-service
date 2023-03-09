@@ -241,7 +241,6 @@ func DoDoPushActivity(req *PushReq) (*model.SendChannelMessageRsp, error) {
 		Contract:      config.ContractAddress,
 		AccountLimit:  req.AccountLimit,
 		ChannelId:     req.ChannelId,
-		AppId:         req.AppId,
 		Bot:           utils.DoDo,
 		RainbowUserId: req.RainbowUserId,
 	})
@@ -273,6 +272,37 @@ func checkSocialLimit(serverId, userId, activity string, socialType int) error {
 		return fmt.Errorf("The userId has exceeded the account limit")
 	}
 	return nil
+}
+
+func CheckIslandIsActive(instance *client.Client, islandId string) bool {
+	_, err := (*instance).GetChannelList(context.Background(), &model.GetChannelListReq{
+		IslandId: islandId,
+	})
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+func GetDoDoChannels(instance *client.Client, islandId string) ([]*model.ChannelElement, error) {
+	channels, err := (*instance).GetChannelList(context.Background(), &model.GetChannelListReq{
+		IslandId: islandId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return channels, nil
+}
+
+func GetDoDoRoles(instance *client.Client, islandId string) ([]*model.RoleElement, error) {
+	channels, err := (*instance).GetRoleList(context.Background(), &model.GetRoleListReq{
+		IslandId: islandId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return channels, nil
 }
 
 func checkDoDoChannels(instance *client.Client, islandId string) bool {
