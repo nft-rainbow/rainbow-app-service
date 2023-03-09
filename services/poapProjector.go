@@ -89,6 +89,9 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		oldConfig.ContractID = config.ContractID
 	}
 
+	if len(config.NFTConfigs) != 0 {
+		models.GetDB().Delete(&oldConfig.NFTConfigs)
+	}
 	oldConfig.NFTConfigs = config.NFTConfigs
 	oldConfig.AppName = config.AppName
 	oldConfig.ActivityType = config.ActivityType
@@ -99,6 +102,9 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 	oldConfig.ActivityPictureURL = config.ActivityPictureURL
 	oldConfig.Name = config.Name
 	oldConfig.Description = config.Description
+	if len(config.WhiteListInfos) != 0 {
+		models.GetDB().Delete(&oldConfig.WhiteListInfos)
+	}
 	oldConfig.WhiteListInfos = config.WhiteListInfos
 
 	if oldConfig.NFTConfigs != nil {
