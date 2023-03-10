@@ -52,6 +52,7 @@ func ConnectDB() {
 	db.AutoMigrate(&NFTConfig{})
 	db.AutoMigrate(&MetadataAttribute{})
 	db.AutoMigrate(&PushInfo{})
+	db.AutoMigrate(&UserServer{})
 }
 
 func GetDB() *gorm.DB {
