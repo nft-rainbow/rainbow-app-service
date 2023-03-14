@@ -89,8 +89,56 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		oldConfig.ContractID = config.ContractID
 	}
 
-	if len(config.NFTConfigs) != 0 {
-		models.GetDB().Delete(&oldConfig.NFTConfigs)
+	// Update NFTConfigs
+	for _, newNFTConfig := range config.NFTConfigs {
+		found := false
+		for i, nftConfig := range oldConfig.NFTConfigs {
+			if nftConfig.ID == newNFTConfig.ID {
+				found = true
+				if len(newNFTConfig.MetadataAttributes) > 0 {
+					// Update MetadataAttributes
+					for _, newMetadataAttribute := range newNFTConfig.MetadataAttributes {
+						maFound := false
+						for j, metadataAttribute := range nftConfig.MetadataAttributes {
+							if metadataAttribute.ID == newMetadataAttribute.ID {
+								maFound = true
+								oldConfig.NFTConfigs[i].MetadataAttributes[j].Name = newMetadataAttribute.Name
+								oldConfig.NFTConfigs[i].MetadataAttributes[j].TraitType = newMetadataAttribute.TraitType
+								oldConfig.NFTConfigs[i].MetadataAttributes[j].DisplayType = newMetadataAttribute.DisplayType
+								oldConfig.NFTConfigs[i].MetadataAttributes[j].Value = newMetadataAttribute.Value
+							}
+						}
+						if !maFound {
+							// Create new MetadataAttribute
+							newMetadataAttribute.NFTConfigID = nftConfig.ID
+							oldConfig.NFTConfigs[i].MetadataAttributes = append(oldConfig.NFTConfigs[i].MetadataAttributes, newMetadataAttribute)
+						}
+
+					}
+				}
+			}
+		}
+		if !found {
+			// Create new NFTConfig
+			newNFTConfig.POAPActivityConfigID = oldConfig.ID
+			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs, newNFTConfig)
+		}
+	}
+
+	// Delete NFTConfigs
+	for i := len(oldConfig.NFTConfigs) - 1; i >= 0; i-- {
+		found := false
+		for _, newNFTConfig := range config.NFTConfigs {
+			if oldConfig.NFTConfigs[i].ID == newNFTConfig.ID {
+				found = true
+				break
+			}
+		}
+		if !found {
+			// Delete NFTConfig
+			models.GetDB().Delete(&oldConfig.NFTConfigs[i])
+			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs[:i], oldConfig.NFTConfigs[i+1:]...)
+		}
 	}
 	oldConfig.NFTConfigs = config.NFTConfigs
 	oldConfig.AppName = config.AppName
@@ -133,7 +181,6 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 				}
 				return err
 			})
-
 		}
 	}
 
