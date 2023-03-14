@@ -96,6 +96,10 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		for i, nftConfig := range oldConfig.NFTConfigs {
 			if nftConfig.ID == newNFTConfig.ID {
 				found = true
+				oldConfig.NFTConfigs[i].Probability = newNFTConfig.Probability
+				oldConfig.NFTConfigs[i].Name = newNFTConfig.Name
+				oldConfig.NFTConfigs[i].ImageURL = newNFTConfig.ImageURL
+
 				if len(newNFTConfig.MetadataAttributes) > 0 {
 					// Update MetadataAttributes
 					for _, newMetadataAttribute := range newNFTConfig.MetadataAttributes {
