@@ -149,6 +149,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 	}
 
 	oldConfig.AppName = config.AppName
+	oldConfig.MaxMintCount = config.MaxMintCount
 	oldConfig.ActivityType = config.ActivityType
 	oldConfig.Command = config.Command
 	oldConfig.StartedTime = config.StartedTime
