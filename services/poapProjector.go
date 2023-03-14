@@ -72,6 +72,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 	if err != nil {
 		return nil, err
 	}
+
 	if oldConfig.ContractID == 0 || config.ContractID != oldConfig.ContractID {
 		token, err := middlewares.GenPOAPOpenJWTByRainbowUserId(*oldConfig)
 		if err != nil {
@@ -106,6 +107,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 								oldConfig.NFTConfigs[i].MetadataAttributes[j].TraitType = newMetadataAttribute.TraitType
 								oldConfig.NFTConfigs[i].MetadataAttributes[j].DisplayType = newMetadataAttribute.DisplayType
 								oldConfig.NFTConfigs[i].MetadataAttributes[j].Value = newMetadataAttribute.Value
+								models.GetDB().Save(oldConfig.NFTConfigs[i].MetadataAttributes[j])
 							}
 						}
 						if !maFound {
@@ -139,8 +141,9 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 			models.GetDB().Delete(&oldConfig.NFTConfigs[i])
 			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs[:i], oldConfig.NFTConfigs[i+1:]...)
 		}
+		models.GetDB().Save(&oldConfig.NFTConfigs[i])
 	}
-	oldConfig.NFTConfigs = config.NFTConfigs
+
 	oldConfig.AppName = config.AppName
 	oldConfig.ActivityType = config.ActivityType
 	oldConfig.Command = config.Command
@@ -184,9 +187,11 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		}
 	}
 
-	models.GetDB().Save(&oldConfig)
+	res := models.GetDB().Updates(&oldConfig)
 
-	return oldConfig, nil
+	config, _ = models.FindPOAPActivityConfigById(config.ActivityID)
+
+	return oldConfig, res.Error
 }
 
 func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {

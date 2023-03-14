@@ -108,14 +108,11 @@ func FindPOAPActivityConfigById(id string) (*POAPActivityConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = db.Preload("WhiteListInfos").Find(&item).Error
+	err = db.Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Find(&item).Error
 	if err != nil {
 		return nil, err
 	}
-	err = db.Preload("NFTConfigs").Find(&item).Error
-	if err != nil {
-		return nil, err
-	}
+
 	return &item, err
 }
 
