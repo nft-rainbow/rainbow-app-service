@@ -90,6 +90,8 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		oldConfig.ContractID = config.ContractID
 	}
 
+	tmp := make([]models.NFTConfig, 0)
+
 	// Update NFTConfigs
 	for _, newNFTConfig := range config.NFTConfigs {
 		found := false
@@ -142,13 +144,18 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 					}
 				}
 			}
-
 		}
+
 		if !found {
 			// Create new NFTConfig
 			newNFTConfig.POAPActivityConfigID = oldConfig.ID
-			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs, newNFTConfig)
+			//oldConfig.NFTConfigs = append(oldConfig.NFTConfigs, newNFTConfig)
+			tmp = append(tmp, newNFTConfig)
 		}
+	}
+
+	for i := range tmp {
+		oldConfig.NFTConfigs = append(oldConfig.NFTConfigs, tmp[i])
 	}
 
 	// Delete NFTConfigs
