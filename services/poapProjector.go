@@ -111,7 +111,6 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 								oldConfig.NFTConfigs[i].MetadataAttributes[j].TraitType = newMetadataAttribute.TraitType
 								oldConfig.NFTConfigs[i].MetadataAttributes[j].DisplayType = newMetadataAttribute.DisplayType
 								oldConfig.NFTConfigs[i].MetadataAttributes[j].Value = newMetadataAttribute.Value
-								models.GetDB().Save(oldConfig.NFTConfigs[i].MetadataAttributes[j])
 							}
 						}
 						if !maFound {
@@ -121,21 +120,26 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 						}
 
 					}
+					for j := len(oldConfig.NFTConfigs[i].MetadataAttributes) - 1; j >= 0; j-- {
+						maFound := false
+						for _, newMetadataAttribute := range newNFTConfig.MetadataAttributes {
+							if oldConfig.NFTConfigs[i].MetadataAttributes[j].ID == newMetadataAttribute.ID {
+								maFound = true
+								break
+							}
+						}
+						if !maFound {
+							// Delete MetadataAttribute
+							models.GetDB().Delete(&oldConfig.NFTConfigs[i].MetadataAttributes[j])
+							oldConfig.NFTConfigs[i].MetadataAttributes = append(oldConfig.NFTConfigs[i].MetadataAttributes[:j], oldConfig.NFTConfigs[i].MetadataAttributes[j+1:]...)
+							continue
+						}
+						models.GetDB().Save(&oldConfig.NFTConfigs[i].MetadataAttributes[j])
+					}
 				}
 			}
-		}
 
-		for _, nftConfig := range oldConfig.NFTConfigs {
-			for i, metadataAttribute := range nftConfig.MetadataAttributes {
-				// Check if MetadataAttribute needs to be deleted
-				if i >= len(newNFTConfig.MetadataAttributes) {
-					models.GetDB().Delete(&metadataAttribute)
-					nftConfig.MetadataAttributes = append(nftConfig.MetadataAttributes[:i], nftConfig.MetadataAttributes[i+1:]...)
-					continue
-				}
-			}
 		}
-
 		if !found {
 			// Create new NFTConfig
 			newNFTConfig.POAPActivityConfigID = oldConfig.ID
