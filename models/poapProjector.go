@@ -125,11 +125,11 @@ func FindAndCountPOAPActivity(id uint, offset int, limit int, name, activity, co
 	cond.ContractAddress = contract
 
 	var count int64
-	if err := db.Model(&POAPActivityConfig{}).Where(cond).Count(&count).Error; err != nil {
+	if err := db.Model(&POAPActivityConfig{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond).Count(&count).Error; err != nil {
 		return nil, err
 	}
 
-	if err := db.Model(&POAPActivityConfig{}).Where(cond).Offset(offset).Limit(limit).
+	if err := db.Model(&POAPActivityConfig{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond).Offset(offset).Limit(limit).
 		Find(&items).Error; err != nil {
 		return nil, err
 	}

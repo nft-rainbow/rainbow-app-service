@@ -144,6 +144,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 			// Delete NFTConfig
 			models.GetDB().Delete(&oldConfig.NFTConfigs[i])
 			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs[:i], oldConfig.NFTConfigs[i+1:]...)
+			continue
 		}
 		models.GetDB().Save(&oldConfig.NFTConfigs[i])
 	}
@@ -192,9 +193,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		}
 	}
 
-	res := models.GetDB().Updates(&oldConfig)
-
-	config, _ = models.FindPOAPActivityConfigById(config.ActivityID)
+	res := models.GetDB().Save(&oldConfig)
 
 	return oldConfig, res.Error
 }
