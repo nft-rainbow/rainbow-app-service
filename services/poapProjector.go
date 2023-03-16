@@ -43,6 +43,9 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POA
 	}
 
 	config.ActivityID = poapId
+	if config.Command != "" {
+		config.IsCommand = true
+	}
 
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
@@ -183,6 +186,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 	oldConfig.AppName = config.AppName
 	oldConfig.MaxMintCount = config.MaxMintCount
 	oldConfig.Command = config.Command
+	oldConfig.IsCommand = config.IsCommand
 	oldConfig.StartedTime = config.StartedTime
 	oldConfig.EndedTime = config.EndedTime
 	oldConfig.Amount = config.Amount
