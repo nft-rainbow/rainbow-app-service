@@ -54,6 +54,7 @@ func SetupRoutes(router *gin.Engine) {
 	poap.GET("/activity/result/:activity_id", getPOAPAResultList)
 	poap.GET("/activity/result/:activity_id/:id", getPOAPAResult)
 	poap.GET("/count/:address/:activity_id", getMintCount)
+	poap.POST("/anyweb/code", collectAnywebUserCode)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		poap.POST("/activity/push", pushActivity)

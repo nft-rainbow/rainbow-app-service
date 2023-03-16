@@ -4,6 +4,16 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"image"
+	"image/draw"
+	_ "image/gif"
+	"image/jpeg"
+	_ "image/png"
+	"net/http"
+	"path"
+	"strings"
+	"time"
+
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/bwmarrin/discordgo"
 	dodoModel "github.com/dodo-open/dodo-open-go/model"
@@ -15,15 +25,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
-	"image"
-	"image/draw"
-	_ "image/gif"
-	"image/jpeg"
-	_ "image/png"
-	"net/http"
-	"path"
-	"strings"
-	"time"
 )
 
 func bindCFXAddress(req *models.BindCFX, flag string) error {
@@ -374,7 +375,7 @@ func newClient() *openapiclient.APIClient {
 func SyncPOAPResultStatus() {
 	logrus.Info("start task for syncing poap result status")
 	for {
-		var results []*models.POAPResult
+		var results []*models.POAPResult = make([]*models.POAPResult, 0)
 		models.GetDB().Where("status = ?", models.STATUS_INIT).Limit(100).Find(&results)
 		if len(results) == 0 {
 			time.Sleep(time.Second * 5)

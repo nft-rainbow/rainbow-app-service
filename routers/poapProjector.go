@@ -259,3 +259,30 @@ func getMintCount(c *gin.Context) {
 	resp, err = services.GetMintCount(poapId, address)
 	ginutils.RenderResp(c, resp, err)
 }
+
+type UserAnywebCode struct {
+	Code    string `json:"code"`
+	Address string `json:"address"`
+}
+
+// @Tags        POAP
+// @ID          CollectUserAnywebCode
+// @Summary     Collect user code so backend can get user phone from anyweb
+// @Description Collect user code so backend can get user phone from anyweb
+// @security    ApiKeyAuth
+// @Produce     json
+// @Success     200           {object} int
+// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/anyweb/code [POST]
+func collectAnywebUserCode(c *gin.Context) {
+	var config UserAnywebCode
+	if err := c.ShouldBind(&config); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+
+	err := services.GetAnywebUserInfo(config.Address, config.Code)
+
+	ginutils.RenderResp(c, map[string]string{"message": "success"}, err)
+}

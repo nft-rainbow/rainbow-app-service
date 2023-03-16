@@ -53,6 +53,8 @@ func ConnectDB() {
 	db.AutoMigrate(&MetadataAttribute{})
 	db.AutoMigrate(&PushInfo{})
 	db.AutoMigrate(&UserServer{})
+	db.AutoMigrate(&AnywebUser{})
+	db.AutoMigrate(&PhoneWhiteList{})
 }
 
 func GetDB() *gorm.DB {

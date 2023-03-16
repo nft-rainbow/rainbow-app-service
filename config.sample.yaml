@@ -37,3 +37,8 @@ oss:
 url:
   activity: https://apps.nftrainbow.cn/
 ipLimitEveryday: 100
+anyweb:
+  appid: 
+  secret: 
+changandao:
+  activityId: 
