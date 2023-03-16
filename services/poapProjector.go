@@ -22,7 +22,6 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -73,7 +72,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		return nil, err
 	}
 
-	if oldConfig.ContractID == 0 || config.ContractID != oldConfig.ContractID {
+	if config.ContractID != oldConfig.ContractID {
 		token, err := middlewares.GenPOAPOpenJWTByRainbowUserId(*oldConfig)
 		if err != nil {
 			return nil, err
@@ -90,100 +89,99 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		oldConfig.ContractID = config.ContractID
 	}
 
-	tmp := make([]models.NFTConfig, 0)
+	// Create a map of oldConfig.NFTConfigs for fast searching
+	oldNFTConfigsMap := make(map[uint]*models.NFTConfig)
+	newNFTConfigsMap := make(map[uint]*models.NFTConfig)
 
-	// Update NFTConfigs
-	for _, newNFTConfig := range config.NFTConfigs {
-		found := false
-		for i, nftConfig := range oldConfig.NFTConfigs {
-			if nftConfig.ID == newNFTConfig.ID {
-				found = true
-				oldConfig.NFTConfigs[i].Probability = newNFTConfig.Probability
-				oldConfig.NFTConfigs[i].Name = newNFTConfig.Name
-				oldConfig.NFTConfigs[i].ImageURL = newNFTConfig.ImageURL
+	for i, nftConfig := range oldConfig.NFTConfigs {
+		oldNFTConfigsMap[nftConfig.ID] = &oldConfig.NFTConfigs[i]
+	}
 
-				if len(newNFTConfig.MetadataAttributes) > 0 {
-					// Update MetadataAttributes
-					for _, newMetadataAttribute := range newNFTConfig.MetadataAttributes {
-						maFound := false
-						for j, metadataAttribute := range nftConfig.MetadataAttributes {
-							if metadataAttribute.ID == newMetadataAttribute.ID {
-								maFound = true
-								oldConfig.NFTConfigs[i].MetadataAttributes[j].Name = newMetadataAttribute.Name
-								oldConfig.NFTConfigs[i].MetadataAttributes[j].TraitType = newMetadataAttribute.TraitType
-								oldConfig.NFTConfigs[i].MetadataAttributes[j].DisplayType = newMetadataAttribute.DisplayType
-								oldConfig.NFTConfigs[i].MetadataAttributes[j].Value = newMetadataAttribute.Value
-							}
-						}
-						if !maFound {
-							// Create new MetadataAttribute
-							newMetadataAttribute.NFTConfigID = nftConfig.ID
-							oldConfig.NFTConfigs[i].MetadataAttributes = append(oldConfig.NFTConfigs[i].MetadataAttributes, newMetadataAttribute)
-						}
-					}
-					for j := len(oldConfig.NFTConfigs[i].MetadataAttributes) - 1; j >= 0; j-- {
-						maFound := false
-						for _, newMetadataAttribute := range newNFTConfig.MetadataAttributes {
-							if oldConfig.NFTConfigs[i].MetadataAttributes[j].ID == newMetadataAttribute.ID {
-								maFound = true
-								break
-							}
-						}
-						if !maFound {
-							// Delete MetadataAttribute
-							models.GetDB().Delete(&oldConfig.NFTConfigs[i].MetadataAttributes[j])
-							oldConfig.NFTConfigs[i].MetadataAttributes = append(oldConfig.NFTConfigs[i].MetadataAttributes[:j], oldConfig.NFTConfigs[i].MetadataAttributes[j+1:]...)
-							continue
-						}
-						models.GetDB().Save(&oldConfig.NFTConfigs[i].MetadataAttributes[j])
-					}
-				} else {
-					for j, attribute := range oldConfig.NFTConfigs[i].MetadataAttributes {
-						models.GetDB().Delete(&attribute)
-						oldConfig.NFTConfigs[i].MetadataAttributes = append(oldConfig.NFTConfigs[i].MetadataAttributes[:j], oldConfig.NFTConfigs[i].MetadataAttributes[j+1:]...)
-					}
-				}
-			}
-		}
-
-		if !found {
-			// Create new NFTConfig
-			newNFTConfig.POAPActivityConfigID = oldConfig.ID
-			//oldConfig.NFTConfigs = append(oldConfig.NFTConfigs, newNFTConfig)
-			tmp = append(tmp, newNFTConfig)
+	for i, nftConfig := range config.NFTConfigs {
+		if nftConfig.ID != 0 {
+			newNFTConfigsMap[nftConfig.ID] = &config.NFTConfigs[i]
 		}
 	}
 
-	for i := range tmp {
-		oldConfig.NFTConfigs = append(oldConfig.NFTConfigs, tmp[i])
+	// Update NFTConfigs
+	for _, newNFTConfig := range config.NFTConfigs {
+		if oldNFTConfig, ok := oldNFTConfigsMap[newNFTConfig.ID]; ok {
+			// Update existing NFTConfig
+			oldNFTConfig.Probability = newNFTConfig.Probability
+			oldNFTConfig.Name = newNFTConfig.Name
+			oldNFTConfig.ImageURL = newNFTConfig.ImageURL
+
+			// Update MetadataAttributes
+			oldMetadataAttributesMap := make(map[uint]*models.MetadataAttribute)
+			newMetadataAttributesMap := make(map[uint]*models.MetadataAttribute)
+
+			for j, metadataAttribute := range oldNFTConfig.MetadataAttributes {
+				oldMetadataAttributesMap[metadataAttribute.ID] = &oldNFTConfig.MetadataAttributes[j]
+			}
+			for j, metadataAttribute := range newNFTConfig.MetadataAttributes {
+				if metadataAttribute.ID != 0 {
+					newMetadataAttributesMap[metadataAttribute.ID] = &newNFTConfig.MetadataAttributes[j]
+				}
+			}
+
+			if len(newNFTConfig.MetadataAttributes) > 0 {
+				for _, newMetadataAttribute := range newNFTConfig.MetadataAttributes {
+					if oldMetadataAttribute, ok := oldMetadataAttributesMap[newMetadataAttribute.ID]; ok {
+						// Update existing MetadataAttribute
+						oldMetadataAttribute.Name = newMetadataAttribute.Name
+						oldMetadataAttribute.TraitType = newMetadataAttribute.TraitType
+						oldMetadataAttribute.DisplayType = newMetadataAttribute.DisplayType
+						oldMetadataAttribute.Value = newMetadataAttribute.Value
+					} else {
+						// Create new MetadataAttribute
+						newMetadataAttribute.NFTConfigID = newNFTConfig.ID
+						oldNFTConfig.MetadataAttributes = append(oldNFTConfig.MetadataAttributes, newMetadataAttribute)
+					}
+				}
+				for j := len(oldNFTConfig.MetadataAttributes) - 1; j >= 0; j-- {
+					if oldNFTConfig.MetadataAttributes[j].ID == 0 {
+						models.GetDB().Save(&oldNFTConfig.MetadataAttributes[j])
+						continue
+					}
+					if _, ok := newMetadataAttributesMap[oldNFTConfig.MetadataAttributes[j].ID]; !ok {
+						// Delete MetadataAttribute
+						models.GetDB().Delete(&oldNFTConfig.MetadataAttributes[j])
+						oldNFTConfig.MetadataAttributes = append(oldNFTConfig.MetadataAttributes[:j], oldNFTConfig.MetadataAttributes[j+1:]...)
+					}
+				}
+			} else {
+				for j, attribute := range oldNFTConfig.MetadataAttributes {
+					models.GetDB().Delete(&attribute)
+					oldNFTConfig.MetadataAttributes = append(oldNFTConfig.MetadataAttributes[:j], oldNFTConfig.MetadataAttributes[j+1:]...)
+				}
+			}
+
+		} else {
+			// Create new NFTConfig
+			newNFTConfig.POAPActivityConfigID = oldConfig.ID
+			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs, newNFTConfig)
+		}
 	}
 
 	// Delete NFTConfigs
 	for i := len(oldConfig.NFTConfigs) - 1; i >= 0; i-- {
-		found := false
-		for _, newNFTConfig := range config.NFTConfigs {
-			if oldConfig.NFTConfigs[i].ID == newNFTConfig.ID {
-				found = true
-				break
-			}
+		if oldConfig.NFTConfigs[i].ID == 0 {
+			models.GetDB().Save(&oldConfig.NFTConfigs[i])
+			continue
 		}
-		if !found {
+		if _, ok := newNFTConfigsMap[oldConfig.NFTConfigs[i].ID]; !ok {
 			// Delete NFTConfig
 			models.GetDB().Delete(&oldConfig.NFTConfigs[i])
 			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs[:i], oldConfig.NFTConfigs[i+1:]...)
-			continue
 		}
-		models.GetDB().Save(&oldConfig.NFTConfigs[i])
 	}
 
 	oldConfig.AppName = config.AppName
 	oldConfig.MaxMintCount = config.MaxMintCount
-	oldConfig.ActivityType = config.ActivityType
 	oldConfig.Command = config.Command
 	oldConfig.StartedTime = config.StartedTime
 	oldConfig.EndedTime = config.EndedTime
 	oldConfig.Amount = config.Amount
-	oldConfig.ActivityPictureURL = config.ActivityPictureURL
 	oldConfig.Name = config.Name
 	oldConfig.Description = config.Description
 	if len(config.WhiteListInfos) != 0 {
@@ -191,33 +189,16 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 	}
 	oldConfig.WhiteListInfos = config.WhiteListInfos
 
-	if oldConfig.NFTConfigs != nil {
-		deleteObjects := make([]string, 0)
-		for _, v := range oldConfig.NFTConfigs {
-			tmp := strings.Split(v.ImageURL, "/")
-			deleteObjects = append(deleteObjects, path.Join(viper.GetString("imagesDir.minted"), oldConfig.ActivityID, tmp[len(tmp)-1]))
-		}
-		bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
+	if oldConfig.ActivityPictureURL != config.ActivityPictureURL {
+		oldConfig.ActivityPictureURL = config.ActivityPictureURL
 		group := new(errgroup.Group)
-
 		group.Go(func() error {
-			_, err = bucket.DeleteObjects(deleteObjects)
+			err := generateActivityPoster(config)
 			if err != nil {
-				logrus.Errorf("Failed to delete old NFTConfigs for %v: %v \n", config.ActivityID, err.Error())
+				logrus.Errorf("Failed to generate poster for activity %v:%v \n", config.ActivityID, err.Error())
 			}
 			return err
 		})
-
-		for _, v := range config.NFTConfigs {
-			tmp := strings.Split(v.ImageURL, "/")
-			group.Go(func() error {
-				err = AddLogoAndUpload(v.ImageURL, tmp[len(tmp)-1], oldConfig.ActivityID)
-				if err != nil {
-					logrus.Errorf("Failed to add logo and upload new NFTConfigs for %v: %v \n", config.ActivityID, err.Error())
-				}
-				return err
-			})
-		}
 	}
 
 	res := models.GetDB().Save(&oldConfig)
@@ -390,15 +371,6 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	cache.Lock()
 	cache.Count += 1
 	cache.Unlock()
-
-	group := new(errgroup.Group)
-	group.Go(func() error {
-		err := generateResultPoster(item, config.Name)
-		if err != nil {
-			logrus.Errorf("Failed to generate poap result poster in activity %v for %v:%v \n", config.ActivityID, req.UserAddress, err.Error())
-		}
-		return err
-	})
 
 	return item, res.Error
 }
