@@ -5,16 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/disintegration/imaging"
-	"github.com/fogleman/gg"
-	"github.com/nft-rainbow/rainbow-app-service/middlewares"
-	"github.com/nft-rainbow/rainbow-app-service/models"
-	"github.com/nft-rainbow/rainbow-app-service/utils"
-	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
-	"github.com/sirupsen/logrus"
-	"github.com/skip2/go-qrcode"
-	"github.com/spf13/viper"
-	"golang.org/x/sync/errgroup"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
@@ -26,6 +16,17 @@ import (
 	"path"
 	"strconv"
 	"time"
+
+	"github.com/disintegration/imaging"
+	"github.com/fogleman/gg"
+	"github.com/nft-rainbow/rainbow-app-service/middlewares"
+	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/utils"
+	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
+	"github.com/sirupsen/logrus"
+	"github.com/skip2/go-qrcode"
+	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
 )
 
 type POAPRequest struct {
@@ -220,7 +221,7 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, fmt.Errorf("The activity has not opened the white list")
 	}
 
-	token, err := middlewares.GeneratePOAPOpenJWT(config.RainbowUserId, config.AppId)
+	token, err := middlewares.GenerateRainbowConsoleJWT(config.RainbowUserId, config.AppId)
 	if err != nil {
 		return nil, err
 	}
@@ -305,10 +306,10 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 	if len(config.WhiteListInfos) != 0 {
-		return nil, fmt.Errorf("The activity has opened the white list")
+		return nil, fmt.Errorf("the activity has opened the white list")
 	}
 
-	token, err := middlewares.GeneratePOAPOpenJWT(config.RainbowUserId, config.AppId)
+	token, err := middlewares.GenerateRainbowConsoleJWT(config.RainbowUserId, config.AppId)
 	if err != nil {
 		return nil, err
 	}
@@ -381,6 +382,9 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 
 func generateActivityPoster(config *models.POAPActivityConfig) error {
 	templateImg, err := gg.LoadImage("./assets/images/activityPoster.png")
+	if err != nil {
+		return err
+	}
 
 	dc := gg.NewContext(templateImg.Bounds().Dx(), templateImg.Bounds().Dy())
 	dc.DrawImage(templateImg, 0, 0)
@@ -397,6 +401,9 @@ func generateActivityPoster(config *models.POAPActivityConfig) error {
 	}
 
 	img, err := imaging.Decode(bytes.NewReader(imgData))
+	if err != nil {
+		return err
+	}
 	img = imaging.Fit(img, 1260, 1260, imaging.Lanczos)
 	dc.DrawImage(img, 120, 200)
 
@@ -452,6 +459,9 @@ func generateActivityPoster(config *models.POAPActivityConfig) error {
 	dc.EncodePNG(buf)
 
 	bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
+	if err != nil {
+		return err
+	}
 	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.activity"), config.ActivityID+".png"), buf); err != nil {
 		return err
 	}
@@ -686,8 +696,8 @@ func getPOAPId(address string, name string) (string, error) {
 	}
 	sum := hash.Sum(nil)
 
-	newYearId := hex.EncodeToString(sum)
-	return newYearId[:8], nil
+	pId := hex.EncodeToString(sum)
+	return pId[:8], nil
 }
 
 func checkAmount(poapId string, amount int32) error {

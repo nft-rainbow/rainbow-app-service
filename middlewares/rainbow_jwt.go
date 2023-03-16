@@ -196,7 +196,7 @@ func GenDoDoOpenJWTByRainbowUserId(id uint) (string, error) {
 	return tokenString, nil
 }
 
-func GeneratePOAPOpenJWT(userId, appId int32) (string, error) {
+func GenerateRainbowConsoleJWT(userId, appId int32) (string, error) {
 	kycType, err := getKycType(userId)
 	if err != nil {
 		return "", err

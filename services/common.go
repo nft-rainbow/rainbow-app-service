@@ -383,7 +383,7 @@ func SyncPOAPResultStatus() {
 		}
 		for _, v := range results {
 			//config, _ := models.FindPOAPActivityConfigById(v.ActivityID)
-			token, err := middlewares.GeneratePOAPOpenJWT(v.ProjectorId, v.AppId)
+			token, err := middlewares.GenerateRainbowConsoleJWT(v.ProjectorId, v.AppId)
 			if err != nil {
 				logrus.Errorf("Failed to generate open JWT for %v:%v \n", v.ConfigID, err.Error())
 			}

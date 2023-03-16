@@ -196,7 +196,7 @@ func updatePOAPConfig(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/result/{activity_id} [get]
-func getPOAPAResultList(c *gin.Context) {
+func getPOAPResultList(c *gin.Context) {
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
@@ -223,7 +223,7 @@ func getPOAPAResultList(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/result/{activity_id}/{id} [get]
-func getPOAPAResult(c *gin.Context) {
+func getPOAPResultDetail(c *gin.Context) {
 	poapId := c.Param("activity_id")
 	if poapId == "" {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
