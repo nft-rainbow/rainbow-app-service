@@ -14,7 +14,6 @@ import (
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"image"
 	"image/draw"
@@ -382,7 +381,7 @@ func SyncPOAPResultStatus() {
 			continue
 		}
 		for _, v := range results {
-			config, _ := models.FindPOAPActivityConfigById(v.ActivityID)
+			//config, _ := models.FindPOAPActivityConfigById(v.ActivityID)
 			token, err := middlewares.GeneratePOAPOpenJWT(v.ProjectorId, v.AppId)
 			if err != nil {
 				logrus.Errorf("Failed to generate open JWT for %v:%v \n", v.ConfigID, err.Error())
@@ -395,14 +394,14 @@ func SyncPOAPResultStatus() {
 			v.TokenID = tokenId
 			v.Hash = hash
 			v.Status = status
-			group := new(errgroup.Group)
-			group.Go(func() error {
-				err := generateResultPoster(v, config.Name)
-				if err != nil {
-					logrus.Errorf("Failed to generate poap result poster in activity %v for %v:%v \n", v.ActivityID, v.Address, err.Error())
-				}
-				return err
-			})
+			//group := new(errgroup.Group)
+			//group.Go(func() error {
+			//	err := generateResultPoster(v, config.Name)
+			//	if err != nil {
+			//		logrus.Errorf("Failed to generate poap result poster in activity %v for %v:%v \n", v.ActivityID, v.Address, err.Error())
+			//	}
+			//	return err
+			//})
 			models.GetDB().Save(&v)
 		}
 	}

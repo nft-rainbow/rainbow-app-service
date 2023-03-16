@@ -16,6 +16,9 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -352,7 +355,6 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	item := &models.POAPResult{
 		ConfigID:    int32(config.ID),
 		Address:     req.UserAddress,
@@ -474,6 +476,9 @@ func generateResultPoster(result *models.POAPResult, name string) error {
 	}
 
 	img, err := imaging.Decode(bytes.NewReader(imgData))
+	if err != nil {
+		return err
+	}
 	img = imaging.Fit(img, 1260, 1260, imaging.Lanczos)
 	dc.DrawImage(img, 120, 200)
 
