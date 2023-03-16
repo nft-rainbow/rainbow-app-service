@@ -33,7 +33,7 @@ func TestGetAnywebAccessToken(t *testing.T) {
 	}
 	t.Log(refreshToken) */
 
-	userInfo, err := GetUserInfo(anywebAccessToken.AccessToken, anywebAccessToken.UnionId, []string{"baseInfo"})
+	userInfo, err := GetAnywebUserInfo(anywebAccessToken.AccessToken, anywebAccessToken.UnionId, []string{"baseInfo"})
 	if err != nil {
 		t.Error(err)
 	}
