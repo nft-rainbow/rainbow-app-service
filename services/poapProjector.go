@@ -132,6 +132,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 						oldMetadataAttribute.TraitType = newMetadataAttribute.TraitType
 						oldMetadataAttribute.DisplayType = newMetadataAttribute.DisplayType
 						oldMetadataAttribute.Value = newMetadataAttribute.Value
+						models.GetDB().Save(&oldMetadataAttribute)
 					} else {
 						// Create new MetadataAttribute
 						newMetadataAttribute.NFTConfigID = newNFTConfig.ID
@@ -155,7 +156,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 					oldNFTConfig.MetadataAttributes = append(oldNFTConfig.MetadataAttributes[:j], oldNFTConfig.MetadataAttributes[j+1:]...)
 				}
 			}
-
+			models.GetDB().Save(&oldNFTConfig)
 		} else {
 			// Create new NFTConfig
 			newNFTConfig.POAPActivityConfigID = oldConfig.ID
