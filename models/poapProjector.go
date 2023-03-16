@@ -17,7 +17,8 @@ type POAPActivityConfig struct {
 	ChainId            int32           `gorm:"type:int" json:"chain_id"`
 	ChainType          int32           `gorm:"type:int" json:"chain_type"`
 	ActivityType       uint            `gorm:"type:uint" json:"activity_type" binding:"required"`
-	Command            string          `gorm:"type:string" json:"command"`
+	Command            string          `gorm:"type:string" json:"command,omitempty"`
+	IsCommand          bool            `gorm:"type:bool" json:"is_command"`
 	EndedTime          int64           `gorm:"type:integer" json:"end_time" binding:"required"`
 	StartedTime        int64           `gorm:"type:integer" json:"start_time" binding:"required"`
 	RainbowUserId      int32           `gorm:"type:integer" json:"rainbow_user_id"`
