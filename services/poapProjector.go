@@ -355,6 +355,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	item := &models.POAPResult{
 		ConfigID:    int32(config.ID),
 		Address:     req.UserAddress,
@@ -365,8 +366,6 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		ProjectorId: config.RainbowUserId,
 		AppId:       config.AppId,
 	}
-
-	res := models.GetDB().Create(&item)
 	cache, err := models.InitCache(item)
 	if err != nil {
 		return nil, err
@@ -374,6 +373,8 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	cache.Lock()
 	cache.Count += 1
 	cache.Unlock()
+
+	res := models.GetDB().Create(&item)
 
 	return item, res.Error
 }
