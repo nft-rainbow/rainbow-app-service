@@ -47,6 +47,7 @@ type Metadata struct {
 type MetadataAttribute struct {
 	BaseModel
 	TraitType   string `gorm:"type:varchar(256)"  json:"trait_type"`
+	DisplayType string `gorm:"type:varchar(256)"  json:"display_type,omitempty"`
 	Value       string `gorm:"type:varchar(256)"  json:"value"`
 	NFTConfigID uint
 }
