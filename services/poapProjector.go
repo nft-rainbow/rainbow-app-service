@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"image"
 	_ "image/gif"
@@ -27,6 +28,7 @@ import (
 	"github.com/skip2/go-qrcode"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
 )
 
 type POAPRequest struct {
@@ -305,10 +307,9 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		ProjectorId: config.RainbowUserId,
 		AppId:       config.AppId,
 	}
-
 	res := models.GetDB().Create(&item)
 
-	cache, err := models.InitCache(item)
+	cache, err := models.InitCache(req.ActivityID)
 	if err != nil {
 		return nil, err
 	}
@@ -326,6 +327,19 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 	if len(config.WhiteListInfos) != 0 {
 		return nil, fmt.Errorf("the activity has opened the white list")
+	}
+
+	// phone whiteList logic check
+	if config.IsPhoneWhiteListOpened {
+		phoneInfo, err := models.FindAnywebUserByAddress(req.UserAddress)
+		if err == nil && len(phoneInfo.Phone) > 0 {
+			isInWhiteList := models.IsPhoneInWhiteList(req.ActivityID, phoneInfo.Phone)
+			if !isInWhiteList { // phone not in whitelist
+				return nil, errors.New("无领取资格")
+			}
+		} else if errors.Is(err, gorm.ErrRecordNotFound) { // not found phone info
+			return nil, errors.New("无领取资格")
+		}
 	}
 
 	token, err := middlewares.GenerateRainbowConsoleJWT(config.RainbowUserId, config.AppId)
@@ -348,8 +362,13 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 
 	var metadataURI *string
+	var nextTokenId uint64
 	var index int
-	if config.ActivityType == utils.SINGLE {
+	if req.ActivityID == viper.GetString("changAnDao.activityId") { // TMP code
+		nextTokenId = GetChangAnDaoNum() + 1
+		metaUri := utils.ChangAnDaoMetadataUriFromId(nextTokenId)
+		metadataURI = &metaUri
+	} else if config.ActivityType == utils.SINGLE {
 		metadataURI, err = createMetadata(config, token, 0)
 		if err != nil {
 			return nil, err
@@ -366,12 +385,20 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		}
 	}
 
-	resp, err := sendCustomMintRequest(middlewares.PrefixToken(token), openapiclient.ServicesCustomMintDto{
+	mintMeta := openapiclient.ServicesCustomMintDto{
 		Chain:           chain,
 		ContractAddress: config.ContractAddress,
 		MintToAddress:   req.UserAddress,
 		MetadataUri:     metadataURI,
-	})
+	}
+
+	if req.ActivityID == viper.GetString("changAnDao.activityId") { // TMP code
+		tokenIdStr := strconv.Itoa(int(nextTokenId))
+		mintMeta.TokenId = &tokenIdStr
+		IncreaseChangAnDaoNum()
+	}
+
+	resp, err := sendCustomMintRequest(middlewares.PrefixToken(token), mintMeta)
 	if err != nil {
 		return nil, err
 	}
@@ -386,15 +413,15 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		ProjectorId: config.RainbowUserId,
 		AppId:       config.AppId,
 	}
-	cache, err := models.InitCache(item)
+	res := models.GetDB().Create(&item)
+
+	cache, err := models.InitCache(req.ActivityID)
 	if err != nil {
 		return nil, err
 	}
 	cache.Lock()
 	cache.Count += 1
 	cache.Unlock()
-
-	res := models.GetDB().Create(&item)
 
 	return item, res.Error
 }
@@ -602,26 +629,40 @@ func GetMintCount(activityID, address string) (*int32, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := models.CountPOAPResultByAddress(address, activityID)
+	var count int32
+
+	// phone white list logic: if whiteList config opened and user not in whiteList then the mint count is 0
+	if config.IsPhoneWhiteListOpened {
+		phoneInfo, err := models.FindAnywebUserByAddress(address)
+		if err == nil && len(phoneInfo.Phone) > 0 { // TODO check the phone not found case
+			isInWhiteList := models.IsPhoneInWhiteList(activityID, phoneInfo.Phone)
+			if !isInWhiteList {
+				count = 0
+				return &count, nil
+			}
+		}
+	}
+
+	mintedCount, err := models.CountPOAPResultByAddress(address, activityID)
 	if err != nil {
 		return nil, err
 	}
-	var count int32
+
 	var remainedMinted int32
 	if config.MaxMintCount == -1 {
 		remainedMinted = -1
 	} else {
-		remainedMinted = int32(int64(config.MaxMintCount) - resp)
+		remainedMinted = int32(int64(config.MaxMintCount) - mintedCount)
 	}
 
 	if config.Amount == -1 {
 		count = remainedMinted
 	} else {
 		if remainedMinted == -1 {
-			count = config.Amount - int32(resp)
+			count = config.Amount - int32(mintedCount)
 		} else {
-			if config.Amount-int32(resp) < remainedMinted {
-				count = config.Amount - int32(resp)
+			if config.Amount-int32(mintedCount) < remainedMinted {
+				count = config.Amount - int32(mintedCount)
 			} else {
 				count = remainedMinted
 			}

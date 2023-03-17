@@ -112,3 +112,8 @@ func TomorrowBegin() time.Time {
 	t := time.Now().Add(time.Hour * 24)
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
+
+func ChangAnDaoMetadataUriFromId(id uint64) string {
+	metadataUri := fmt.Sprintf("https://nftrainbow.oss-cn-hangzhou.aliyuncs.com/events/ChangAnDaoMetadata/%d.json", id)
+	return metadataUri
+}

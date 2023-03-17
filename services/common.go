@@ -258,6 +258,15 @@ func getTokenInfo(id int32, token string) (string, string, int32, error) {
 	return *resp.TokenId, *resp.Hash, resp.GetStatus(), nil
 }
 
+func getMintDetail(id int32, token string) (string, string, int32, error) {
+	resp, _, err := newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
+	if err != nil {
+		return "", "", 0, err
+	}
+
+	return *resp.TokenId, *resp.Hash, resp.GetStatus(), nil
+}
+
 func getBurnInfo(id int32, token string) (int32, string, error) {
 	resp, _, err := newClient().BurnsApi.GetBurnDetail(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
@@ -382,19 +391,20 @@ func SyncPOAPResultStatus() {
 			continue
 		}
 		for _, v := range results {
-			//config, _ := models.FindPOAPActivityConfigById(v.ActivityID)
-			token, err := middlewares.GenerateRainbowConsoleJWT(v.ProjectorId, v.AppId)
+			jwtToken, err := middlewares.GenerateRainbowConsoleJWT(v.ProjectorId, v.AppId)
 			if err != nil {
 				logrus.Errorf("Failed to generate open JWT for %v:%v \n", v.ConfigID, err.Error())
+				continue
 			}
-			tokenId, hash, status, _ := getTokenInfo(v.TxID, middlewares.PrefixToken(token))
-			if status == models.STATUS_FAIL {
-				models.GetDB().Delete(&v)
+			tokenId, hash, status, err := getMintDetail(v.TxID, middlewares.PrefixToken(jwtToken))
+			if status == models.STATUS_INIT || err != nil {
 				continue
 			}
 			v.TokenID = tokenId
 			v.Hash = hash
 			v.Status = status
+			models.GetDB().Save(&v)
+			//config, _ := models.FindPOAPActivityConfigById(v.ActivityID)
 			//group := new(errgroup.Group)
 			//group.Go(func() error {
 			//	err := generateResultPoster(v, config.Name)
@@ -403,7 +413,6 @@ func SyncPOAPResultStatus() {
 			//	}
 			//	return err
 			//})
-			models.GetDB().Save(&v)
 		}
 	}
 

@@ -119,6 +119,7 @@ func initDoDoBot() {
 // @schemes  http https
 func main() {
 	models.ConnectDB()
+	services.InitChangAnDaoNum()
 	go services.SyncPOAPResultStatus()
 	// go initDoDoBot()
 	startGin()

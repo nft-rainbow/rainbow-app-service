@@ -6,27 +6,28 @@ import (
 
 type POAPActivityConfig struct {
 	BaseModel
-	ContractID         int32           `gorm:"type:integer" json:"contract_id"`
-	Amount             int32           `gorm:"type:integer" json:"amount" binding:"required"`
-	Name               string          `gorm:"type:string" json:"name" binding:"required"`
-	Description        string          `gorm:"type:string" json:"description" binding:"required"`
-	AppId              int32           `gorm:"index" json:"app_id" binding:"required"`
-	AppName            string          `gorm:"string" json:"app_name" binding:"required"`
-	ContractType       int32           `gorm:"type:int" json:"contract_type"`
-	ContractAddress    string          `gorm:"type:string" json:"contract_address"`
-	ChainId            int32           `gorm:"type:int" json:"chain_id"`
-	ChainType          int32           `gorm:"type:int" json:"chain_type"`
-	ActivityType       uint            `gorm:"type:uint" json:"activity_type" binding:"required"`
-	Command            string          `gorm:"type:string" json:"command,omitempty"`
-	IsCommand          bool            `gorm:"type:bool" json:"is_command"`
-	EndedTime          int64           `gorm:"type:integer" json:"end_time"`
-	StartedTime        int64           `gorm:"type:integer" json:"start_time"`
-	RainbowUserId      int32           `gorm:"type:integer" json:"rainbow_user_id"`
-	MaxMintCount       int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
-	ActivityID         string          `gorm:"type:string;index" json:"activity_id"`
-	ActivityPictureURL string          `gorm:"type:string" json:"activity_picture_url"`
-	WhiteListInfos     []WhiteListInfo `json:"white_list_infos"`
-	NFTConfigs         []NFTConfig     `json:"nft_configs"`
+	ContractID             int32           `gorm:"type:integer" json:"contract_id"`
+	Amount                 int32           `gorm:"type:integer" json:"amount" binding:"required"`
+	Name                   string          `gorm:"type:string" json:"name" binding:"required"`
+	Description            string          `gorm:"type:string" json:"description" binding:"required"`
+	AppId                  int32           `gorm:"index" json:"app_id" binding:"required"`
+	AppName                string          `gorm:"string" json:"app_name" binding:"required"`
+	ContractType           int32           `gorm:"type:int" json:"contract_type"`
+	ContractAddress        string          `gorm:"type:string" json:"contract_address"`
+	ChainId                int32           `gorm:"type:int" json:"chain_id"`
+	ChainType              int32           `gorm:"type:int" json:"chain_type"`
+	ActivityType           uint            `gorm:"type:uint" json:"activity_type" binding:"required"`
+	Command                string          `gorm:"type:string" json:"command,omitempty"`
+	IsCommand              bool            `gorm:"type:bool" json:"is_command"`
+	IsPhoneWhiteListOpened bool            `gorm:"type:bool;default:false" json:"is_phone_white_list_opened"`
+	EndedTime              int64           `gorm:"type:integer" json:"end_time" binding:"required"`
+	StartedTime            int64           `gorm:"type:integer" json:"start_time" binding:"required"`
+	RainbowUserId          int32           `gorm:"type:integer" json:"rainbow_user_id"`
+	MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
+	ActivityID             string          `gorm:"type:string;index" json:"activity_id"`
+	ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
+	WhiteListInfos         []WhiteListInfo `json:"white_list_infos"`
+	NFTConfigs             []NFTConfig     `json:"nft_configs"`
 }
 
 type NFTConfig struct {
@@ -159,7 +160,7 @@ func CountPOAPResult(poapId string) (int64, error) {
 	cond := &POAPResult{}
 	cond.ActivityID = poapId
 
-	cache, err := InitCache(cond)
+	cache, err := InitCache(poapId)
 	if err != nil {
 		return 0, err
 	}
@@ -168,17 +169,14 @@ func CountPOAPResult(poapId string) (int64, error) {
 }
 
 func CountPOAPResultBySocial(socialId, poapId string, socialType uint) (int64, error) {
-	cond := &POAPResult{}
-	cond.ActivityID = poapId
-	cond.SocialId = socialId
-	cond.SocialType = socialType
-
-	cache, err := InitCache(cond)
-	if err != nil {
-		return 0, err
+	cond := &POAPResult{
+		ActivityID: poapId,
+		SocialId:   socialId,
+		SocialType: socialType,
 	}
-
-	return cache.Count, nil
+	var count int64
+	err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error
+	return count, err
 }
 
 func CountPOAPResultByAddress(address, poapId string) (int64, error) {
@@ -223,20 +221,20 @@ func FindAndCountUnhandledPOAPResult(poapId string, offset, limit int, userAddre
 	return &POAPResultQueryResult{count, items}, nil
 }
 
-func InitCache(cond *POAPResult) (*POAPResultCountCache, error) {
+func InitCache(ActivityID string) (*POAPResultCountCache, error) {
 	var count int64
-	countCache, ok := Cache[cond.ActivityID]
+	countCache, ok := Cache[ActivityID]
 	if !ok {
 		countCache = &POAPResultCountCache{}
-		Cache[cond.ActivityID] = &POAPResultCountCache{}
+		Cache[ActivityID] = &POAPResultCountCache{}
 	}
 
 	if countCache.Count == 0 {
 		countCache.Lock()
-		if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
+		if err := db.Model(&POAPResult{}).Where(&POAPResult{ActivityID: ActivityID}).Count(&count).Error; err != nil {
 			return nil, err
 		}
-		Cache[cond.ActivityID].Count = count
+		Cache[ActivityID].Count = count
 		countCache.Unlock()
 	} else {
 		countCache.RLock()

@@ -2,10 +2,13 @@ package services
 
 import (
 	"errors"
+	"sync/atomic"
+
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
+	"github.com/spf13/viper"
 )
 
 func BindDiscordProjectConfig(config *models.DiscordCustomProjectConfig, id uint) error {
@@ -175,4 +178,21 @@ func discordCustomMint(req *models.CustomMintReq) (*openapiclient.ModelsMintTask
 	}
 
 	return resp, token, config.ContractID, err
+}
+
+// ChangeAnDao NFT counter
+var changAnDaoNum uint64
+
+func InitChangAnDaoNum() {
+	var count int64
+	models.GetDB().Model(&models.POAPResult{}).Where("activity_id = ? and status = ?", viper.GetString("changAnDao.activityId"), models.STATUS_INIT).Count(&count)
+	atomic.StoreUint64(&changAnDaoNum, uint64(count))
+}
+
+func IncreaseChangAnDaoNum() {
+	atomic.AddUint64(&changAnDaoNum, 1)
+}
+
+func GetChangAnDaoNum() uint64 {
+	return atomic.LoadUint64(&changAnDaoNum)
 }
