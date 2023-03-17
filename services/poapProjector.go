@@ -134,9 +134,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 				for _, newMetadataAttribute := range newNFTConfig.MetadataAttributes {
 					if oldMetadataAttribute, ok := oldMetadataAttributesMap[newMetadataAttribute.ID]; ok {
 						// Update existing MetadataAttribute
-						oldMetadataAttribute.Name = newMetadataAttribute.Name
 						oldMetadataAttribute.TraitType = newMetadataAttribute.TraitType
-						oldMetadataAttribute.DisplayType = newMetadataAttribute.DisplayType
 						oldMetadataAttribute.Value = newMetadataAttribute.Value
 						models.GetDB().Save(&oldMetadataAttribute)
 					} else {
@@ -650,22 +648,17 @@ func createMetadata(config *models.POAPActivityConfig, token string, index int) 
 	attributes := make([]openapiclient.ModelsExposedMetadataAttribute, 0)
 	for _, v := range config.NFTConfigs[index].MetadataAttributes {
 		attributes = append(attributes, openapiclient.ModelsExposedMetadataAttribute{
-			AttributeName: &v.Name,
-			DisplayType:   &v.DisplayType,
-			TraitType:     &v.TraitType,
-			Value:         &v.Value,
+			TraitType: &v.TraitType,
+			Value:     &v.Value,
 		})
 	}
 
-	now := time.Now().Format("2006-01-02 15:04:05 MST Mon")
-	name := "mint_time"
-	trait := "time"
-	display := "date"
+	now := strconv.FormatInt(time.Now().Unix(), 10)
+
+	trait := "mint_time"
 	attributes = append(attributes, openapiclient.ModelsExposedMetadataAttribute{
-		AttributeName: &name,
-		Value:         &now,
-		TraitType:     &trait,
-		DisplayType:   &display,
+		Value:     &now,
+		TraitType: &trait,
 	})
 
 	resp, err := sendCreateMetadataRequest(middlewares.PrefixToken(token), openapiclient.ServicesMetadataDto{
