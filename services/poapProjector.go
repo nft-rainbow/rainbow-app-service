@@ -403,6 +403,11 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
+	cache, err := models.InitCache(req.ActivityID)
+	if err != nil {
+		return nil, err
+	}
+
 	item := &models.POAPResult{
 		ConfigID:    int32(config.ID),
 		Address:     req.UserAddress,
@@ -415,10 +420,6 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	}
 	res := models.GetDB().Create(&item)
 
-	cache, err := models.InitCache(req.ActivityID)
-	if err != nil {
-		return nil, err
-	}
 	cache.Lock()
 	cache.Count += 1
 	cache.Unlock()
