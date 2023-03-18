@@ -44,14 +44,14 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POA
 	if err != nil {
 		return nil, err
 	}
-
 	config.ActivityID = poapId
+
+	// deal default values
 	if config.Command != "" {
 		config.IsCommand = true
 	} else {
 		config.IsCommand = false
 	}
-
 	if config.StartedTime == 0 {
 		config.StartedTime = -1
 	}
@@ -63,6 +63,8 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POA
 	if res.Error != nil {
 		return nil, res.Error
 	}
+
+	// generate event poster
 	group := new(errgroup.Group)
 	group.Go(func() error {
 		err := generateActivityPoster(config)
