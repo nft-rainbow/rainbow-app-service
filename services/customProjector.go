@@ -185,7 +185,7 @@ var changAnDaoNum uint64
 
 func InitChangAnDaoNum() {
 	var count int64
-	models.GetDB().Model(&models.POAPResult{}).Where("activity_id = ? and status = ?", viper.GetString("changAnDao.activityId"), models.STATUS_INIT).Count(&count)
+	models.GetDB().Model(&models.POAPResult{}).Where("activity_id = ? and status = ?", viper.GetString("changAnDao.activityId"), models.STATUS_SUCCESS).Count(&count)
 	atomic.StoreUint64(&changAnDaoNum, uint64(count))
 }
 
