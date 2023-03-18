@@ -230,10 +230,10 @@ func InitCache(ActivityID string) (*POAPResultCountCache, error) {
 	}
 
 	if countCache.Count == 0 {
-		countCache.Lock()
 		if err := db.Model(&POAPResult{}).Where(&POAPResult{ActivityID: ActivityID}).Count(&count).Error; err != nil {
 			return nil, err
 		}
+		countCache.Lock()
 		Cache[ActivityID].Count = count
 		countCache.Unlock()
 	} else {
