@@ -4,3 +4,4 @@ config.yaml
 rainbow-app-service
 tmp.md
 scripts/data.csv
+.DS_Store

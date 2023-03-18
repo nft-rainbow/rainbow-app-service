@@ -662,7 +662,11 @@ func GetMintCount(activityID, address string) (*int32, error) {
 		count = remainedMinted
 	} else {
 		if remainedMinted == -1 {
-			count = config.Amount - int32(mintedCount)
+			cache, err := models.InitCache(activityID)
+			if err != nil {
+				return nil, err
+			}
+			count = config.Amount - int32(cache.Count) // Amount - total minted count
 		} else {
 			if config.Amount-int32(mintedCount) < remainedMinted {
 				count = config.Amount - int32(mintedCount)
