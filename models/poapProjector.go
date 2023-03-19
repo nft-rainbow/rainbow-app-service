@@ -20,8 +20,8 @@ type POAPActivityConfig struct {
 	Command                string          `gorm:"type:string" json:"command,omitempty"`
 	IsCommand              bool            `gorm:"type:bool" json:"is_command"`
 	IsPhoneWhiteListOpened bool            `gorm:"type:bool;default:false" json:"is_phone_white_list_opened"`
-	EndedTime              int64           `gorm:"type:integer" json:"end_time" binding:"required"`
-	StartedTime            int64           `gorm:"type:integer" json:"start_time" binding:"required"`
+	EndedTime              int64           `gorm:"type:integer" json:"end_time"`
+	StartedTime            int64           `gorm:"type:integer" json:"start_time"`
 	RainbowUserId          int32           `gorm:"type:integer" json:"rainbow_user_id"`
 	MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
 	ActivityID             string          `gorm:"type:string;index" json:"activity_id"`
