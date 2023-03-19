@@ -93,15 +93,17 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 	}
 
 	var sum float32
-	for _, nftConfig := range config.NFTConfigs {
-		if nftConfig.Probability == 0 {
-			return nil, fmt.Errorf("The probability of the nft can not be zero")
+	if config.ActivityType == utils.BLIND_BOX {
+		for _, nftConfig := range config.NFTConfigs {
+			if nftConfig.Probability == 0 {
+				return nil, fmt.Errorf("The probability of the nft can not be zero")
+			}
+			sum += nftConfig.Probability
 		}
-		sum += nftConfig.Probability
-	}
 
-	if sum != 1 {
-		return nil, fmt.Errorf("The sum of the probability should be 1")
+		if sum != 1 {
+			return nil, fmt.Errorf("The sum of the probability should be 1")
+		}
 	}
 
 	if config.ContractID != oldConfig.ContractID {
