@@ -92,6 +92,18 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		return nil, err
 	}
 
+	var sum float32
+	for _, nftConfig := range config.NFTConfigs {
+		if nftConfig.Probability == 0 {
+			return nil, fmt.Errorf("The probability of the nft can not be zero")
+		}
+		sum += nftConfig.Probability
+	}
+
+	if sum != 1 {
+		return nil, fmt.Errorf("The sum of the probability should be 1")
+	}
+
 	if config.ContractID != oldConfig.ContractID {
 		token, err := middlewares.GenPOAPOpenJWTByRainbowUserId(*oldConfig)
 		if err != nil {
