@@ -2,14 +2,21 @@ package models
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"time"
 )
 
 var (
 	db *gorm.DB
+)
+
+const (
+	STATUS_INIT = iota
+	STATUS_SUCCESS
+	STATUS_FAIL
 )
 
 type BaseModel struct {
@@ -30,15 +37,24 @@ func ConnectDB() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&DiscordAdminConfig{})
-	db.AutoMigrate(&DoDoAdminConfig{})
-	db.AutoMigrate(&DiscordActivityConfig{})
-	db.AutoMigrate(&DoDoActivityConfig{})
-	db.AutoMigrate(&BindCFXWithDiscord{})
-	db.AutoMigrate(&BindCFXWithDoDo{})
+	db.AutoMigrate(&DiscordCustomProjectConfig{})
+	db.AutoMigrate(&DoDoCustomProjectConfig{})
+	db.AutoMigrate(&DiscordCustomActivityConfig{})
+	db.AutoMigrate(&DoDoCustomActivityConfig{})
+	db.AutoMigrate(&BindCFX{})
 	db.AutoMigrate(&CustomMintCount{})
-	db.AutoMigrate(&MintResult{})
-
+	db.AutoMigrate(&CustomMintResult{})
+	db.AutoMigrate(&POAPResult{})
+	db.AutoMigrate(&POAPActivityConfig{})
+	db.AutoMigrate(&H5Config{})
+	db.AutoMigrate(&WhiteListInfo{})
+	db.AutoMigrate(&Statistic{})
+	db.AutoMigrate(&NFTConfig{})
+	db.AutoMigrate(&MetadataAttribute{})
+	db.AutoMigrate(&PushInfo{})
+	db.AutoMigrate(&UserServer{})
+	db.AutoMigrate(&AnywebUser{})
+	db.AutoMigrate(&PhoneWhiteList{})
 }
 
 func GetDB() *gorm.DB {

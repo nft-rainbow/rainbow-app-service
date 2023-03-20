@@ -3,7 +3,10 @@ package utils
 import (
 	"errors"
 	"fmt"
+	_ "image/gif"
+	_ "image/png"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -34,6 +37,16 @@ func CheckCfxAddress(chain string, addr string) (*cfxaddress.Address, error) {
 		return nil, fmt.Errorf("invalid conflux network address, want %v, got %v", addrItem.GetNetworkID(), uint32(chainId))
 	}
 	return &addrItem, nil
+}
+
+func IsCfxAddress(addr string) error {
+	_, err := cfxaddress.NewFromBase32(addr)
+	return err
+}
+
+func SimpleAddress(addr string) string {
+	tmp := strings.Split(addr, ":")
+	return tmp[0] + ":" + tmp[1][:3] + "..." + tmp[1][:3]
 }
 
 func CurrentMonthStr() string {
@@ -88,4 +101,19 @@ func InUint256(val *big.Int) bool {
 func MustNewBigIntByString(val string) *big.Int {
 	b, _ := new(big.Int).SetString(val, 0)
 	return b
+}
+
+func TodayDateStr() string {
+	now := time.Now()
+	return fmt.Sprintf("%04d-%02d-%02d", now.Year(), now.Month(), now.Day())
+}
+
+func TomorrowBegin() time.Time {
+	t := time.Now().Add(time.Hour * 24)
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}
+
+func ChangAnDaoMetadataUriFromId(id uint64) string {
+	metadataUri := fmt.Sprintf("https://nftrainbow.oss-cn-hangzhou.aliyuncs.com/events/ChangAnDaoMetadata/%d.json", id)
+	return metadataUri
 }

@@ -4,11 +4,11 @@ mysql:
   port: 3306
   user: root
   password: new-password
-  db: rainbowApp
-discordBotToken: MTAwODczNzczODY2NjgwNzQxNg.GTER6T.4cNuhVz80DtwNvwIVOjNBphSX4VQfom072dNJY
+  db: service
+discordBotToken:
 dodoBot:
-  clientId: 78090178
-  tokenId: NzgwOTAxNzg.0qcX77-9.sKRfWBHzGpvgZaHBoFp_4oDjixM0leJ5H1EmDEdjofw
+  clientId:
+  tokenId:
 jwtKeys:
   openapi: jwt-openapi-key
   dashboard: jwt-dashboard-key
@@ -16,3 +16,29 @@ customMint:
   mintRespPrefix: https://testnet.confluxscan.io/nft/
 proxy: http://0.0.0.0:7890
 advertise: Powered by NFTRainbow
+rainbowDashboardApi: https://dev.nftrainbow.xyz
+rainbowOpenApi: https://dev.nftrainbow.xyz
+env: dev
+testMinuteDuration: 50
+rpcs:
+  mainnet: https://main.confluxrpc.com
+  testnet: https://test.confluxrpc.com
+imagesDir:
+  minted: service/images/minted
+  nonMinted: service/images/nonMinted
+posterDir:
+  activity: service/activity/
+  result: service/result/
+oss:
+  endpoint:
+  accessKeyId:
+  accessKeySecret:
+  bucketName: nft-
+url:
+  activity: https://apps.nftrainbow.cn/
+ipLimitEveryday: 100
+anyweb:
+  appid: 
+  secret: 
+changandao:
+  activityId: 

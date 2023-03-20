@@ -3,7 +3,14 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"log"
+	"net/http"
+	"net/url"
+	"os"
+	"os/signal"
+
 	"github.com/bwmarrin/discordgo"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
@@ -11,19 +18,14 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
-	"net/http"
-	"net/url"
-	"os"
-	"os/signal"
 )
 
 func initConfig() {
-	viper.SetConfigName("config")             // name of config file (without extension)
-	viper.SetConfigType("yaml")               // REQUIRED if the config file does not have the extension in the name
-	viper.AddConfigPath(".")                  // optionally look for config in the working directory
-	err := viper.ReadInConfig()               // Find and read the config file
-	if err != nil {                           // Handle errors reading the config file
+	viper.SetConfigName("config") // name of config file (without extension)
+	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
+	viper.AddConfigPath(".")      // optionally look for config in the working directory
+	err := viper.ReadInConfig()   // Find and read the config file
+	if err != nil {               // Handle errors reading the config file
 		log.Fatalln(fmt.Errorf("fatal error config file: %w", err))
 	}
 }
@@ -32,11 +34,14 @@ func init() {
 	initConfig()
 	middlewares.InitRainbowJwtMiddleware()
 	middlewares.InitDashboardJwtMiddleware()
+	services.InitConfluxChainClient()
 }
 
-func initGin() {
+func startGin() {
 	engine := gin.New()
 	engine.Use(gin.Logger())
+	engine.Use(cors.Default())
+	engine.Use(middlewares.Statistic())
 	routers.SetupRoutes(engine)
 
 	port := viper.GetString("port")
@@ -61,7 +66,7 @@ func initDiscordBot() {
 		Proxy:           http.ProxyURL(proxy),
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	s.Client.Transport =tr
+	s.Client.Transport = tr
 	s.Dialer.Proxy = http.ProxyURL(proxy)
 
 	err = s.Open()
@@ -86,34 +91,38 @@ func initDiscordBot() {
 	<-stop
 }
 
-func initDoDoBot(){
+func initDoDoBot() {
 	ws := services.InitInstance()
-	fmt.Println("Start to connect")
+	logrus.Info("Start to connect")
 
 	err := ws.Connect()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Start to listen")
+	logrus.Info("Start to listen")
+
 	err = ws.Listen()
 	if err != nil {
 		panic(err)
 	}
 }
 
+// @title       Rainbow-APP-Service
+// @version     1.0
+// @description The responses of the open api in swagger focus on the data field rather than the code and the message fields
+
+// @license.name Apache 2.0
+// @license.url  http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host     console.nftrainbow.cn
+// @BasePath /apps
+// @schemes  http https
 func main() {
 	models.ConnectDB()
-	go initDoDoBot()
-	go initGin()
+	services.InitChangAnDaoNum()
+	go services.SyncPOAPResultStatus()
+	// go initDoDoBot()
+	startGin()
+	//initDiscordBot()
 
-	initDiscordBot()
 }
-
-
-
-
-
-
-
-
-

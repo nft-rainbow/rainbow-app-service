@@ -23,6 +23,17 @@ const (
 	CONTRACT_TYPE_ERC1155
 )
 
+const (
+	BLIND_BOX = iota + 1
+	SINGLE
+	POAP
+)
+
+const (
+	Discord = iota + 1
+	DoDo
+)
+
 // contract type names
 const ERC721 = "erc721"
 const ERC1155 = "erc1155"
@@ -49,5 +60,27 @@ func ContractTypeByName(name string) (ContractType, error) {
 		return CONTRACT_TYPE_ERC1155, nil
 	default:
 		return 0, fmt.Errorf("unknown contract type: %s", name)
+	}
+}
+
+func ChainById(chainId uint) (string, error) {
+	switch chainId {
+	case 1:
+		return CONFLUX_TEST, nil
+	case 1029:
+		return CONFLUX, nil
+	default:
+		return "", fmt.Errorf("unknown chain id")
+	}
+}
+
+func ContractTypeByTypeId(contractType uint) (string, error) {
+	switch contractType {
+	case 1:
+		return ERC721, nil
+	case 2:
+		return ERC1155, nil
+	default:
+		return "", fmt.Errorf("unknown chain type")
 	}
 }
