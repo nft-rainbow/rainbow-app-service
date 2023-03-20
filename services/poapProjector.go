@@ -399,6 +399,8 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		if err != nil {
 			return nil, err
 		}
+	} else { // old activity
+		metadataURI = &config.MetadataUri
 	}
 
 	mintMeta := openapiclient.ServicesCustomMintDto{
@@ -424,13 +426,19 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
+	// compatible with old activity
+	fileUrl := ""
+	if len(config.NFTConfigs) > index {
+		fileUrl = config.NFTConfigs[index].ImageURL
+	}
+
 	item := &models.POAPResult{
 		ConfigID:    int32(config.ID),
 		Address:     req.UserAddress,
 		ContractID:  config.ContractID,
 		TxID:        *resp.Id,
 		ActivityID:  config.ActivityID,
-		FileURL:     config.NFTConfigs[index].ImageURL,
+		FileURL:     fileUrl,
 		ProjectorId: config.RainbowUserId,
 		AppId:       config.AppId,
 	}
