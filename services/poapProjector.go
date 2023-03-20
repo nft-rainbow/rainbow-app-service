@@ -92,7 +92,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		return nil, err
 	}
 
-	var sum float32
+	/* var sum float32
 	if config.ActivityType == utils.BLIND_BOX {
 		for _, nftConfig := range config.NFTConfigs {
 			if nftConfig.Probability == 0 {
@@ -104,7 +104,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 		if sum != 1 {
 			return nil, fmt.Errorf("The sum of the probability should be 1")
 		}
-	}
+	} */
 
 	if config.ContractID != oldConfig.ContractID {
 		token, err := middlewares.GenPOAPOpenJWTByRainbowUserId(*oldConfig)
