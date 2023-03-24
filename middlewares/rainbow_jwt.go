@@ -108,7 +108,7 @@ func GenerateDiscordOpenJWT(channelId string) (string, error) {
 	}
 
 	data := &App{
-		Id:        uint(config.AppId),
+		Id:        uint(activity.AppId),
 		KycType:   kycType,
 		AppUserId: uint(config.RainbowUserId),
 	}
@@ -120,19 +120,19 @@ func GenerateDiscordOpenJWT(channelId string) (string, error) {
 	return tokenString, nil
 }
 
-func GenDiscordOpenJWTByRainbowUserId(id uint) (string, error) {
-	config, err := models.FindDiscordConfigByUserId(int(id))
+func GenDiscordOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
+	config, err := models.FindDiscordConfigByUserId(int(userId))
 	if err != nil {
 		return "", err
 	}
 
-	kycType, err := getKycType(int32(id))
+	kycType, err := getKycType(int32(userId))
 	if err != nil {
 		return "", err
 	}
 
 	data := &App{
-		Id:        uint(config.AppId),
+		Id:        uint(appId),
 		KycType:   kycType,
 		AppUserId: uint(config.RainbowUserId),
 	}
@@ -160,7 +160,7 @@ func GenerateDoDoOpenJWT(channelId string) (string, error) {
 	}
 
 	data := &App{
-		Id:        uint(config.AppId),
+		Id:        uint(activity.AppId),
 		KycType:   kycType,
 		AppUserId: uint(config.RainbowUserId),
 	}
@@ -172,8 +172,8 @@ func GenerateDoDoOpenJWT(channelId string) (string, error) {
 	return tokenString, nil
 }
 
-func GenDoDoOpenJWTByRainbowUserId(id uint) (string, error) {
-	config, err := models.FindDoDoConfigByUserId(int(id))
+func GenDoDoOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
+	config, err := models.FindDoDoConfigByUserId(int(userId))
 	if err != nil {
 		return "", err
 	}
@@ -184,7 +184,7 @@ func GenDoDoOpenJWTByRainbowUserId(id uint) (string, error) {
 	}
 
 	data := &App{
-		Id:        uint(config.AppId),
+		Id:        uint(appId),
 		KycType:   kycType,
 		AppUserId: uint(config.RainbowUserId),
 	}

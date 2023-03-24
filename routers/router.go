@@ -20,24 +20,27 @@ func SetupRoutes(router *gin.Engine) {
 	apps.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
 
 	custom := apps.Group("/custom")
-	poap := apps.Group("/poap")
 
-	discord := custom.Group("/discord")
 	dodo := custom.Group("/dodo")
-	discord.GET("/:guild_id/channels", getDiscordChannelInfo)
 	dodo.GET("/:island_id/channels", getDoDoChannelInfo)
-
-	dodoCustomProject := dodo.Group("/projector")
-	dodoCustomProject.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	dodoProjector := dodo.Group("/projector")
+	dodoProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		dodoCustomProject.POST("/", setDoDoCustomProjectConfig)
-		dodoCustomProject.GET("/", getDoDoCustomProjectList)
-		dodoCustomProject.GET("/:id", getDoDoCustomProject)
-		dodoCustomProject.POST("/activity", setDoDoCustomActivityConfig)
-		dodoCustomProject.GET("/activity", getDoDoCustomActivityList)
-		dodoCustomProject.GET("/activity/:id", getDoDoCustomActivity)
+		dodoHandler := NewActivityRouteHandler()
+		dodoProjector.POST("/", dodoHandler.insertProjector)
+		// dodoProjector.GET("/", getProjectorList)
+		dodoProjector.GET("/:id", getProjector)
+		// dodoProjector.GET("/", getDoDoCustomProjectList)
+		dodoProjector.POST("/authcode", dodoHandler.verifyUser)
+		// dodoProjector.GET("/:id", getProjector)
+		dodoProjector.POST("/activity", setDoDoCustomActivityConfig)
+		dodoProjector.GET("/activity", getDoDoCustomActivityList)
+		dodoProjector.GET("/activity/:id", getDoDoCustomActivity)
+
 	}
 
+	discord := custom.Group("/discord")
+	discord.GET("/:guild_id/channels", getDiscordChannelInfo)
 	discordCustomProjector := discord.Group("/projector")
 	discordCustomProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
@@ -49,6 +52,7 @@ func SetupRoutes(router *gin.Engine) {
 		discordCustomProjector.GET("/activity/:id", getDiscordCustomActivity)
 	}
 
+	poap := apps.Group("/poap")
 	poap.POST("/h5", middlewares.IpLimitMiddleware(), poapMintByH5)
 	poap.GET("/activity/:activity_id", getPOAPActivity)
 	poap.GET("/activity/result/:activity_id", getPOAPResultList)

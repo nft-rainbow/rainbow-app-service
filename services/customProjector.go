@@ -1,50 +1,93 @@
 package services
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
+	"github.com/nft-rainbow/rainbow-app-service/utils/rand"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/spf13/viper"
 )
 
-func BindDiscordProjectConfig(config *models.DiscordCustomProjectConfig, id uint) error {
-	info, err := GetDiscordGuildInfo(config.GuildId)
-	if err != nil {
-		return err
+type ActivityService struct {
+	authcodes        sync.Map
+	socialToolClient SocialToolBot
+}
+
+func NewActivityService() *ActivityService {
+	return &ActivityService{}
+}
+
+func (d *ActivityService) VerifyUser(user models.SocialToolUser) (*VerifyUserResponse, error) {
+	v, loaded := d.authcodes.LoadOrStore(user, rand.NumString(6))
+	if !loaded {
+		go func() {
+			<-time.After(time.Second * 5)
+			d.authcodes.Delete(user)
+		}()
 	}
 
-	config.GuildName = info.Name
-	config.RainbowUserId = int32(id)
+	msg := fmt.Sprintf("You are setting Rainbow-Bot, your Rainbow auth code is %v, please fill back to Rainbow to complete authentication.", v)
+	if err := d.socialToolClient.SendDirectMessage(context.Background(), user.UserSocialId, msg); err != nil {
+		return nil, err
+	}
 
-	res := models.GetDB().Create(&config)
-	if res.Error != nil {
-		return res.Error
+	return &VerifyUserResponse{Code: v.(string)}, nil
+}
+
+func (d *ActivityService) InsertProjector(req InsertProjectorReq) error {
+	code, ok := d.authcodes.Load(req.SocialToolUser)
+	if !ok || code.(string) != req.AuthCode {
+		return errors.New("auth code not match")
+	}
+
+	if err := models.GetDB().Save(req.SocialToolUser).Error; err != nil {
+		return err
 	}
 	return nil
 }
 
-func BindDoDoProjectConfig(config *models.DoDoCustomProjectConfig, id uint) error {
-	info, err := GetDoDoIslandInfo(config.IslandId)
-	if err != nil {
-		return err
-	}
+func BindDiscordProjectConfig(config *models.SocialToolProjecter, id uint) error {
+	// info, err := GetDiscordGuildInfo(config.GuildId)
+	// if err != nil {
+	// 	return err
+	// }
 
-	config.IslandName = info.IslandName
-	config.RainbowUserId = int32(id)
+	// config.GuildName = info.Name
+	// config.RainbowUserId = int32(id)
 
-	res := models.GetDB().Create(&config)
-	if res.Error != nil {
-		return res.Error
-	}
+	// res := models.GetDB().Create(&config)
+	// if res.Error != nil {
+	// 	return res.Error
+	// }
 	return nil
 }
 
-func DiscordCustomActivityConfig(config *models.DiscordCustomActivityConfig, id uint) error {
-	token, err := middlewares.GenDiscordOpenJWTByRainbowUserId(id)
+func BindDoDoProjectConfig(config *models.SocialToolProjecter, id uint) error {
+	// info, err := GetDoDoIslandInfo(config.IslandId)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// config.IslandName = info.IslandName
+	// config.RainbowUserId = int32(id)
+
+	// res := models.GetDB().Create(&config)
+	// if res.Error != nil {
+	// 	return res.Error
+	// }
+	return nil
+}
+
+func DiscordCustomActivityConfig(config *models.CustomActivityConfig, userId uint) error {
+	token, err := middlewares.GenDiscordOpenJWTByRainbowUserId(userId, uint(config.AppId))
 	if err != nil {
 		return err
 	}
@@ -65,8 +108,8 @@ func DiscordCustomActivityConfig(config *models.DiscordCustomActivityConfig, id 
 	return nil
 }
 
-func DoDoCustomActivityConfig(config *models.DoDoCustomActivityConfig, id uint) error {
-	token, err := middlewares.GenDoDoOpenJWTByRainbowUserId(id)
+func DoDoCustomActivityConfig(config *models.CustomActivityConfig, userId uint) error {
+	token, err := middlewares.GenDoDoOpenJWTByRainbowUserId(userId, uint(config.AppId))
 	if err != nil {
 		return err
 	}

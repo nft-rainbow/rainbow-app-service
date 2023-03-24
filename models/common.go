@@ -76,7 +76,7 @@ func UpdateDiscordCustomCount(id, channelId string) (*CustomMintCount, error) {
 	}
 	db.Model(&item).Update("count", item.Count+1)
 
-	var t DiscordCustomActivityConfig
+	var t CustomActivityConfig
 	err = db.Where("channel_id = ?", channelId).First(&t).Error
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func UpdateDoDoCustomCount(id, channelId string) (*CustomMintCount, error) {
 	}
 	db.Model(&item).Update("count", item.Count+1)
 
-	var t DoDoCustomActivityConfig
+	var t CustomActivityConfig
 	err = db.Where("channel_id = ?", channelId).First(&t).Error
 	if err != nil {
 		return nil, err
