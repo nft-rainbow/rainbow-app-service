@@ -56,19 +56,19 @@ type DoDoCustomActivityConfig struct {
 
 type PushInfo struct {
 	BaseModel
-	ServerId      string `gorm:"type:varchar(256);index" json:"server_id"`
-	ServerName    string `gorm:"type:varchar(256)" json:"server_name"`
-	ActivityId    string `gorm:"type:string;index" json:"activity_id"`
-	ChannelId     string `gorm:"type:string" json:"channel_id"`
-	ActivityName  string `gorm:"type:string" json:"activity_name"`
-	AccountLimit  int    `gorm:"type:integer" json:"account_limit"`
-	ContractID    int32  `gorm:"type:integer" json:"contract_id"`
-	EndedTime     int64  `gorm:"type:integer" json:"end_time"`
-	StartedTime   int64  `gorm:"type:integer" json:"start_time"`
-	ActivityType  uint   `gorm:"type:uint" json:"activity_type"`
-	Bot           uint   `gorm:"type:integer" json:"bot"`
-	Contract      string `gorm:"type:string" json:"contract"`
-	RainbowUserId int32  `gorm:"type:integer" json:"rainbow_user_id"`
+	ServerId      string  `gorm:"type:varchar(256);index" json:"server_id"`
+	ServerName    string  `gorm:"type:varchar(256)" json:"server_name"`
+	ActivityId    string  `gorm:"type:string;index" json:"activity_id"`
+	ChannelId     string  `gorm:"type:string" json:"channel_id"`
+	ActivityName  string  `gorm:"type:string" json:"activity_name"`
+	AccountLimit  int     `gorm:"type:integer" json:"account_limit"`
+	ContractID    *int32  `gorm:"type:integer" json:"contract_id"`
+	EndedTime     int64   `gorm:"type:integer" json:"end_time"`
+	StartedTime   int64   `gorm:"type:integer" json:"start_time"`
+	ActivityType  uint    `gorm:"type:uint" json:"activity_type"`
+	Bot           uint    `gorm:"type:integer" json:"bot"`
+	Contract      *string `gorm:"type:string" json:"contract"`
+	RainbowUserId int32   `gorm:"type:integer" json:"rainbow_user_id"`
 }
 
 type UserServer struct {
