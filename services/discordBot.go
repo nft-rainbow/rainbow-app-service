@@ -2,13 +2,14 @@ package services
 
 import (
 	"fmt"
+	"log"
+	"strconv"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
-	"strconv"
 )
 
 type PushReq struct {
@@ -134,7 +135,14 @@ var (
 				})
 				return
 			}
-			err = checkSocialLimit(i.Interaction.GuildID, i.Interaction.Member.User.ID, config.ActivityID, utils.DoDo)
+			if err = config.CheckActivityValid(); err != nil {
+				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+					Embeds: failMessageEmbed(err.Error()),
+				})
+				return
+			}
+
+			err = checkSocialLimit(i.Interaction.GuildID, i.Interaction.Member.User.ID, *config.ActivityID, utils.DoDo)
 			if err != nil {
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 					Embeds: failMessageEmbed(err.Error()),
@@ -146,7 +154,7 @@ var (
 				command = options[1].Value.(string)
 			}
 			res, err := HandlePOAPH5Mint(&POAPRequest{
-				ActivityID:  config.ActivityID,
+				ActivityID:  *config.ActivityID,
 				UserAddress: bind.CFXAddress,
 				Command:     command,
 			})
@@ -158,7 +166,7 @@ var (
 			}
 
 			for {
-				resp, _ := models.FindPOAPResultById(config.ActivityID, int(res.ID))
+				resp, _ := models.FindPOAPResultById(*config.ActivityID, int(res.ID))
 				if resp.Hash == "" {
 					continue
 				}
