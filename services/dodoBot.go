@@ -92,7 +92,7 @@ func InitInstance() websocket.Client {
 						return nil
 					}
 
-					err = checkSocialLimit(data.IslandId, data.DodoId, *config.ActivityID, utils.DoDo)
+					err = checkSocialLimit(data.IslandId, data.DodoId, config.ActivityID, utils.DoDo)
 					if err != nil {
 						processErrorMessage(&instance, data, err.Error())
 						return nil
@@ -103,7 +103,7 @@ func InitInstance() websocket.Client {
 					})
 
 					res, err := HandlePOAPH5Mint(&POAPRequest{
-						ActivityID:  *config.ActivityID,
+						ActivityID:  config.ActivityID,
 						UserAddress: bind.CFXAddress,
 						Command:     command,
 					})
@@ -113,7 +113,7 @@ func InitInstance() websocket.Client {
 					}
 
 					for {
-						resp, _ := models.FindPOAPResultById(*config.ActivityID, int(res.ID))
+						resp, _ := models.FindPOAPResultById(config.ActivityID, int(res.ID))
 						if resp.Hash == "" {
 							time.Sleep(time.Second)
 							continue
@@ -226,7 +226,7 @@ func DoDoPushActivity(req *PushReq) (*model.SendChannelMessageRsp, error) {
 
 	card = strings.Replace(card, "{roles}", roles, -1)
 	card = strings.Replace(card, "{name}", config.Name, -1)
-	card = strings.Replace(card, "{activity}", *config.ActivityID, -1)
+	card = strings.Replace(card, "{activity}", config.ActivityID, -1)
 	card = strings.Replace(card, "{content}", req.Content, -1)
 	card = strings.Replace(card, "{color}", req.Color, -1)
 	err = json.Unmarshal([]byte(card), &message)

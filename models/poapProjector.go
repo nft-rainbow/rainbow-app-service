@@ -25,7 +25,7 @@ type POAPActivityConfig struct {
 	StartedTime            int64           `gorm:"type:integer" json:"start_time"`
 	RainbowUserId          int32           `gorm:"type:integer" json:"rainbow_user_id"`
 	MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
-	ActivityID             *string         `gorm:"type:string;index" json:"activity_id"`
+	ActivityID             string          `gorm:"type:string;index" json:"activity_id"`
 	ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
 	WhiteListInfos         []WhiteListInfo `json:"white_list_infos"`
 	NFTConfigs             []NFTConfig     `json:"nft_configs"`
@@ -43,7 +43,7 @@ func (p *POAPActivityConfig) CheckContractValid() error {
 }
 
 func (p *POAPActivityConfig) CheckActivityValid() error {
-	if p.ActivityID == nil {
+	if p.ActivityID == "" {
 		return errors.New("activity id is empty")
 	}
 	return nil
@@ -136,7 +136,7 @@ func FindPOAPActivityConfigById(id string) (*POAPActivityConfig, error) {
 	var item POAPActivityConfig
 	var cond POAPActivityConfig
 
-	cond.ActivityID = &id
+	cond.ActivityID = id
 	err := db.Model(&POAPActivityConfig{}).Where(cond).Find(&item).Error
 	if err != nil {
 		return nil, err
@@ -154,9 +154,8 @@ func FindAndCountPOAPActivity(ranbowUserId uint, offset int, limit int, _cond PO
 	cond := &POAPActivityConfig{}
 	cond.RainbowUserId = int32(ranbowUserId)
 	cond.Name = _cond.Name
-	if _cond.Activity != "" {
-		cond.ActivityID = &_cond.Activity
-	}
+	cond.ActivityID = _cond.Activity
+
 	if _cond.Contract != "" {
 		cond.ContractAddress = &_cond.Contract
 	}

@@ -142,7 +142,7 @@ var (
 				return
 			}
 
-			err = checkSocialLimit(i.Interaction.GuildID, i.Interaction.Member.User.ID, *config.ActivityID, utils.DoDo)
+			err = checkSocialLimit(i.Interaction.GuildID, i.Interaction.Member.User.ID, config.ActivityID, utils.DoDo)
 			if err != nil {
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 					Embeds: failMessageEmbed(err.Error()),
@@ -154,7 +154,7 @@ var (
 				command = options[1].Value.(string)
 			}
 			res, err := HandlePOAPH5Mint(&POAPRequest{
-				ActivityID:  *config.ActivityID,
+				ActivityID:  config.ActivityID,
 				UserAddress: bind.CFXAddress,
 				Command:     command,
 			})
@@ -166,7 +166,7 @@ var (
 			}
 
 			for {
-				resp, _ := models.FindPOAPResultById(*config.ActivityID, int(res.ID))
+				resp, _ := models.FindPOAPResultById(config.ActivityID, int(res.ID))
 				if resp.Hash == "" {
 					continue
 				}

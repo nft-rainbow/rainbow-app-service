@@ -39,21 +39,9 @@ type POAPRequest struct {
 
 func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POAPActivityConfig, error) {
 	config.RainbowUserId = int32(id)
+	config.ActivityID = utils.GenerateIDByTimeHash("", 8)
+	config.IsCommand = config.Command != ""
 
-	if config.ContractAddress != nil {
-		poapId, err := getPOAPId(*config.ContractAddress, config.Name)
-		if err != nil {
-			return nil, err
-		}
-		config.ActivityID = &poapId
-	}
-
-	// deal default values
-	if config.Command != "" {
-		config.IsCommand = true
-	} else {
-		config.IsCommand = false
-	}
 	if config.StartedTime == 0 {
 		config.StartedTime = -1
 	}
@@ -267,8 +255,8 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	if config.ActivityID != nil {
-		err = checkPersonalAmount(*config.ActivityID, req.UserAddress, config.MaxMintCount)
+	if config.ActivityID != "" {
+		err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
 		if err != nil {
 			return nil, err
 		}
@@ -317,7 +305,7 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		Address:     req.UserAddress,
 		ContractID:  *config.ContractID,
 		TxID:        *resp.Id,
-		ActivityID:  *config.ActivityID,
+		ActivityID:  config.ActivityID,
 		ProjectorId: config.RainbowUserId,
 		AppId:       config.AppId,
 	}
@@ -369,7 +357,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	err = checkPersonalAmount(*config.ActivityID, req.UserAddress, config.MaxMintCount)
+	err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +426,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		Address:     req.UserAddress,
 		ContractID:  *config.ContractID,
 		TxID:        *resp.Id,
-		ActivityID:  *config.ActivityID,
+		ActivityID:  config.ActivityID,
 		FileURL:     fileUrl,
 		ProjectorId: config.RainbowUserId,
 		AppId:       config.AppId,
@@ -484,7 +472,7 @@ func generateActivityPoster(config *models.POAPActivityConfig) error {
 	dc.DrawImage(img, 120, 200)
 
 	// QR Code Generate
-	targetUrl := generateActivityURLById(*config.ActivityID)
+	targetUrl := generateActivityURLById(config.ActivityID)
 	qrCode, _ := qrcode.New(targetUrl, qrcode.Low)
 	qrImg := qrCode.Image(268)
 	dc.DrawImage(qrImg, 1112, 2212)
@@ -538,7 +526,7 @@ func generateActivityPoster(config *models.POAPActivityConfig) error {
 	if err != nil {
 		return err
 	}
-	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.activity"), *config.ActivityID+".png"), buf); err != nil {
+	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.activity"), config.ActivityID+".png"), buf); err != nil {
 		return err
 	}
 
@@ -720,7 +708,7 @@ func commonCheck(config *models.POAPActivityConfig, req *POAPRequest) error {
 		return fmt.Errorf("The activity has been expired")
 	}
 
-	err := checkAmount(*config.ActivityID, config.Amount)
+	err := checkAmount(config.ActivityID, config.Amount)
 	if err != nil {
 		return err
 	}
@@ -740,7 +728,7 @@ func checkWhiteListLimit(config *models.POAPActivityConfig, address string) erro
 	if err := config.CheckActivityValid(); err != nil {
 		return err
 	}
-	resp, err := models.CountPOAPResultByAddress(address, *config.ActivityID)
+	resp, err := models.CountPOAPResultByAddress(address, config.ActivityID)
 	if err != nil {
 		return err
 	}
