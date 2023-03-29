@@ -414,6 +414,7 @@ func SyncPOAPResultStatus() {
 			//	return err
 			//})
 		}
+		time.Sleep(time.Second * 2)
 	}
 
 }

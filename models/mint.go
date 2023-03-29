@@ -31,7 +31,7 @@ type POAPResult struct {
 	TokenID     string `gorm:"type:varchar(256)" json:"token_id"`
 	Hash        string `gorm:"type:string" json:"hash"`
 	ActivityID  string `gorm:"type:string;index" json:"activity_id"`
-	Status      int32  `gorm:"type:integer" json:"status"`
+	Status      int32  `gorm:"type:integer;index" json:"status"`
 	FileURL     string `gorm:"type:string" json:"file_url"`
 	ProjectorId int32  `gorm:"type:integer" json:"projector_id"`
 	AppId       int32  `gorm:"type:integer" json:"app_id"`
