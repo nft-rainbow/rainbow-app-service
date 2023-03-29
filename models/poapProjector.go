@@ -118,6 +118,12 @@ type POAPResultQueryResult struct {
 	Items []*POAPResult `json:"items"`
 }
 
+type POAPActivityFindCondition struct {
+	Name     string `form:"name"`
+	Activity string `form:"activity_id"`
+	Contract string `form:"contract_address"`
+}
+
 var Cache = make(map[string]*POAPResultCountCache)
 
 func FindPOAPActivityConfig(name string, contractId int32) (*POAPActivityConfig, error) {
@@ -143,20 +149,24 @@ func FindPOAPActivityConfigById(id string) (*POAPActivityConfig, error) {
 	return &item, err
 }
 
-func FindAndCountPOAPActivity(id uint, offset int, limit int, name, activity, contract string) (*POAPActivityQueryResult, error) {
+func FindAndCountPOAPActivity(ranbowUserId uint, offset int, limit int, _cond POAPActivityFindCondition) (*POAPActivityQueryResult, error) {
 	var items []*POAPActivityConfig
 	cond := &POAPActivityConfig{}
-	cond.RainbowUserId = int32(id)
-	cond.Name = name
-	cond.ActivityID = &activity
-	cond.ContractAddress = &contract
+	cond.RainbowUserId = int32(ranbowUserId)
+	cond.Name = _cond.Name
+	if _cond.Activity != "" {
+		cond.ActivityID = &_cond.Activity
+	}
+	if _cond.Contract != "" {
+		cond.ContractAddress = &_cond.Contract
+	}
 
 	var count int64
-	if err := db.Model(&POAPActivityConfig{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond).Count(&count).Error; err != nil {
+	if err := db.Debug().Model(&POAPActivityConfig{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond). /*.Where("activity_id=? and contract_address=?", activity, contract)*/ Count(&count).Error; err != nil {
 		return nil, err
 	}
 
-	if err := db.Model(&POAPActivityConfig{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond).Order("id DESC").Offset(offset).Limit(limit).
+	if err := db.Debug().Model(&POAPActivityConfig{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond). /*Where("activity_id=? and contract_address=?", activity, contract).*/ Order("id DESC").Offset(offset).Limit(limit).
 		Find(&items).Error; err != nil {
 		return nil, err
 	}

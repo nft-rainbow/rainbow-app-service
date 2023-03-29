@@ -107,11 +107,13 @@ func getPOAPActivityList(c *gin.Context) {
 		return
 	}
 
-	contract := c.Query("contract_address")
-	activity := c.Query("activity_id")
-	name := c.Query("name")
+	var cond models.POAPActivityFindCondition
+	if err := c.ShouldBindQuery(&cond); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
 
-	mints, err := models.FindAndCountPOAPActivity(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit, name, activity, contract)
+	mints, err := models.FindAndCountPOAPActivity(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit, cond)
 	ginutils.RenderResp(c, mints, err)
 }
 
