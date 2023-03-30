@@ -13,6 +13,18 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
 
+var (
+	botActivityHandler *BotActivityRouteHandler
+)
+
+func Init() {
+	var err error
+	botActivityHandler, err = NewBotActivityRouteHandler()
+	if err != nil {
+		panic(err)
+	}
+}
+
 func SetupRoutes(router *gin.Engine) {
 	router.GET("/", indexEndpoint)
 
@@ -20,24 +32,30 @@ func SetupRoutes(router *gin.Engine) {
 	apps.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
 
 	custom := apps.Group("/custom")
-	poap := apps.Group("/poap")
 
-	discord := custom.Group("/discord")
-	dodo := custom.Group("/dodo")
-	discord.GET("/:guild_id/channels", getDiscordChannelInfo)
-	dodo.GET("/:island_id/channels", getDoDoChannelInfo)
-
-	dodoCustomProject := dodo.Group("/projector")
-	dodoCustomProject.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	social := custom.Group("/:social_tool")
+	socialManager := social.Group("/manager")
+	socialManager.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		dodoCustomProject.POST("/", setDoDoCustomProjectConfig)
-		dodoCustomProject.GET("/", getDoDoCustomProjectList)
-		dodoCustomProject.GET("/:id", getDoDoCustomProject)
-		dodoCustomProject.POST("/activity", setDoDoCustomActivityConfig)
-		dodoCustomProject.GET("/activity", getDoDoCustomActivityList)
-		dodoCustomProject.GET("/activity/:id", getDoDoCustomActivity)
+		// socialManager.GET("/:island_id/channels", getDoDoChannelInfo)
+		socialManager.POST("/authcode", botActivityHandler.verifyUser)
+		socialManager.POST("/", botActivityHandler.insertProjectManager)
+		socialManager.GET("/", botActivityHandler.getProjectManager)
 	}
 
+	socialBotActivity := social.Group("/activity")
+	socialBotActivity.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	{
+		// dodoProjector.GET("/", getProjectorList)
+		// dodoProjector.GET("/", getDoDoCustomProjectList)
+		// dodoProjector.GET("/:id", getProjector)
+		socialBotActivity.POST("", setDoDoCustomActivityConfig)
+		socialBotActivity.GET("", getDoDoCustomActivityList)
+		socialBotActivity.GET("/:id", getDoDoCustomActivity)
+	}
+
+	discord := custom.Group("/discord")
+	discord.GET("/:guild_id/channels", getDiscordChannelInfo)
 	discordCustomProjector := discord.Group("/projector")
 	discordCustomProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
@@ -49,6 +67,7 @@ func SetupRoutes(router *gin.Engine) {
 		discordCustomProjector.GET("/activity/:id", getDiscordCustomActivity)
 	}
 
+	poap := apps.Group("/poap")
 	poap.POST("/h5", middlewares.IpLimitMiddleware(), poapMintByH5)
 	poap.GET("/activity/:activity_id", getPOAPActivity)
 	poap.GET("/activity/result/:activity_id", getPOAPResultList)

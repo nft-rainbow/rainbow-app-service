@@ -35,6 +35,7 @@ func init() {
 	middlewares.InitRainbowJwtMiddleware()
 	middlewares.InitDashboardJwtMiddleware()
 	services.InitConfluxChainClient()
+	routers.Init()
 }
 
 func startGin() {
@@ -91,21 +92,21 @@ func initDiscordBot() {
 	<-stop
 }
 
-func initDoDoBot() {
-	ws := services.InitInstance()
-	logrus.Info("Start to connect")
+// func initDoDoBot() {
+// 	ws, _ := services.InitDodoInstance()
+// 	logrus.Info("Start to connect")
 
-	err := ws.Connect()
-	if err != nil {
-		panic(err)
-	}
-	logrus.Info("Start to listen")
+// 	err := ws.Connect()
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	logrus.Info("Start to listen")
 
-	err = ws.Listen()
-	if err != nil {
-		panic(err)
-	}
-}
+// 	err = ws.Listen()
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// }
 
 // @title       Rainbow-APP-Service
 // @version     1.0

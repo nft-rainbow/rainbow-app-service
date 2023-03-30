@@ -1,50 +1,122 @@
 package services
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
+	"github.com/nft-rainbow/rainbow-app-service/utils/rand"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 )
 
-func BindDiscordProjectConfig(config *models.DiscordCustomProjectConfig, id uint) error {
-	info, err := GetDiscordGuildInfo(config.GuildId)
+type BotActivityService struct {
+	authcodes        sync.Map
+	socialToolClient SocialToolBot
+}
+
+func NewBotActivityService(socialToolType models.SocialToolType) (*BotActivityService, error) {
+	_socialToolClient, err := getSocialToolBot(socialToolType)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	return &BotActivityService{
+		socialToolClient: _socialToolClient,
+	}, nil
+}
+
+func (d *BotActivityService) VerifyUser(user models.SocialToolUser) (*VerifyUserResponse, error) {
+	v, loaded := d.authcodes.LoadOrStore(user, rand.NumString(6))
+	if !loaded {
+		go func() {
+			<-time.After(time.Minute * 5)
+			d.authcodes.Delete(user)
+		}()
 	}
 
-	config.GuildName = info.Name
-	config.RainbowUserId = int32(id)
+	msg := fmt.Sprintf("You are setting Rainbow-Bot, your Rainbow auth code is %v, please fill back to Rainbow to complete authentication.", v)
+	if err := d.socialToolClient.SendDirectMessage(context.Background(), user.UserSocialId, msg); err != nil {
+		return nil, err
+	}
 
-	res := models.GetDB().Create(&config)
-	if res.Error != nil {
-		return res.Error
+	return &VerifyUserResponse{AuthCode: v.(string)}, nil
+}
+
+func (d *BotActivityService) InsertProjectManager(userId uint, socialTool models.SocialToolType, req InsertProjectorReq) error {
+	socialUser := models.SocialToolUser{
+		SocialTool:   socialTool,
+		UserSocialId: req.UserSocialId,
+	}
+	if socialTool == models.SOCIAL_TOOL_DODO {
+		code, ok := d.authcodes.Load(socialUser)
+		if !ok || code.(string) != *req.AuthCode {
+			return errors.New("auth code not match")
+		}
+	} else {
+		return errors.New("unsupported social tool")
+	}
+
+	_, err := models.FindSocialToolProjectManager(userId, socialTool)
+	if err != gorm.ErrRecordNotFound {
+		return errors.New("already exists")
+	}
+
+	var p models.SocialToolProjectManager
+	p.RainbowUserId = userId
+	p.SocialTool = socialTool
+	p.SocialToolUser = socialUser
+
+	if err := models.GetDB().Save(&p).Error; err != nil {
+		return err
 	}
 	return nil
 }
 
-func BindDoDoProjectConfig(config *models.DoDoCustomProjectConfig, id uint) error {
-	info, err := GetDoDoIslandInfo(config.IslandId)
-	if err != nil {
-		return err
-	}
+func (d *BotActivityService) GetProjectManager(userId uint, socialType models.SocialToolType) (*models.SocialToolProjectManager, error) {
+	return models.FindSocialToolProjectManager(userId, socialType)
+}
 
-	config.IslandName = info.IslandName
-	config.RainbowUserId = int32(id)
+func BindDiscordProjectConfig(config *models.SocialToolProjectManager, id uint) error {
+	// info, err := GetDiscordGuildInfo(config.GuildId)
+	// if err != nil {
+	// 	return err
+	// }
 
-	res := models.GetDB().Create(&config)
-	if res.Error != nil {
-		return res.Error
-	}
+	// config.GuildName = info.Name
+	// config.RainbowUserId = int32(id)
+
+	// res := models.GetDB().Create(&config)
+	// if res.Error != nil {
+	// 	return res.Error
+	// }
 	return nil
 }
 
-func DiscordCustomActivityConfig(config *models.DiscordCustomActivityConfig, id uint) error {
-	token, err := middlewares.GenDiscordOpenJWTByRainbowUserId(id)
+func BindDoDoProjectConfig(config *models.SocialToolProjectManager, id uint) error {
+	// info, err := GetDoDoIslandInfo(config.IslandId)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// config.IslandName = info.IslandName
+	// config.RainbowUserId = int32(id)
+
+	// res := models.GetDB().Create(&config)
+	// if res.Error != nil {
+	// 	return res.Error
+	// }
+	return nil
+}
+
+func DiscordCustomActivityConfig(config *models.CustomActivityConfig, userId uint) error {
+	token, err := middlewares.GenDiscordOpenJWTByRainbowUserId(userId, uint(config.AppId))
 	if err != nil {
 		return err
 	}
@@ -65,8 +137,8 @@ func DiscordCustomActivityConfig(config *models.DiscordCustomActivityConfig, id 
 	return nil
 }
 
-func DoDoCustomActivityConfig(config *models.DoDoCustomActivityConfig, id uint) error {
-	token, err := middlewares.GenDoDoOpenJWTByRainbowUserId(id)
+func DoDoCustomActivityConfig(config *models.CustomActivityConfig, userId uint) error {
+	token, err := middlewares.GenDoDoOpenJWTByRainbowUserId(userId, uint(config.AppId))
 	if err != nil {
 		return err
 	}

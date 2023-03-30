@@ -37,10 +37,8 @@ func ConnectDB() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&DiscordCustomProjectConfig{})
-	db.AutoMigrate(&DoDoCustomProjectConfig{})
-	db.AutoMigrate(&DiscordCustomActivityConfig{})
-	db.AutoMigrate(&DoDoCustomActivityConfig{})
+	db.AutoMigrate(&SocialToolProjectManager{})
+	db.AutoMigrate(&CustomActivityConfig{})
 	db.AutoMigrate(&BindCFX{})
 	db.AutoMigrate(&CustomMintCount{})
 	db.AutoMigrate(&CustomMintResult{})

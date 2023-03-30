@@ -38,7 +38,7 @@ type POAPRequest struct {
 }
 
 func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POAPActivityConfig, error) {
-	config.RainbowUserId = int32(id)
+	config.RainbowUserId = id
 	config.ActivityID = utils.GenerateIDByTimeHash("", 8)
 	config.IsCommand = config.Command != ""
 
