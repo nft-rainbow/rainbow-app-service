@@ -95,7 +95,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 			oldConfig.ContractType = *info.Type
 			oldConfig.ChainId = *info.ChainId
 			oldConfig.ChainType = *info.ChainType
-			oldConfig.AppId = *info.AppId
+			oldConfig.AppId = uint(*info.AppId)
 			oldConfig.ContractAddress = info.Address
 			oldConfig.ContractID = config.ContractID
 		}

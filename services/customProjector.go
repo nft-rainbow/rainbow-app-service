@@ -126,7 +126,7 @@ func DiscordCustomActivityConfig(config *models.CustomActivityConfig, userId uin
 	}
 	config.ContractType = *info.Type
 	config.Chain = *info.ChainType
-	config.AppId = *info.AppId
+	config.AppId = uint(*info.AppId)
 	config.ContractAddress = *info.Address
 
 	res := models.GetDB().Create(&config)
@@ -148,7 +148,7 @@ func DoDoCustomActivityConfig(config *models.CustomActivityConfig, userId uint) 
 	}
 	config.ContractType = *info.Type
 	config.Chain = *info.ChainType
-	config.AppId = *info.AppId
+	config.AppId = uint(*info.AppId)
 	config.ContractAddress = *info.Address
 
 	res := models.GetDB().Create(&config)
