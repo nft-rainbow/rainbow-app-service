@@ -128,11 +128,11 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 			newMetadataAttributesMap := make(map[uint]*models.MetadataAttribute)
 
 			for j, metadataAttribute := range oldNFTConfig.MetadataAttributes {
-				oldMetadataAttributesMap[metadataAttribute.ID] = &oldNFTConfig.MetadataAttributes[j]
+				oldMetadataAttributesMap[metadataAttribute.ID] = oldNFTConfig.MetadataAttributes[j]
 			}
 			for j, metadataAttribute := range newNFTConfig.MetadataAttributes {
 				if metadataAttribute.ID != 0 {
-					newMetadataAttributesMap[metadataAttribute.ID] = &newNFTConfig.MetadataAttributes[j]
+					newMetadataAttributesMap[metadataAttribute.ID] = newNFTConfig.MetadataAttributes[j]
 				}
 			}
 

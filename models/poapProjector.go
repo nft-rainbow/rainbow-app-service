@@ -58,10 +58,10 @@ func (p *POAPActivityConfig) CheckContractAndActivityValid() error {
 
 type NFTConfig struct {
 	BaseModel
-	ImageURL             string              `gorm:"type:string" json:"image_url"`
-	Name                 string              `gorm:"type:string" json:"name"`
-	Probability          float32             `gorm:"type:float" json:"probability"`
-	MetadataAttributes   []MetadataAttribute `json:"metadata_attributes"`
+	ImageURL             string               `gorm:"type:string" json:"image_url"`
+	Name                 string               `gorm:"type:string" json:"name"`
+	Probability          float32              `gorm:"type:float" json:"probability"`
+	MetadataAttributes   []*MetadataAttribute `json:"metadata_attributes"`
 	POAPActivityConfigID uint
 }
 
