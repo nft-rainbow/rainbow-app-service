@@ -37,9 +37,7 @@ func ConnectDB() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&SocialToolProjecter{})
-	db.AutoMigrate(&SocialToolProjecter{})
-	db.AutoMigrate(&CustomActivityConfig{})
+	db.AutoMigrate(&SocialToolProjectManager{})
 	db.AutoMigrate(&CustomActivityConfig{})
 	db.AutoMigrate(&BindCFX{})
 	db.AutoMigrate(&CustomMintCount{})

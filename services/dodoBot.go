@@ -44,7 +44,7 @@ var card = `{
   }
 }`
 
-func InitInstance() websocket.Client {
+func InitDodoInstance() (websocket.Client, dodoClient.Client) {
 	var err error
 	instance, err = dodo.NewInstance(viper.GetString("dodoBot.clientId"), viper.GetString("dodoBot.tokenId"), client.WithTimeout(time.Second*3))
 	if err != nil {
@@ -200,7 +200,7 @@ func InitInstance() websocket.Client {
 		panic(err)
 	}
 
-	return ws
+	return ws, instance
 }
 
 func DoDoPushActivity(req *PushReq) (*model.SendChannelMessageRsp, error) {

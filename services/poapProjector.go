@@ -38,7 +38,7 @@ type POAPRequest struct {
 }
 
 func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POAPActivityConfig, error) {
-	config.RainbowUserId = int32(id)
+	config.RainbowUserId = id
 
 	if config.ContractAddress != nil {
 		poapId, err := getPOAPId(*config.ContractAddress, config.Name)

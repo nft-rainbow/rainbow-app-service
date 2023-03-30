@@ -11,7 +11,7 @@ type POAPActivityConfig struct {
 	Amount                 int32           `gorm:"type:integer" json:"amount" binding:"required"`
 	Name                   string          `gorm:"type:string" json:"name" binding:"required"`
 	Description            string          `gorm:"type:string" json:"description" binding:"required"`
-	AppId                  int32           `gorm:"index" json:"app_id" binding:"required"`
+	AppId                  uint            `gorm:"index" json:"app_id" binding:"required"`
 	AppName                string          `gorm:"string" json:"app_name" binding:"required"`
 	ContractType           int32           `gorm:"type:int" json:"contract_type"`
 	ContractAddress        *string         `gorm:"type:string" json:"contract_address"`
@@ -23,7 +23,7 @@ type POAPActivityConfig struct {
 	IsPhoneWhiteListOpened bool            `gorm:"type:bool;default:false" json:"is_phone_white_list_opened"`
 	EndedTime              int64           `gorm:"type:integer" json:"end_time"`
 	StartedTime            int64           `gorm:"type:integer" json:"start_time"`
-	RainbowUserId          int32           `gorm:"type:integer" json:"rainbow_user_id"`
+	RainbowUserId          uint            `gorm:"type:integer" json:"rainbow_user_id"`
 	MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
 	ActivityID             *string         `gorm:"type:string;index" json:"activity_id"`
 	ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
@@ -146,7 +146,7 @@ func FindPOAPActivityConfigById(id string) (*POAPActivityConfig, error) {
 func FindAndCountPOAPActivity(id uint, offset int, limit int, name, activity, contract string) (*POAPActivityQueryResult, error) {
 	var items []*POAPActivityConfig
 	cond := &POAPActivityConfig{}
-	cond.RainbowUserId = int32(id)
+	cond.RainbowUserId = id
 	cond.Name = name
 	cond.ActivityID = &activity
 	cond.ContractAddress = &contract

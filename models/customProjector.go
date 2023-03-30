@@ -1,14 +1,7 @@
 package models
 
-type SocialToolType uint
-
-const (
-	SOCIAL_TOOL_DISCORD SocialToolType = iota + 1
-	SOCIAL_TOOL_DODO
-)
-
 type SocialToolUser struct {
-	SocialTool   SocialToolType `json:"social_tool" binding:"required"`
+	SocialTool   SocialToolType `json:"social_tool"`
 	UserSocialId string         `json:"user_social_id" binding:"required"`
 }
 
@@ -23,10 +16,10 @@ type SocialToolUser struct {
 // 	ChainType     string `gorm:"type:string" json:"chain_type" binding:"required"`
 // }
 
-type SocialToolProjecter struct {
+type SocialToolProjectManager struct {
 	BaseModel
 	SocialToolUser
-	RainbowUserId int32 `gorm:"type:integer" json:"rainbow_user_id" binding:"required"`
+	RainbowUserId uint `gorm:"type:integer" json:"rainbow_user_id" binding:"required"`
 
 	// Platform PlatformType `json:"platform" binding:"required"`
 	// AppId         int32  `gorm:"index" json:"app_id" binding:"required"`
@@ -37,6 +30,17 @@ type SocialToolProjecter struct {
 	// Description   string `gorm:"type:string" json:"description" binding:"required"`
 	// ChainType     string `gorm:"type:string" json:"chain_type" binding:"required"`
 	// PlatformUserId string `gorm:"type:varchar(255)" json:"platform_user_id" binding:"required"`
+}
+
+func FindSocialToolProjectManager(userId uint, socialTool SocialToolType) (*SocialToolProjectManager, error) {
+	p := SocialToolProjectManager{}
+	p.RainbowUserId = userId
+	p.SocialTool = socialTool
+	err := GetDB().Where(&p).First(&p).Error
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
 }
 
 // type DiscordCustomActivityConfig struct {
@@ -66,7 +70,7 @@ type CustomActivityConfig struct {
 	Event           string         `gorm:"type:string" json:"event" binding:"required"`
 	Name            string         `gorm:"type:string" json:"name" binding:"required"`
 	Description     string         `gorm:"type:string" json:"description" binding:"required"`
-	AppId           int32          `gorm:"index" json:"app_id"`
+	AppId           uint           `gorm:"index" json:"app_id"`
 	ContractType    int32          `gorm:"type:int" json:"contract_type"`
 	ContractAddress string         `gorm:"type:string" json:"contract_address"`
 	Chain           int32          `gorm:"type:int" json:"chain_type"`
@@ -120,13 +124,13 @@ type DoDoActivityQueryResult struct {
 }
 
 type DiscordCustomProjectConfigQueryResult struct {
-	Count int64                  `json:"count"`
-	Items []*SocialToolProjecter `json:"items"`
+	Count int64                       `json:"count"`
+	Items []*SocialToolProjectManager `json:"items"`
 }
 
 type DoDoCustomProjectConfigQueryResult struct {
-	Count int64                  `json:"count"`
-	Items []*SocialToolProjecter `json:"items"`
+	Count int64                       `json:"count"`
+	Items []*SocialToolProjectManager `json:"items"`
 }
 
 func FindPushInfo(serverId, activityId string) (*PushInfo, error) {
@@ -177,26 +181,26 @@ func FindDoDoCustomActivityConfigByChannelId(id string) (*CustomActivityConfig, 
 	return &item, err
 }
 
-func FindDiscordConfigById(id int) (*SocialToolProjecter, error) {
-	var item SocialToolProjecter
+func FindDiscordConfigById(id int) (*SocialToolProjectManager, error) {
+	var item SocialToolProjectManager
 	err := db.Where("id = ?", id).First(&item).Error
 	return &item, err
 }
 
-func FindDiscordConfigByUserId(id int) (*SocialToolProjecter, error) {
-	var item SocialToolProjecter
+func FindDiscordConfigByUserId(id int) (*SocialToolProjectManager, error) {
+	var item SocialToolProjectManager
 	err := db.Where("rainbow_user_id = ?", id).First(&item).Error
 	return &item, err
 }
 
-func FindDoDoConfigById(id int) (*SocialToolProjecter, error) {
-	var item SocialToolProjecter
+func FindDoDoConfigById(id int) (*SocialToolProjectManager, error) {
+	var item SocialToolProjectManager
 	err := db.Where("id = ?", id).First(&item).Error
 	return &item, err
 }
 
-func FindDoDoConfigByUserId(id int) (*SocialToolProjecter, error) {
-	var item SocialToolProjecter
+func FindDoDoConfigByUserId(id int) (*SocialToolProjectManager, error) {
+	var item SocialToolProjectManager
 	err := db.Where("rainbow_user_id = ?", id).First(&item).Error
 	return &item, err
 }
@@ -216,7 +220,7 @@ func FindDoDoCustomActivityConfigById(id int) (*CustomActivityConfig, error) {
 func FindAndCountDiscordActivity(id uint, offset int, limit int) (*DiscordActivityQueryResult, error) {
 	var items []*CustomActivityConfig
 	cond := &CustomActivityConfig{}
-	cond.AppId = int32(id)
+	cond.AppId = id
 
 	var count int64
 	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
@@ -233,7 +237,7 @@ func FindAndCountDiscordActivity(id uint, offset int, limit int) (*DiscordActivi
 func FindAndCountDoDoActivity(id uint, offset int, limit int) (*DoDoActivityQueryResult, error) {
 	var items []*CustomActivityConfig
 	cond := &CustomActivityConfig{}
-	cond.AppId = int32(id)
+	cond.AppId = id
 
 	var count int64
 	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
@@ -248,9 +252,9 @@ func FindAndCountDoDoActivity(id uint, offset int, limit int) (*DoDoActivityQuer
 }
 
 func FindAndCountDiscordCustomProjectConfig(id uint, offset int, limit int) (*DiscordCustomProjectConfigQueryResult, error) {
-	var items []*SocialToolProjecter
-	cond := &SocialToolProjecter{}
-	cond.RainbowUserId = int32(id)
+	var items []*SocialToolProjectManager
+	cond := &SocialToolProjectManager{}
+	cond.RainbowUserId = id
 
 	var count int64
 	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
@@ -265,9 +269,9 @@ func FindAndCountDiscordCustomProjectConfig(id uint, offset int, limit int) (*Di
 }
 
 func FindAndCountDoDoCustomProjectConfig(id uint, offset int, limit int) (*DoDoCustomProjectConfigQueryResult, error) {
-	var items []*SocialToolProjecter
-	cond := &SocialToolProjecter{}
-	cond.RainbowUserId = int32(id)
+	var items []*SocialToolProjectManager
+	cond := &SocialToolProjectManager{}
+	cond.RainbowUserId = id
 
 	var count int64
 	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {

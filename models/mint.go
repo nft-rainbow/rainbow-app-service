@@ -33,8 +33,8 @@ type POAPResult struct {
 	ActivityID  string `gorm:"type:string;index" json:"activity_id"`
 	Status      int32  `gorm:"type:integer" json:"status"`
 	FileURL     string `gorm:"type:string" json:"file_url"`
-	ProjectorId int32  `gorm:"type:integer" json:"projector_id"`
-	AppId       int32  `gorm:"type:integer" json:"app_id"`
+	ProjectorId uint   `gorm:"type:integer" json:"projector_id"`
+	AppId       uint   `gorm:"type:integer" json:"app_id"`
 	SocialId    string `gorm:"type:string;index" json:"social_id"`
 	SocialType  uint   `gorm:"type:integer" json:"social_type"`
 }

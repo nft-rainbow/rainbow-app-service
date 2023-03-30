@@ -14,22 +14,29 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/utils/rand"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 )
 
-type ActivityService struct {
+type BotActivityService struct {
 	authcodes        sync.Map
 	socialToolClient SocialToolBot
 }
 
-func NewActivityService() *ActivityService {
-	return &ActivityService{}
+func NewBotActivityService(socialToolType models.SocialToolType) (*BotActivityService, error) {
+	_socialToolClient, err := getSocialToolBot(socialToolType)
+	if err != nil {
+		return nil, err
+	}
+	return &BotActivityService{
+		socialToolClient: _socialToolClient,
+	}, nil
 }
 
-func (d *ActivityService) VerifyUser(user models.SocialToolUser) (*VerifyUserResponse, error) {
+func (d *BotActivityService) VerifyUser(user models.SocialToolUser) (*VerifyUserResponse, error) {
 	v, loaded := d.authcodes.LoadOrStore(user, rand.NumString(6))
 	if !loaded {
 		go func() {
-			<-time.After(time.Second * 5)
+			<-time.After(time.Minute * 5)
 			d.authcodes.Delete(user)
 		}()
 	}
@@ -39,22 +46,44 @@ func (d *ActivityService) VerifyUser(user models.SocialToolUser) (*VerifyUserRes
 		return nil, err
 	}
 
-	return &VerifyUserResponse{Code: v.(string)}, nil
+	return &VerifyUserResponse{AuthCode: v.(string)}, nil
 }
 
-func (d *ActivityService) InsertProjector(req InsertProjectorReq) error {
-	code, ok := d.authcodes.Load(req.SocialToolUser)
-	if !ok || code.(string) != req.AuthCode {
-		return errors.New("auth code not match")
+func (d *BotActivityService) InsertProjectManager(userId uint, socialTool models.SocialToolType, req InsertProjectorReq) error {
+	socialUser := models.SocialToolUser{
+		SocialTool:   socialTool,
+		UserSocialId: req.UserSocialId,
+	}
+	if socialTool == models.SOCIAL_TOOL_DODO {
+		code, ok := d.authcodes.Load(socialUser)
+		if !ok || code.(string) != *req.AuthCode {
+			return errors.New("auth code not match")
+		}
+	} else {
+		return errors.New("unsupported social tool")
 	}
 
-	if err := models.GetDB().Save(req.SocialToolUser).Error; err != nil {
+	_, err := models.FindSocialToolProjectManager(userId, socialTool)
+	if err != gorm.ErrRecordNotFound {
+		return errors.New("already exists")
+	}
+
+	var p models.SocialToolProjectManager
+	p.RainbowUserId = userId
+	p.SocialTool = socialTool
+	p.SocialToolUser = socialUser
+
+	if err := models.GetDB().Save(&p).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func BindDiscordProjectConfig(config *models.SocialToolProjecter, id uint) error {
+func (d *BotActivityService) GetProjectManager(userId uint, socialType models.SocialToolType) (*models.SocialToolProjectManager, error) {
+	return models.FindSocialToolProjectManager(userId, socialType)
+}
+
+func BindDiscordProjectConfig(config *models.SocialToolProjectManager, id uint) error {
 	// info, err := GetDiscordGuildInfo(config.GuildId)
 	// if err != nil {
 	// 	return err
@@ -70,7 +99,7 @@ func BindDiscordProjectConfig(config *models.SocialToolProjecter, id uint) error
 	return nil
 }
 
-func BindDoDoProjectConfig(config *models.SocialToolProjecter, id uint) error {
+func BindDoDoProjectConfig(config *models.SocialToolProjectManager, id uint) error {
 	// info, err := GetDoDoIslandInfo(config.IslandId)
 	// if err != nil {
 	// 	return err

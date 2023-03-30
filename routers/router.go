@@ -13,6 +13,18 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
 
+var (
+	botActivityHandler *BotActivityRouteHandler
+)
+
+func Init() {
+	var err error
+	botActivityHandler, err = NewBotActivityRouteHandler()
+	if err != nil {
+		panic(err)
+	}
+}
+
 func SetupRoutes(router *gin.Engine) {
 	router.GET("/", indexEndpoint)
 
@@ -21,22 +33,25 @@ func SetupRoutes(router *gin.Engine) {
 
 	custom := apps.Group("/custom")
 
-	dodo := custom.Group("/dodo")
-	dodo.GET("/:island_id/channels", getDoDoChannelInfo)
-	dodoProjector := dodo.Group("/projector")
-	dodoProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	social := custom.Group("/:social_tool")
+	socialManager := social.Group("/manager")
+	socialManager.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		dodoHandler := NewActivityRouteHandler()
-		dodoProjector.POST("/", dodoHandler.insertProjector)
-		// dodoProjector.GET("/", getProjectorList)
-		dodoProjector.GET("/:id", getProjector)
-		// dodoProjector.GET("/", getDoDoCustomProjectList)
-		dodoProjector.POST("/authcode", dodoHandler.verifyUser)
-		// dodoProjector.GET("/:id", getProjector)
-		dodoProjector.POST("/activity", setDoDoCustomActivityConfig)
-		dodoProjector.GET("/activity", getDoDoCustomActivityList)
-		dodoProjector.GET("/activity/:id", getDoDoCustomActivity)
+		// socialManager.GET("/:island_id/channels", getDoDoChannelInfo)
+		socialManager.POST("/authcode", botActivityHandler.verifyUser)
+		socialManager.POST("/", botActivityHandler.insertProjectManager)
+		socialManager.GET("/", botActivityHandler.getProjectManager)
+	}
 
+	socialBotActivity := social.Group("/activity")
+	socialBotActivity.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	{
+		// dodoProjector.GET("/", getProjectorList)
+		// dodoProjector.GET("/", getDoDoCustomProjectList)
+		// dodoProjector.GET("/:id", getProjector)
+		socialBotActivity.POST("", setDoDoCustomActivityConfig)
+		socialBotActivity.GET("", getDoDoCustomActivityList)
+		socialBotActivity.GET("/:id", getDoDoCustomActivity)
 	}
 
 	discord := custom.Group("/discord")

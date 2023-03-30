@@ -23,7 +23,7 @@ import (
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/projector/ [post]
 func setDiscordCustomProjectConfig(c *gin.Context) {
-	var adminConfig *models.SocialToolProjecter
+	var adminConfig *models.SocialToolProjectManager
 	if err := c.ShouldBind(&adminConfig); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
@@ -270,40 +270,12 @@ func getDiscordCustomProject(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/projector/{id} [get]
-func getProjector(c *gin.Context) {
-	ProjectorId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	item, err := models.FindDoDoConfigById(ProjectorId)
-	ginutils.RenderResp(c, item, err)
-}
-
-type ActivityRouteHandler struct {
-	activityService services.ActivityService
-}
-
-func NewActivityRouteHandler() *ActivityRouteHandler {
-	return &ActivityRouteHandler{}
-}
-
-func (d *ActivityRouteHandler) verifyUser(c *gin.Context) {
-	var user *models.SocialToolUser
-	if err := c.ShouldBind(&user); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	verifyResp, err := d.activityService.VerifyUser(*user)
-	ginutils.RenderResp(c, verifyResp, err)
-}
-
-func (d *ActivityRouteHandler) insertProjector(c *gin.Context) {
-	var req services.InsertProjectorReq
-	if err := c.ShouldBind(&req); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	err := d.activityService.InsertProjector(req)
-	ginutils.RenderResp(c, gin.H{"result": "ok"}, err)
-}
+// func getProjectManager(c *gin.Context) {
+// 	ProjectorId, err := strconv.Atoi(c.Param("id"))
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
+// 		return
+// 	}
+// 	item, err := models.FindDoDoConfigById(ProjectorId)
+// 	ginutils.RenderResp(c, item, err)
+// }

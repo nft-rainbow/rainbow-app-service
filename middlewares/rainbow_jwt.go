@@ -126,7 +126,7 @@ func GenDiscordOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
 		return "", err
 	}
 
-	kycType, err := getKycType(int32(userId))
+	kycType, err := getKycType(userId)
 	if err != nil {
 		return "", err
 	}
@@ -196,7 +196,7 @@ func GenDoDoOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
 	return tokenString, nil
 }
 
-func GenerateRainbowConsoleJWT(userId, appId int32) (string, error) {
+func GenerateRainbowConsoleJWT(userId, appId uint) (string, error) {
 	kycType, err := getKycType(userId)
 	if err != nil {
 		return "", err
@@ -240,7 +240,7 @@ func PrefixToken(token string) string {
 	return "Bearer " + token
 }
 
-func GenOpenJWTByRainbowUserId(rainbowUserId, appId int32) (string, error) {
+func GenOpenJWTByRainbowUserId(rainbowUserId, appId uint) (string, error) {
 	kycType, err := getKycType(rainbowUserId)
 	if err != nil {
 		return "", err
@@ -259,7 +259,7 @@ func GenOpenJWTByRainbowUserId(rainbowUserId, appId int32) (string, error) {
 	return tokenString, nil
 }
 
-func getKycType(userId int32) (uint, error) {
+func getKycType(userId uint) (uint, error) {
 	user := &User{
 		Id: uint(userId),
 	}
