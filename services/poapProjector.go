@@ -83,7 +83,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 	}
 
 	if config.ContractID != oldConfig.ContractID {
-		token, err := middlewares.GenPOAPOpenJWTByRainbowUserId(*oldConfig)
+		token, err := middlewares.GenerateRainbowOpenJWT(oldConfig.RainbowUserId, oldConfig.AppId)
 		if err != nil {
 			return nil, err
 		}
@@ -236,7 +236,7 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, fmt.Errorf("The activity has not opened the white list")
 	}
 
-	token, err := middlewares.GenerateRainbowConsoleJWT(config.RainbowUserId, config.AppId)
+	token, err := middlewares.GenerateRainbowOpenJWT(config.RainbowUserId, config.AppId)
 	if err != nil {
 		return nil, err
 	}
@@ -347,7 +347,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		}
 	}
 
-	token, err := middlewares.GenerateRainbowConsoleJWT(config.RainbowUserId, config.AppId)
+	token, err := middlewares.GenerateRainbowOpenJWT(config.RainbowUserId, config.AppId)
 	if err != nil {
 		return nil, err
 	}
