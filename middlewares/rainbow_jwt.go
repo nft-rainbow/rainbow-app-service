@@ -198,7 +198,7 @@ func GenDoDoOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
 	return tokenString, nil
 }
 
-func GenerateRainbowConsoleJWT(userId, appId uint) (string, error) {
+func GenerateRainbowOpenJWT(userId, appId uint) (string, error) {
 	kycType, err := getKycType(userId)
 	if err != nil {
 		return "", err
@@ -207,25 +207,6 @@ func GenerateRainbowConsoleJWT(userId, appId uint) (string, error) {
 		Id:        uint(appId),
 		KycType:   kycType,
 		AppUserId: uint(userId),
-	}
-
-	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
-func GenPOAPOpenJWTByRainbowUserId(activity models.Activity) (string, error) {
-	kycType, err := getKycType(activity.RainbowUserId)
-	if err != nil {
-		return "", err
-	}
-
-	data := &App{
-		Id:        uint(activity.AppId),
-		KycType:   kycType,
-		AppUserId: uint(activity.RainbowUserId),
 	}
 
 	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
@@ -280,7 +261,7 @@ func getKycType(userId uint) (uint, error) {
 func queryKycType(tokenString string) (float64, error) {
 	req, err := http.NewRequest("GET", viper.GetString("rainbowDashboardApi")+"/dashboard/users/profile", nil)
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", PrefixToken(tokenString))
