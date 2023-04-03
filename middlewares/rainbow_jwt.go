@@ -92,41 +92,71 @@ func InitRainbowJwtMiddleware() {
 	logrus.Info("init open jwt middleware done")
 }
 
-func GenerateDiscordOpenJWT(channelId string) (string, error) {
-	activity, err := models.FindDiscordCustomActivityConfigByChannelId(channelId)
+// func GenerateDiscordOpenJWT(channelId string) (string, error) {
+// 	server, err := models.FindServerByChannel(channelId)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	appId := server.PushInfo.Activity.AppId
+// 	config, err := models.FindDiscordConfigById(int(appId))
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	kycType, err := getKycType(config.RainbowUserId)
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	data := &App{
+// 		Id:        uint(appId),
+// 		KycType:   kycType,
+// 		AppUserId: uint(config.RainbowUserId),
+// 	}
+
+// 	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return tokenString, nil
+// }
+
+// func GenDiscordOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
+// 	config, err := models.FindDiscordConfigByUserId(int(userId))
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	kycType, err := getKycType(userId)
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	data := &App{
+// 		Id:        uint(appId),
+// 		KycType:   kycType,
+// 		AppUserId: uint(config.RainbowUserId),
+// 	}
+
+// 	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return tokenString, nil
+// }
+
+func GenerateDoDoOpenJWT(channelId string) (string, error) {
+	server, err := models.FindBotServerByChannel(channelId)
 	if err != nil {
 		return "", err
 	}
-	config, err := models.FindDiscordConfigById(int(activity.AppId))
-	if err != nil {
-		return "", err
-	}
+	appId := server.PushInfo.Activity.AppId
+	// config, err := models.FindDoDoConfigById(int(appId))
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	kycType, err := getKycType(config.RainbowUserId)
-	if err != nil {
-		return "", err
-	}
-
-	data := &App{
-		Id:        uint(activity.AppId),
-		KycType:   kycType,
-		AppUserId: uint(config.RainbowUserId),
-	}
-
-	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
-func GenDiscordOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
-	config, err := models.FindDiscordConfigByUserId(int(userId))
-	if err != nil {
-		return "", err
-	}
-
-	kycType, err := getKycType(userId)
+	kycType, err := getKycType(server.RainbowUserId)
 	if err != nil {
 		return "", err
 	}
@@ -134,35 +164,7 @@ func GenDiscordOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
 	data := &App{
 		Id:        uint(appId),
 		KycType:   kycType,
-		AppUserId: uint(config.RainbowUserId),
-	}
-
-	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
-func GenerateDoDoOpenJWT(channelId string) (string, error) {
-	activity, err := models.FindDoDoCustomActivityConfigByChannelId(channelId)
-	if err != nil {
-		return "", err
-	}
-	config, err := models.FindDoDoConfigById(int(activity.AppId))
-	if err != nil {
-		return "", err
-	}
-
-	kycType, err := getKycType(config.RainbowUserId)
-	if err != nil {
-		return "", err
-	}
-
-	data := &App{
-		Id:        uint(activity.AppId),
-		KycType:   kycType,
-		AppUserId: uint(config.RainbowUserId),
+		AppUserId: uint(server.RainbowUserId),
 	}
 
 	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
@@ -173,7 +175,7 @@ func GenerateDoDoOpenJWT(channelId string) (string, error) {
 }
 
 func GenDoDoOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
-	config, err := models.FindDoDoConfigByUserId(int(userId))
+	config, err := models.FirstBotServerByUserId(int(userId))
 	if err != nil {
 		return "", err
 	}
@@ -214,7 +216,7 @@ func GenerateRainbowConsoleJWT(userId, appId uint) (string, error) {
 	return tokenString, nil
 }
 
-func GenPOAPOpenJWTByRainbowUserId(activity models.POAPActivityConfig) (string, error) {
+func GenPOAPOpenJWTByRainbowUserId(activity models.Activity) (string, error) {
 	kycType, err := getKycType(activity.RainbowUserId)
 	if err != nil {
 		return "", err

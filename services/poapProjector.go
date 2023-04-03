@@ -37,7 +37,7 @@ type POAPRequest struct {
 	Command     string `json:"command"`
 }
 
-func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POAPActivityConfig, error) {
+func POAPActivityConfig(config *models.Activity, id uint) (*models.Activity, error) {
 	config.RainbowUserId = id
 	config.ActivityID = utils.GenerateIDByTimeHash("", 8)
 	config.IsCommand = config.Command != ""
@@ -76,7 +76,7 @@ func POAPH5Config(config *models.H5Config) (*models.H5Config, error) {
 	return config, nil
 }
 
-func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId string) (*models.POAPActivityConfig, error) {
+func UpdatePOAPActivityConfig(config *models.Activity, activityId string) (*models.Activity, error) {
 	oldConfig, err := models.FindPOAPActivityConfigById(activityId)
 	if err != nil {
 		return nil, err
@@ -170,7 +170,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 			models.GetDB().Save(&oldNFTConfig)
 		} else {
 			// Create new NFTConfig
-			newNFTConfig.POAPActivityConfigID = oldConfig.ID
+			newNFTConfig.ActivityID = oldConfig.ID
 			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs, newNFTConfig)
 		}
 	}
@@ -440,7 +440,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	return item, res.Error
 }
 
-func generateActivityPoster(config *models.POAPActivityConfig) error {
+func generateActivityPoster(config *models.Activity) error {
 	if err := config.CheckActivityValid(); err != nil {
 		return err
 	}
@@ -693,7 +693,7 @@ func GetMintCount(activityID, address string) (*int32, error) {
 	return &count, nil
 }
 
-func commonCheck(config *models.POAPActivityConfig, req *POAPRequest) error {
+func commonCheck(config *models.Activity, req *POAPRequest) error {
 	if err := config.CheckActivityValid(); err != nil {
 		return err
 	}
@@ -724,7 +724,7 @@ func checkWhiteList(whiteList []models.WhiteListInfo, address string) bool {
 	return false
 }
 
-func checkWhiteListLimit(config *models.POAPActivityConfig, address string) error {
+func checkWhiteListLimit(config *models.Activity, address string) error {
 	if err := config.CheckActivityValid(); err != nil {
 		return err
 	}
@@ -740,7 +740,7 @@ func checkWhiteListLimit(config *models.POAPActivityConfig, address string) erro
 	return nil
 }
 
-func createMetadata(config *models.POAPActivityConfig, token string, index int) (*string, error) {
+func createMetadata(config *models.Activity, token string, index int) (*string, error) {
 	attributes := make([]openapiclient.ModelsExposedMetadataAttribute, 0)
 	for _, v := range config.NFTConfigs[index].MetadataAttributes {
 		attributes = append(attributes, openapiclient.ModelsExposedMetadataAttribute{

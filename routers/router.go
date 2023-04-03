@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	botActivityHandler *BotActivityRouteHandler
+	botServerHandler *BotServer
 )
 
 func Init() {
 	var err error
-	botActivityHandler, err = NewBotActivityRouteHandler()
+	botServerHandler, err = NewBotServer()
 	if err != nil {
 		panic(err)
 	}
@@ -31,28 +31,32 @@ func SetupRoutes(router *gin.Engine) {
 	apps := router.Group("/apps")
 	apps.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
 
-	bot := apps.Group("/bot/:social_tool")
-
-	// social := bot.Group("/:social_tool")
-	botManager := bot.Group("/manager")
-	botManager.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	botServer := apps.Group("/botserver")
+	botServer.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		// socialManager.GET("/:island_id/channels", getDoDoChannelInfo)
-		botManager.POST("/authcode", botActivityHandler.verifyUser)
-		botManager.POST("/", botActivityHandler.insertProjectManager)
-		botManager.GET("/", botActivityHandler.getProjectManager)
+		botServer.GET("/channels", botServerHandler.GetChannels)
+		botServer.GET("/roles", botServerHandler.GetRoles)
+
+		botServer.POST("/authcode", botServerHandler.verifyBotServer)
+		botServer.POST("", botServerHandler.insertBotServer)
+		botServer.GET("", botServerHandler.GetBotServers)
+
+		botServer.GET("/:id", botServerHandler.GetBotServer)
+		botServer.POST("/:id/activity", botServerHandler.AddActivity)
+		botServer.PUT("/:id/activity", botServerHandler.UpdateActivity)
+		botServer.POST("/push/:id", botServerHandler.Push)
 	}
 
-	botActivity := bot.Group("/activity")
-	botActivity.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
-	{
-		// dodoProjector.GET("/", getProjectorList)
-		// dodoProjector.GET("/", getDoDoCustomProjectList)
-		// dodoProjector.GET("/:id", getProjector)
-		botActivity.POST("", setDoDoCustomActivityConfig)
-		botActivity.GET("", getDoDoCustomActivityList)
-		botActivity.GET("/:id", getDoDoCustomActivity)
-	}
+	// botActivity := bot.Group("/activity")
+	// botActivity.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	// {
+	// dodoProjector.GET("/", getProjectorList)
+	// dodoProjector.GET("/", getDoDoCustomProjectList)
+	// dodoProjector.GET("/:id", getProjector)
+	// botActivity.POST("", setDoDoCustomActivityConfig)
+	// botActivity.GET("", getDoDoCustomActivityList)
+	// botActivity.GET("/:id", getDoDoCustomActivity)
+	// }
 
 	// discord := bot.Group("/discord")
 	// discord.GET("/:guild_id/channels", getDiscordChannelInfo)
@@ -76,14 +80,15 @@ func SetupRoutes(router *gin.Engine) {
 	poap.POST("/anyweb/code", collectAnywebUserCode)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		poap.POST("/activity/push", pushActivity)
-		poap.POST("/activity/server", bindServerInfo)
-		poap.GET("/activity/push/:bot", getPushes)
-		poap.GET("/activity/servers/:bot", getServers)
-		poap.GET("/activity/channels/discord/:guild_id", getDiscordChannels)
-		poap.GET("/activity/channels/dodo/:island_id", getDoDoChannels)
-		poap.GET("/activity/roles/discord/:guild_id", getDiscordRoles)
-		poap.GET("/activity/roles/dodo/:island_id", getDoDoRoles)
+		// poap.POST("/activity/push", pushActivity)
+		// poap.POST("/activity/server", bindServerInfo)
+		// poap.GET("/activity/push/:bot", getPushes)
+		// poap.GET("/activity/servers/:bot", getServers)
+		// poap.GET("/activity/channels/discord/:guild_id", getDiscordChannels)
+		// poap.GET("/activity/channels/dodo/:island_id", getDoDoChannels)
+		// poap.GET("/activity/roles/discord/:guild_id", getDiscordRoles)
+		// poap.GET("/activity/roles/dodo/:island_id", getDoDoRoles)
+
 		poap.POST("/csv", poapMintByCSV)
 		poap.POST("/activity", setPOAPActivityConfig)
 		poap.PUT("/activity/:activity_id", updatePOAPConfig)

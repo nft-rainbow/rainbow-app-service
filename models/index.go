@@ -37,20 +37,20 @@ func ConnectDB() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&SocialToolProjectManager{})
-	db.AutoMigrate(&CustomActivityConfig{})
+	db.AutoMigrate(&BotServer{})
+	// db.AutoMigrate(&CustomActivityConfig{})
 	db.AutoMigrate(&BindCFX{})
 	db.AutoMigrate(&CustomMintCount{})
 	db.AutoMigrate(&CustomMintResult{})
 	db.AutoMigrate(&POAPResult{})
-	db.AutoMigrate(&POAPActivityConfig{})
+	db.AutoMigrate(&Activity{})
 	db.AutoMigrate(&H5Config{})
 	db.AutoMigrate(&WhiteListInfo{})
 	db.AutoMigrate(&Statistic{})
 	db.AutoMigrate(&NFTConfig{})
 	db.AutoMigrate(&MetadataAttribute{})
-	db.AutoMigrate(&PushInfo{})
-	db.AutoMigrate(&UserServer{})
+	// db.AutoMigrate(&PushInfo{})
+	db.AutoMigrate(&BotServer{})
 	db.AutoMigrate(&AnywebUser{})
 	db.AutoMigrate(&PhoneWhiteList{})
 }

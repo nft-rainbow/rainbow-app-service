@@ -1,12 +1,9 @@
 package routers
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/models"
-	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
 
@@ -22,16 +19,16 @@ import (
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/projector/ [post]
-func setDiscordCustomProjectConfig(c *gin.Context) {
-	var adminConfig *models.SocialToolProjectManager
-	if err := c.ShouldBind(&adminConfig); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
+// func setDiscordCustomProjectConfig(c *gin.Context) {
+// 	var adminConfig *models.SocialToolServer
+// 	if err := c.ShouldBind(&adminConfig); err != nil {
+// 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+// 		return
+// 	}
 
-	err := services.BindDiscordProjectConfig(adminConfig, GetIdFromJwtClaim(c))
-	ginutils.RenderResp(c, "success", err)
-}
+// 	err := services.BindDiscordProjectConfig(adminConfig, GetIdFromJwtClaim(c))
+// 	ginutils.RenderResp(c, "success", err)
+// }
 
 // @Tags        CustomMint
 // @ID          SetDoDoCustomProjectConfig
@@ -68,16 +65,16 @@ func setDiscordCustomProjectConfig(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/projector/activity [post]
-func setDiscordCustomActivityConfig(c *gin.Context) {
-	var config *models.CustomActivityConfig
-	if err := c.ShouldBind(&config); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
+// func setDiscordCustomActivityConfig(c *gin.Context) {
+// 	var config *models.CustomActivityConfig
+// 	if err := c.ShouldBind(&config); err != nil {
+// 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+// 		return
+// 	}
 
-	err := services.DiscordCustomActivityConfig(config, GetIdFromJwtClaim(c))
-	ginutils.RenderResp(c, "success", err)
-}
+// 	err := services.DiscordCustomActivityConfig(config, GetIdFromJwtClaim(c))
+// 	ginutils.RenderResp(c, "success", err)
+// }
 
 // @Tags        CustomMint
 // @ID          SetDoDoCustomActivityConfig
@@ -91,16 +88,16 @@ func setDiscordCustomActivityConfig(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/projector/activity [post]
-func setDoDoCustomActivityConfig(c *gin.Context) {
-	var config *models.CustomActivityConfig
-	if err := c.ShouldBind(&config); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
+// func setDoDoCustomActivityConfig(c *gin.Context) {
+// 	var config *models.CustomActivityConfig
+// 	if err := c.ShouldBind(&config); err != nil {
+// 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+// 		return
+// 	}
 
-	err := services.DoDoCustomActivityConfig(config, GetIdFromJwtClaim(c))
-	ginutils.RenderResp(c, "success", err)
-}
+// 	err := services.DoDoCustomActivityConfig(config, GetIdFromJwtClaim(c))
+// 	ginutils.RenderResp(c, "success", err)
+// }
 
 // @Tags        CustomMint
 // @ID          GetDiscordCustomActivityList
@@ -115,15 +112,15 @@ func setDoDoCustomActivityConfig(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/projector/activity [get]
-func getDiscordCustomActivityList(c *gin.Context) {
-	pagination, err := GetPagination(c)
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
-		return
-	}
-	mints, err := models.FindAndCountDiscordActivity(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
-	ginutils.RenderResp(c, mints, err)
-}
+// func getDiscordCustomActivityList(c *gin.Context) {
+// 	pagination, err := GetPagination(c)
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
+// 		return
+// 	}
+// 	mints, err := models.FindAndCountDiscordActivity(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
+// 	ginutils.RenderResp(c, mints, err)
+// }
 
 // @Tags        CustomMint
 // @ID          GetDoDoCustomActivityList
@@ -138,15 +135,15 @@ func getDiscordCustomActivityList(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/projector/activity [get]
-func getDoDoCustomActivityList(c *gin.Context) {
-	pagination, err := GetPagination(c)
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
-		return
-	}
-	mints, err := models.FindAndCountDoDoActivity(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
-	ginutils.RenderResp(c, mints, err)
-}
+// func getDoDoCustomActivityList(c *gin.Context) {
+// 	pagination, err := GetPagination(c)
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
+// 		return
+// 	}
+// 	mints, err := models.FindAndCountDoDoActivity(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
+// 	ginutils.RenderResp(c, mints, err)
+// }
 
 // @Tags        CustomMint
 // @ID          GetDiscordCustomActivityDetail
@@ -159,15 +156,15 @@ func getDoDoCustomActivityList(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/activity/{id} [get]
-func getDiscordCustomActivity(c *gin.Context) {
-	activityId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	item, err := models.FindDiscordCustomActivityConfigById(activityId)
-	ginutils.RenderResp(c, item, err)
-}
+// func getDiscordCustomActivity(c *gin.Context) {
+// 	activityId, err := strconv.Atoi(c.Param("id"))
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
+// 		return
+// 	}
+// 	item, err := models.FindDiscordCustomActivityConfigById(activityId)
+// 	ginutils.RenderResp(c, item, err)
+// }
 
 // @Tags        CustomMint
 // @ID          GetDoDoCustomActivityDetail
@@ -180,15 +177,15 @@ func getDiscordCustomActivity(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/activity/{id} [get]
-func getDoDoCustomActivity(c *gin.Context) {
-	activityId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	item, err := models.FindDoDoCustomActivityConfigById(activityId)
-	ginutils.RenderResp(c, item, err)
-}
+// func getDoDoCustomActivity(c *gin.Context) {
+// 	activityId, err := strconv.Atoi(c.Param("id"))
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
+// 		return
+// 	}
+// 	item, err := models.FindDoDoCustomActivityConfigById(activityId)
+// 	ginutils.RenderResp(c, item, err)
+// }
 
 // @Tags        CustomMint
 // @ID          GetDiscordCustomProjectList
@@ -248,15 +245,15 @@ func getDoDoCustomProjectList(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/projector/{id} [get]
-func getDiscordCustomProject(c *gin.Context) {
-	ProjectorId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-	item, err := models.FindDiscordConfigById(ProjectorId)
-	ginutils.RenderResp(c, item, err)
-}
+// func getDiscordCustomProject(c *gin.Context) {
+// 	ProjectorId, err := strconv.Atoi(c.Param("id"))
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
+// 		return
+// 	}
+// 	item, err := models.FindDiscordConfigById(ProjectorId)
+// 	ginutils.RenderResp(c, item, err)
+// }
 
 // @Tags        CustomMint
 // @ID          GetDoDoCustomProjectDetail
@@ -270,7 +267,7 @@ func getDiscordCustomProject(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/projector/{id} [get]
-// func getProjectManager(c *gin.Context) {
+// func GetServerToolServers(c *gin.Context) {
 // 	ProjectorId, err := strconv.Atoi(c.Param("id"))
 // 	if err != nil {
 // 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
