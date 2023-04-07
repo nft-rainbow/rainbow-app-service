@@ -1,6 +1,10 @@
 package services
 
-import "github.com/nft-rainbow/rainbow-app-service/models"
+import (
+	"strings"
+
+	"github.com/nft-rainbow/rainbow-app-service/models"
+)
 
 var (
 	Success = map[string]string{"msg": "success"}
@@ -17,11 +21,11 @@ type InsertSocialServerReq struct {
 }
 
 type PushInfoReq struct {
-	ChannelId  string `gorm:"type:string" json:"channel_id"`
-	Roles      string `gorm:"type:string" json:"roles"`
-	Content    string `gorm:"type:string" json:"content"`
-	ColorTheme string `gorm:"type:string" json:"color_theme"`
-	ActivityID uint   `json:"activity_id"`
+	ChannelId  string   `json:"channel_id"`
+	Roles      []string `json:"roles"`
+	Content    string   `json:"content"`
+	ColorTheme string   `json:"color_theme"`
+	ActivityID uint     `json:"activity_id"`
 }
 
 func (p *PushInfoReq) ToModel() (*models.PushInfo, error) {
@@ -31,7 +35,7 @@ func (p *PushInfoReq) ToModel() (*models.PushInfo, error) {
 	}
 	result := models.PushInfo{
 		ChannelId:  p.ChannelId,
-		Roles:      p.Roles,
+		Roles:      strings.Join(p.Roles, ","),
 		Content:    p.Content,
 		ColorTheme: p.ColorTheme,
 		Activity:   activity,

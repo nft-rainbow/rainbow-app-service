@@ -29,7 +29,7 @@ func SetupRoutes(router *gin.Engine) {
 	router.GET("/", indexEndpoint)
 
 	apps := router.Group("/apps")
-	apps.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
+	apps.GET("/swagger/xxx", gs.WrapHandler(swaggerFiles.Handler))
 
 	botServer := apps.Group("/botserver")
 	botServer.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
@@ -40,8 +40,8 @@ func SetupRoutes(router *gin.Engine) {
 		botServer.POST("/authcode", botServerHandler.verifyBotServer)
 		botServer.POST("", botServerHandler.insertBotServer)
 		botServer.GET("", botServerHandler.GetBotServers)
-
 		botServer.GET("/:id", botServerHandler.GetBotServer)
+
 		botServer.POST("/:id/activity", botServerHandler.AddActivity)
 		botServer.PUT("/:id/activity", botServerHandler.UpdateActivity)
 		botServer.POST("/push/:id", botServerHandler.Push)

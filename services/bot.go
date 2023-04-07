@@ -50,6 +50,6 @@ func getSocialToolBot(socialToolType models.SocialToolType) (Bot, error) {
 		})
 		return dodoBot, nil
 	}
-	go dodoBot.ListenWebsocket()
+
 	return nil, errors.New("unsupported social tool")
 }

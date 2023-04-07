@@ -20,10 +20,13 @@ type DodoBot struct {
 
 func NewDodoBot() *DodoBot {
 	_ws, _instance := InitDodoInstance()
-	return &DodoBot{
+
+	b := &DodoBot{
 		ws:       _ws,
 		instance: _instance,
 	}
+	go b.ListenWebsocket()
+	return b
 }
 
 func (d *DodoBot) GetSocialToolType() models.SocialToolType {
