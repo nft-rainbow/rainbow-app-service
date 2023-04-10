@@ -592,14 +592,14 @@ func drawPoster(templatePath string, fontPath string,
 	return buf, nil
 }
 
-func generateActivityPoster(config *models.POAPActivityConfig) (string, error) {
+func generateActivityPoster(config *models.Activity) (string, error) {
 	if err := config.CheckActivityValid(); err != nil {
 		return "", err
 	}
 
 	buf, err := drawPoster("./assets/images/activityPoster.png",
 		"./assets/fonts/PingFang.ttf",
-		*config.ActivityID,
+		config.ActivityID,
 		config.ActivityPictureURL,
 		config.Name,
 		config.Description,
@@ -614,11 +614,11 @@ func generateActivityPoster(config *models.POAPActivityConfig) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.activity"), *config.ActivityID+".png"), buf); err != nil {
+	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.activity"), config.ActivityID+".png"), buf); err != nil {
 		return "", err
 	}
 
-	url := generateAcvitivyPosterUrl(*config.ActivityID)
+	url := generateAcvitivyPosterUrl(config.ActivityID)
 	logrus.WithField("url", url).Info("write activity poster img")
 	return url, nil
 }
