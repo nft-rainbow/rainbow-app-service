@@ -126,8 +126,8 @@ func (d *BotServerService) AddActivity(userId uint, serverId uint, pushInfo Push
 		return nil, errors.New("already exist")
 	}
 
-	var activity models.Activity
-	if err := models.GetDB().Model(&models.Activity{}).Where("id=?", pushInfo.ActivityID).First(&activity).Error; err != nil {
+	var activity models.POAPActivityConfig
+	if err := models.GetDB().Model(&models.POAPActivityConfig{}).Where("id=?", pushInfo.ActivityID).First(&activity).Error; err != nil {
 		return nil, err
 	}
 

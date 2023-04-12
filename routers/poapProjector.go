@@ -130,7 +130,7 @@ func getPOAPActivityList(c *gin.Context) {
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity [post]
 func setPOAPActivityConfig(c *gin.Context) {
-	var config *models.Activity
+	var config *models.POAPActivityConfig
 	if err := c.ShouldBind(&config); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
@@ -177,7 +177,7 @@ func setPOAPH5Config(c *gin.Context) {
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/{activity_id} [put]
 func updatePOAPConfig(c *gin.Context) {
-	var config *models.Activity
+	var config *models.POAPActivityConfig
 	if err := c.ShouldBind(&config); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
