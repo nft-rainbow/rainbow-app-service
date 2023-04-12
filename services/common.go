@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"image"
 	"image/draw"
 	_ "image/gif"
@@ -298,6 +299,10 @@ func generateActivityURLById(activityId string) string {
 func generateActivityUrlByFileUrl(file, activity string) string {
 	tmp := strings.Split(file, "/")
 	return "https://" + viper.GetString("oss.bucketName") + "." + viper.GetString("oss.endpoint") + "/" + path.Join(viper.GetString("imagesDir.minted"), activity, tmp[len(tmp)-1])
+}
+
+func generateAcvitivyPosterUrl(activityId string) string {
+	return fmt.Sprintf("https://%s.%s/%s%s", viper.GetString("oss.bucketName"), viper.GetString("oss.endpoint"), viper.GetString("posterDir.activity"), activityId+".png")
 }
 
 func getOSSBucket(bucketName string) (*oss.Bucket, error) {

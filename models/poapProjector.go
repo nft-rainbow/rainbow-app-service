@@ -27,6 +27,7 @@ type Activity struct {
 	MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
 	ActivityID             string          `gorm:"type:string;index" json:"activity_id"`
 	ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
+	ActivityPosterURL      string          `gorm:"type:string" json:"activity_poster_url"`
 	WhiteListInfos         []WhiteListInfo `json:"white_list_infos"`
 	NFTConfigs             []NFTConfig     `json:"nft_configs"`
 	MetadataUri            string          `gorm:"type:string" json:"metadata_uri"`
