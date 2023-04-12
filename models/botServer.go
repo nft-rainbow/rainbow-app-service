@@ -110,7 +110,7 @@ func FindBotServerById(id uint) (*BotServer, error) {
 type PushInfo struct {
 	BaseModel
 	BotServerID uint
-	Activity    Activity
+	Activity    POAPActivityConfig
 	ChannelId   string `gorm:"type:string" json:"channel_id"`
 	Roles       string `gorm:"type:string" json:"roles"`
 	Content     string `gorm:"type:string" json:"content"`

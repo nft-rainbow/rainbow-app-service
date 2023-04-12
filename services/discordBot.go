@@ -395,7 +395,7 @@ func DiscordPushActivity(req *PushReq) (*discordgo.Message, error) {
 	return msg, nil
 }
 
-func createPushEmbed(config *models.Activity, roles, content string, color int) []*discordgo.MessageEmbed {
+func createPushEmbed(config *models.POAPActivityConfig, roles, content string, color int) []*discordgo.MessageEmbed {
 	embeds := []*discordgo.MessageEmbed{
 		&discordgo.MessageEmbed{
 			Type:        discordgo.EmbedTypeRich,

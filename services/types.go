@@ -29,8 +29,8 @@ type PushInfoReq struct {
 }
 
 func (p *PushInfoReq) ToModel() (*models.PushInfo, error) {
-	var activity models.Activity
-	if err := models.GetDB().Model(&models.Activity{}).Where("id=?", p.ActivityID).First(&activity).Error; err != nil {
+	var activity models.POAPActivityConfig
+	if err := models.GetDB().Model(&models.POAPActivityConfig{}).Where("id=?", p.ActivityID).First(&activity).Error; err != nil {
 		return nil, err
 	}
 	result := models.PushInfo{
