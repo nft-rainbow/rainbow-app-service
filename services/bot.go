@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/spf13/viper"
 )
 
 type (
@@ -17,6 +18,11 @@ type (
 		GetChannels(serverId string) ([]*Channel, error)
 		GetRoles(serverId string) ([]*Role, error)
 		Push(channelId string, roles []string, name, activityId, content, color string) error
+	}
+
+	BotCommander interface {
+		Mint() error
+		Bind() error
 	}
 )
 
@@ -45,10 +51,13 @@ var (
 func getSocialToolBot(socialToolType models.SocialToolType) (Bot, error) {
 	switch socialToolType {
 	case models.SOCIAL_TOOL_DODO:
+		var err error
 		dodoBotCreateOnce.Do(func() {
-			dodoBot = NewDodoBot()
+			clientId := viper.GetString("dodoBot.clientId")
+			tokenId := viper.GetString("dodoBot.tokenId")
+			dodoBot, err = NewDodoBot(clientId, tokenId)
 		})
-		return dodoBot, nil
+		return dodoBot, err
 	}
 
 	return nil, errors.New("unsupported social tool")

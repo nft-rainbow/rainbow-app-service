@@ -31,7 +31,7 @@ type Activity struct {
 	WhiteListInfos         []WhiteListInfo `json:"white_list_infos"`
 	NFTConfigs             []NFTConfig     `json:"nft_configs"`
 	MetadataUri            string          `gorm:"type:string" json:"metadata_uri"`
-	PushInfoID             uint
+	PushInfoID             *uint
 }
 
 func (p *Activity) CheckContractValid() error {

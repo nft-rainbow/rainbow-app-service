@@ -5,28 +5,43 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
+	dodo "github.com/dodo-open/dodo-open-go"
 	dodoClient "github.com/dodo-open/dodo-open-go/client"
 	"github.com/dodo-open/dodo-open-go/model"
+	"github.com/dodo-open/dodo-open-go/tools"
 	"github.com/dodo-open/dodo-open-go/websocket"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/sirupsen/logrus"
 )
 
 type DodoBot struct {
-	ws       websocket.Client
-	instance dodoClient.Client
+	instance        dodoClient.Client
+	instanceBotInfo *model.GetBotInfoRsp
+	commander       *DodoBotCommander
 }
 
-func NewDodoBot() *DodoBot {
-	_ws, _instance := InitDodoInstance()
+func NewDodoBot(clientId, tokenId string) (*DodoBot, error) {
+	_instance, err := dodo.NewInstance(clientId, tokenId, dodoClient.WithTimeout(time.Second*3))
+	if err != nil {
+		return nil, err
+	}
+
+	botInfo, err := _instance.GetBotInfo(context.Background())
+	if err != nil {
+		return nil, err
+	}
 
 	b := &DodoBot{
-		ws:       _ws,
-		instance: _instance,
+		instance:        _instance,
+		instanceBotInfo: botInfo,
 	}
+	b.commander = NewDodoBotCommander(b)
+
 	go b.ListenWebsocket()
-	return b
+	return b, nil
 }
 
 func (d *DodoBot) GetSocialToolType() models.SocialToolType {
@@ -153,17 +168,60 @@ func (d *DodoBot) GetRoles(serverId string) ([]*Role, error) {
 	return roles, nil
 }
 
+func (d *DodoBot) RunCommand(channelId string, userDodoSourceId string, command string) error {
+	return d.commander.ExcuteCommand(channelId, userDodoSourceId, command)
+}
+
 func (d *DodoBot) ListenWebsocket() {
-	logrus.Info("Start to connect")
+	logrus.Info("Start to connect dodo websocket")
+	handlers := &websocket.MessageHandlers{ChannelMessage: d.dodoChannelMsgHandler}
 
-	err := d.ws.Connect()
+	ws, err := websocket.New(d.instance,
+		websocket.WithMessageQueueSize(128),
+		websocket.WithMessageHandlers(handlers),
+	)
 	if err != nil {
 		panic(err)
 	}
-	logrus.Info("Start to listen")
 
-	err = d.ws.Listen()
+	if err = ws.Connect(); err != nil {
+		panic(err)
+	}
+	logrus.Info("Start to listen dodo websocket")
+
+	err = ws.Listen()
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (d *DodoBot) dodoChannelMsgHandler(event *websocket.WSEventMessage, data *websocket.ChannelMessageEventBody) error {
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	j, _ := json.Marshal(data)
+	logrus.WithField("msg", string(j)).Info("got message")
+
+	push, err := models.FindBotServerByChannel(data.IslandSourceId)
+	if err != nil {
+		return err
+	}
+	if push.PushInfo.ChannelId != data.ChannelId {
+		return nil
+	}
+	if data.MessageType != model.TextMsg {
+		return nil
+	}
+
+	messageBody := &model.TextMessage{}
+	if err := tools.JSON.Unmarshal(data.MessageBody, &messageBody); err != nil {
+		return err
+	}
+
+	// check is valid
+	isCommand := len(messageBody.Content) > 0 && messageBody.Content[0] == byte('/')
+	if !isCommand {
+		return nil
+	}
+	logrus.WithField("command", "messageBody.Content").Info("got command")
+
+	return d.RunCommand(data.ChannelId, data.DodoSourceId, messageBody.Content)
 }

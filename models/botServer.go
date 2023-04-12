@@ -46,7 +46,11 @@ func FindBotServers(rainbowUserId uint, socialTool *SocialToolType) ([]*BotServe
 
 func FindBotServerByChannel(channelId string) (*BotServer, error) {
 	var result *BotServer
-	err := db.Preload("PushInfo").Where("channel_id=?", channelId).First(&result).Error
+	var pi PushInfo
+	if err := db.Model(&PushInfo{}).Where("channel_id=?", channelId).First(&pi).Error; err != nil {
+		return nil, err
+	}
+	err := db.Model(&BotServer{}).Preload("PushInfo").Where("id=?", pi.BotServerID).First(&result).Error
 	return result, err
 }
 
