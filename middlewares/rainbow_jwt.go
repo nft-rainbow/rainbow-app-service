@@ -145,34 +145,39 @@ func InitRainbowJwtMiddleware() {
 // 	return tokenString, nil
 // }
 
-func GenerateDoDoOpenJWT(channelId string) (string, error) {
-	server, err := models.FindBotServerByChannel(channelId)
-	if err != nil {
-		return "", err
-	}
-	appId := server.PushInfo.Activity.AppId
-	// config, err := models.FindDoDoConfigById(int(appId))
-	// if err != nil {
-	// 	return "", err
-	// }
+// func GenerateDoDoOpenJWT(channelId string) (string, error) {
+// 	server, err := models.FindBotServerByChannel(channelId)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	kycType, err := getKycType(server.RainbowUserId)
-	if err != nil {
-		return "", err
-	}
+// 	if len(server.PushInfos) == 0 {
+// 		return "", errors.New("no push info")
+// 	}
 
-	data := &App{
-		Id:        uint(appId),
-		KycType:   kycType,
-		AppUserId: uint(server.RainbowUserId),
-	}
+// 	activity, err := server.PushInfos[0].GetActivity()
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
+// 	appId := activity.AppId
+// 	kycType, err := getKycType(server.RainbowUserId)
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	data := &App{
+// 		Id:        uint(appId),
+// 		KycType:   kycType,
+// 		AppUserId: uint(server.RainbowUserId),
+// 	}
+
+// 	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return tokenString, nil
+// }
 
 func GenDoDoOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
 	config, err := models.FirstBotServerByUserId(int(userId))

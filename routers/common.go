@@ -5,7 +5,6 @@ import (
 	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/services"
-	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
 
@@ -36,11 +35,11 @@ func getDiscordChannelInfo(c *gin.Context) {
 // @Success     200           {array} model.ChannelElement
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/{island_id}/channels [get]
-func getDoDoChannelInfo(c *gin.Context) {
-	islandId := c.Param("island_id")
-	resp, err := services.GetDoDoChannelInfo(islandId)
-	ginutils.RenderResp(c, resp, err)
-}
+// func getDoDoChannelInfo(c *gin.Context) {
+// 	islandId := c.Param("island_id")
+// 	resp, err := services.GetDoDoChannelInfo(islandId)
+// 	ginutils.RenderResp(c, resp, err)
+// }
 
 // // @Tags        POAP
 // // @ID          PushActivity
@@ -135,23 +134,23 @@ func bindServerInfo(c *gin.Context) {
 // @Success     200           {object} models.UserServerQueryResult
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/servers/{bot} [get]
-func getServers(c *gin.Context) {
-	pagination, err := GetPagination(c)
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
-		return
-	}
+// func getServers(c *gin.Context) {
+// 	pagination, err := GetPagination(c)
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
+// 		return
+// 	}
 
-	botStr := c.Param("bot")
-	var bot uint
-	if botStr == "discord" {
-		bot = utils.Discord
-	} else {
-		bot = utils.DoDo
-	}
-	resp, err := services.FindAuthUserServers(pagination.Offset(), pagination.Limit, (GetIdFromJwtClaim(c)), bot)
-	ginutils.RenderResp(c, resp, err)
-}
+// 	botStr := c.Param("bot")
+// 	var bot uint
+// 	if botStr == "discord" {
+// 		bot = utils.Discord
+// 	} else {
+// 		bot = utils.DoDo
+// 	}
+// 	resp, err := services.FindAuthUserServers(pagination.Offset(), pagination.Limit, (GetIdFromJwtClaim(c)), bot)
+// 	ginutils.RenderResp(c, resp, err)
+// }
 
 // @Tags        POAP
 // @ID          GetDiscordChannels

@@ -142,7 +142,7 @@ func (d *DodoBot) Push(channelId string, roles []string, name, activityId, conte
 		return err
 	}
 
-	_, err = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
+	_, err = d.instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
 		ChannelId:   channelId,
 		MessageBody: &message,
 	})
@@ -200,13 +200,6 @@ func (d *DodoBot) dodoChannelMsgHandler(event *websocket.WSEventMessage, data *w
 	j, _ := json.Marshal(data)
 	logrus.WithField("msg", string(j)).Info("got message")
 
-	push, err := models.FindBotServerByChannel(data.IslandSourceId)
-	if err != nil {
-		return err
-	}
-	if push.PushInfo.ChannelId != data.ChannelId {
-		return nil
-	}
 	if data.MessageType != model.TextMsg {
 		return nil
 	}
@@ -216,12 +209,11 @@ func (d *DodoBot) dodoChannelMsgHandler(event *websocket.WSEventMessage, data *w
 		return err
 	}
 
-	// check is valid
 	isCommand := len(messageBody.Content) > 0 && messageBody.Content[0] == byte('/')
 	if !isCommand {
 		return nil
 	}
-	logrus.WithField("command", "messageBody.Content").Info("got command")
+	logrus.WithField("command", messageBody.Content).Info("got command")
 
 	return d.RunCommand(data.ChannelId, data.DodoSourceId, messageBody.Content)
 }

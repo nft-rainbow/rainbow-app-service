@@ -115,31 +115,32 @@ func (d *BotServerService) GetBotServer(userId uint, serverId uint) (*models.Bot
 	return VerifyServerBelongsToUser(userId, serverId)
 }
 
-func (d *BotServerService) AddActivity(userId uint, serverId uint, pushInfo PushInfoReq) (*models.PushInfo, error) {
+func (d *BotServerService) AddActivity(userId uint, serverId uint, pushInfoReq PushInfoReq) (*models.PushInfo, error) {
 	// check server belongs to user
 	botServer, err := VerifyServerBelongsToUser(userId, serverId)
 	if err != nil {
 		return nil, err
 	}
 
-	if botServer.PushInfo != nil {
+	if len(botServer.PushInfos) > 0 {
 		return nil, errors.New("already exist")
 	}
 
 	var activity models.POAPActivityConfig
-	if err := models.GetDB().Model(&models.POAPActivityConfig{}).Where("id=?", pushInfo.ActivityID).First(&activity).Error; err != nil {
+	if err := models.GetDB().Model(&models.POAPActivityConfig{}).Where("id=?", pushInfoReq.ActivityID).First(&activity).Error; err != nil {
 		return nil, err
 	}
 
-	botServer.PushInfo, err = pushInfo.ToModel()
+	pushInfo, err := pushInfoReq.ToModel(false)
 	if err != nil {
 		return nil, err
 	}
+	pushInfo.BotServerID = botServer.ID
 
-	if err := models.GetDB().Save(botServer).Error; err != nil {
+	if err := models.GetDB().Save(pushInfo).Error; err != nil {
 		return nil, err
 	}
-	return botServer.PushInfo, nil
+	return pushInfo, nil
 }
 
 // send message to channel
@@ -155,26 +156,39 @@ func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
 		return err
 	}
 
-	activity := pushInfo.Activity
+	activity, err := pushInfo.GetActivity()
+	if err != nil {
+		return err
+	}
+
 	return d.mustGetBot(botServer.SocialTool).Push(
 		pushInfo.ChannelId,
 		strings.Split(pushInfo.Roles, ","),
 		activity.AppName,
-		activity.ActivityID,
+		activity.ActivityCode,
 		pushInfo.Content,
 		pushInfo.ColorTheme)
 }
 
-func (d *BotServerService) UpdateActivity(userId uint, serverId uint, pushInfo PushInfoReq) (*models.PushInfo, error) {
-	// check server belongs to user
+func (d *BotServerService) UpdateActivity(userId uint, serverId uint, pushInfoReq PushInfoReq) (*models.PushInfo, error) {
 	if _, err := VerifyServerBelongsToUser(userId, serverId); err != nil {
 		return nil, err
 	}
 
-	if err := models.GetDB().Save(&pushInfo).Error; err != nil {
+	if _, err := VerifyPushInfoBelongsToServer(serverId, pushInfoReq.ID); err != nil {
 		return nil, err
 	}
-	return nil, errors.New("not implemented")
+
+	pushInfo, err := pushInfoReq.ToModel(true)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := models.GetDB().Save(pushInfo).Error; err != nil {
+		return nil, err
+	}
+
+	return pushInfo, nil
 }
 
 func (d *BotServerService) GetChannels(socialTool models.SocialToolType, rawServerId string) ([]*Channel, error) {
@@ -190,15 +204,28 @@ func (d *BotServerService) GetServerAuthCodeKey(socialTool models.SocialToolType
 }
 
 func VerifyServerBelongsToUser(userId uint, serverId uint) (*models.BotServer, error) {
-	s := models.BotServer{RainbowUserId: userId}
-	s.ID = serverId
-	if err := models.GetDB().Where(&s).First(&s).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, errors.New("server not belongs to user")
-		}
+	botServer, err := models.FindBotServerById(serverId)
+	if err != nil {
 		return nil, err
 	}
-	return &s, nil
+	if botServer.RainbowUserId != userId {
+		return nil, errors.New("server not belongs to user")
+	}
+
+	return botServer, nil
+}
+
+func VerifyPushInfoBelongsToServer(serverId uint, pushInfoId uint) (*models.PushInfo, error) {
+	pushInfo, err := models.FindPushInfoById(pushInfoId)
+	if err != nil {
+		return nil, err
+	}
+
+	if pushInfo.BotServerID != serverId {
+		return nil, errors.New("push info not belongs to server")
+	}
+
+	return pushInfo, nil
 }
 
 // func BindDiscordProjectConfig(config *models.SocialToolServer, id uint) error {

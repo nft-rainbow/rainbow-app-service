@@ -27,6 +27,7 @@ const (
 	BLIND_BOX = iota + 1
 	SINGLE
 	POAP
+	CHANGANDAO
 )
 
 const (

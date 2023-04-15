@@ -18,8 +18,7 @@ type BotServer struct {
 	SocialTool    SocialToolType `json:"social_tool"`
 	RawServerId   string         `json:"server_id" binding:"required"`
 	OwnerSocialId string         `json:"user_social_id" binding:"required"`
-	PushInfo      *PushInfo
-
+	PushInfos     []PushInfo     `gorm:"-" json:"push_infos"`
 	// Platform PlatformType `json:"platform" binding:"required"`
 	// AppId         int32  `gorm:"index" json:"app_id" binding:"required"`
 	// IslandId      string `gorm:"type:varchar(256)" json:"island_id" binding:"required"`
@@ -31,46 +30,101 @@ type BotServer struct {
 	// PlatformUserId string `gorm:"type:varchar(255)" json:"platform_user_id" binding:"required"`
 }
 
-func FindBotServers(rainbowUserId uint, socialTool *SocialToolType) ([]*BotServer, error) {
-	cond := BotServer{RainbowUserId: rainbowUserId}
-	if socialTool != nil {
-		cond.SocialTool = *socialTool
+func (b *BotServer) LoadPushInfos() error {
+	return GetDB().Model(&PushInfo{}).Where("bot_server_id=?", b.ID).Find(&b.PushInfos).Error
+}
+
+func CompleteBotServers(bs ...*BotServer) error {
+	for _, b := range bs {
+		if err := b.LoadPushInfos(); err != nil {
+			return err
+		}
 	}
-	var result []*BotServer
-	err := GetDB().Debug().Where(&cond).Find(&result).Error
+	return nil
+}
+
+func DoAndCompleteBotServers(f func() ([]*BotServer, error)) ([]*BotServer, error) {
+	botServers, err := f()
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+	if err := CompleteBotServers(botServers...); err != nil {
+		return nil, err
+	}
+	return botServers, nil
+}
+
+func DoAndCompleteBotServer(f func() (*BotServer, error)) (*BotServer, error) {
+	botServer, err := f()
+	if err != nil {
+		return nil, err
+	}
+	if err := CompleteBotServers(botServer); err != nil {
+		return nil, err
+	}
+	return botServer, nil
+}
+
+func FindBotServers(rainbowUserId uint, socialTool *SocialToolType) ([]*BotServer, error) {
+	return DoAndCompleteBotServers(func() ([]*BotServer, error) {
+		cond := BotServer{RainbowUserId: rainbowUserId}
+		if socialTool != nil {
+			cond.SocialTool = *socialTool
+		}
+		var result []*BotServer
+		err := GetDB().Debug().Where(&cond).Find(&result).Error
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+	})
 }
 
 func FindBotServerByChannel(channelId string) (*BotServer, error) {
-	var result *BotServer
-	var pi PushInfo
-	if err := db.Model(&PushInfo{}).Where("channel_id=?", channelId).First(&pi).Error; err != nil {
-		return nil, err
-	}
-	err := db.Model(&BotServer{}).Preload("PushInfo").Where("id=?", pi.BotServerID).First(&result).Error
-	return result, err
+	bs, err := DoAndCompleteBotServer(func() (*BotServer, error) {
+		var result *BotServer
+		var pi PushInfo
+		if err := db.Model(&PushInfo{}).Where("channel_id=?", channelId).First(&pi).Error; err != nil {
+			return nil, err
+		}
+		err := db.Model(&BotServer{}).Where("id=?", pi.BotServerID).First(&result).Error
+		return result, err
+	})
+	return bs, err
 }
 
 func FindBotServerByRawID(rawServerId string, socialTool *SocialToolType) (*BotServer, error) {
-	cond := BotServer{
-		RawServerId: rawServerId,
-	}
-	if socialTool != nil {
-		cond.SocialTool = *socialTool
-	}
-	if err := db.Preload("PushInfo").Where(&cond).First(&cond).Error; err != nil {
-		return nil, err
-	}
-	return &cond, nil
+	bs, err := DoAndCompleteBotServer(func() (*BotServer, error) {
+		cond := BotServer{
+			RawServerId: rawServerId,
+		}
+		if socialTool != nil {
+			cond.SocialTool = *socialTool
+		}
+		if err := db.Where(&cond).First(&cond).Error; err != nil {
+			return nil, err
+		}
+		return &cond, nil
+	})
+	return bs, err
 }
 
 func FindBotServerById(id uint) (*BotServer, error) {
-	var result *BotServer
-	err := db.Preload("PushInfo").Where("id=?", id).Find(&result).Error
-	return result, err
+	bs, err := DoAndCompleteBotServer(func() (*BotServer, error) {
+		var result *BotServer
+		err := db.Where("id=?", id).First(&result).Error
+		return result, err
+	})
+	return bs, err
+}
+
+func FirstBotServerByUserId(rainbowUserId int) (*BotServer, error) {
+	bs, err := DoAndCompleteBotServer(func() (*BotServer, error) {
+		var item BotServer
+		err := db.Where("rainbow_user_id = ?", rainbowUserId).First(&item).Error
+		return &item, err
+	})
+	return bs, err
 }
 
 // type DiscordCustomActivityConfig struct {
@@ -109,12 +163,37 @@ func FindBotServerById(id uint) (*BotServer, error) {
 
 type PushInfo struct {
 	BaseModel
-	BotServerID uint
-	Activity    POAPActivityConfig
-	ChannelId   string `gorm:"type:string" json:"channel_id"`
+	BotServerID uint   `json:"bot_server_id"`
+	ActivityId  uint   `gorm:"index:idx_member" json:"activity_id"`
+	ChannelId   string `gorm:"index:idx_member" json:"channel_id"`
 	Roles       string `gorm:"type:string" json:"roles"`
 	Content     string `gorm:"type:string" json:"content"`
 	ColorTheme  string `gorm:"type:string" json:"color_theme"`
+}
+
+func (p *PushInfo) GetActivity() (*POAPActivityConfig, error) {
+	var activity POAPActivityConfig
+	activity.ID = p.ActivityId
+	if err := GetDB().Where(&activity).First(&activity).Error; err != nil {
+		return nil, err
+	}
+	return &activity, nil
+}
+
+func FindPushInfoById(id uint) (*PushInfo, error) {
+	var pushInfo PushInfo
+	pushInfo.ID = id
+	if err := GetDB().Debug().Where(&pushInfo).First(&pushInfo).Error; err != nil {
+		return nil, err
+	}
+	return &pushInfo, nil
+}
+
+func FindPushInfo(cond PushInfo) (*PushInfo, error) {
+	if err := GetDB().Debug().Where(&cond).First(&cond).Error; err != nil {
+		return nil, err
+	}
+	return &cond, nil
 }
 
 // type PushInfo struct {
@@ -230,12 +309,6 @@ type DoDoCustomProjectConfigQueryResult struct {
 // 	err := db.Where("id = ?", id).First(&item).Error
 // 	return &item, err
 // }
-
-func FirstBotServerByUserId(rainbowUserId int) (*BotServer, error) {
-	var item BotServer
-	err := db.Preload("PushInfo").Where("rainbow_user_id = ?", rainbowUserId).First(&item).Error
-	return &item, err
-}
 
 // func FindDiscordCustomActivityConfigById(id int) (*CustomActivityConfig, error) {
 // 	var item CustomActivityConfig

@@ -21,6 +21,7 @@ type InsertSocialServerReq struct {
 }
 
 type PushInfoReq struct {
+	ID         uint     `json:"id"`
 	ChannelId  string   `json:"channel_id"`
 	Roles      []string `json:"roles"`
 	Content    string   `json:"content"`
@@ -28,18 +29,22 @@ type PushInfoReq struct {
 	ActivityID uint     `json:"activity_id"`
 }
 
-func (p *PushInfoReq) ToModel() (*models.PushInfo, error) {
-	var activity models.POAPActivityConfig
-	if err := models.GetDB().Model(&models.POAPActivityConfig{}).Where("id=?", p.ActivityID).First(&activity).Error; err != nil {
-		return nil, err
+func (p *PushInfoReq) ToModel(fillByRaw bool) (*models.PushInfo, error) {
+	var result models.PushInfo
+	if fillByRaw {
+		raw, err := models.FindPushInfoById(p.ID)
+		if err != nil {
+			return nil, err
+		}
+		result = *raw
 	}
-	result := models.PushInfo{
-		ChannelId:  p.ChannelId,
-		Roles:      strings.Join(p.Roles, ","),
-		Content:    p.Content,
-		ColorTheme: p.ColorTheme,
-		Activity:   activity,
-	}
+	result.ChannelId = p.ChannelId
+	result.Roles = strings.Join(p.Roles, ",")
+	result.Content = p.Content
+	result.ColorTheme = p.ColorTheme
+	result.ActivityId = p.ActivityID
+	result.ID = p.ID
+
 	return &result, nil
 
 }
