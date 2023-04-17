@@ -127,7 +127,7 @@ func (d *DodoBotCommander) Mint(channelId string, userDodoSourceId string, activ
 		toAddr = testAddr
 	}
 
-	res, err := HandlePOAPH5Mint(&MintReq{
+	res, err := GetActivityService().HandlePOAPH5Mint(&MintReq{
 		ActivityID:  activity.ActivityCode,
 		UserAddress: toAddr,
 		Command:     verbalSecret,

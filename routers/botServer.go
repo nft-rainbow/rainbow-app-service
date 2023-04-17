@@ -51,26 +51,7 @@ func NewBotServer() (*BotServer, error) {
 	return &BotServer{
 		botService: service,
 	}, nil
-	// dodo, err := services.NewBotServerService()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// handler := &BotServer{
-	// 	Dodo: dodo,
-	// 	botServices: map[models.SocialToolType]*services.BotServerService{
-	// 		models.SOCIAL_TOOL_DODO: dodo,
-	// 	},
-	// }
-
-	// return handler, nil
 }
-
-// func (b *BotServer) getService(socialToolType models.SocialToolType) *services.BotServerService {
-// 	if v, ok := b.botServices[socialToolType]; ok {
-// 		return v
-// 	}
-// 	panic("unsupported social tool type")
-// }
 
 func (b *BotServer) verifyBotServer(c *gin.Context) {
 	var verifyUserReq services.VerifySocialServerReq

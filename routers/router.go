@@ -10,11 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/nft-rainbow/rainbow-app-service/docs"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
+	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
 
 var (
 	botServerHandler *BotServer
+	activityService  *services.ActivityService
 )
 
 func Init() {
@@ -23,6 +25,7 @@ func Init() {
 	if err != nil {
 		panic(err)
 	}
+	activityService = services.GetActivityService()
 }
 
 func SetupRoutes(router *gin.Engine) {
@@ -73,7 +76,7 @@ func SetupRoutes(router *gin.Engine) {
 
 	poap := apps.Group("/poap")
 	poap.POST("/h5", middlewares.IpLimitMiddleware(), poapMintByH5)
-	poap.GET("/activity/:activity_id", getPOAPActivity)
+	poap.GET("/activity/:activity_id", getActivity)
 	poap.GET("/activity/result/:activity_id", getPOAPResultList)
 	poap.GET("/activity/result/:activity_id/:id", getPOAPResultDetail)
 	poap.GET("/count/:address/:activity_id", getMintCount)
@@ -89,11 +92,11 @@ func SetupRoutes(router *gin.Engine) {
 		// poap.GET("/activity/roles/discord/:guild_id", getDiscordRoles)
 		// poap.GET("/activity/roles/dodo/:island_id", getDoDoRoles)
 
-		poap.POST("/csv", poapMintByCSV)
-		poap.POST("/activity", setPOAPActivityConfig)
-		poap.PUT("/activity/:activity_id", updatePOAPConfig)
-		poap.POST("/activity/h5", setPOAPH5Config)
-		poap.GET("/activity", getPOAPActivityList)
+		// poap.POST("/csv", poapMintByCSV)
+		poap.POST("/activity", addActivity)
+		poap.PUT("/activity/:activity_id", updateActivity)
+		poap.POST("/activity/h5", setActivityH5Config)
+		poap.GET("/activity", getActivities)
 	}
 }
 

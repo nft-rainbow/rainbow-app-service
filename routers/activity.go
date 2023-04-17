@@ -22,21 +22,21 @@ import (
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/csv [post]
-func poapMintByCSV(c *gin.Context) {
-	poapRequest := services.MintReq{}
-	if err := c.ShouldBind(&poapRequest); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
+// func poapMintByCSV(c *gin.Context) {
+// 	poapRequest := services.MintReq{}
+// 	if err := c.ShouldBind(&poapRequest); err != nil {
+// 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+// 		return
+// 	}
 
-	resp, err := services.HandlePOAPCSVMint(&poapRequest)
-	if err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INTERNAL_SERVER_COMMON)
-		return
-	}
+// 	resp, err := services.HandlePOAPCSVMint(&poapRequest)
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, err, appService_errors.ERR_INTERNAL_SERVER_COMMON)
+// 		return
+// 	}
 
-	ginutils.RenderResp(c, resp, err)
-}
+// 	ginutils.RenderResp(c, resp, err)
+// }
 
 // @Tags        POAP
 // @ID          POAPMintByH5
@@ -60,7 +60,7 @@ func poapMintByH5(c *gin.Context) {
 		return
 	}
 
-	resp, err := services.HandlePOAPH5Mint(poapRequest)
+	resp, err := activityService.HandlePOAPH5Mint(poapRequest)
 	ginutils.RenderResp(c, resp, err)
 }
 
@@ -75,7 +75,7 @@ func poapMintByH5(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/{activity_id} [get]
-func getPOAPActivity(c *gin.Context) {
+func getActivity(c *gin.Context) {
 	poapId := c.Param("activity_id")
 	item, err := models.FindActivityByCode(poapId)
 	// if item.NeedCommand() == true {
@@ -100,7 +100,7 @@ func getPOAPActivity(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity [get]
-func getPOAPActivityList(c *gin.Context) {
+func getActivities(c *gin.Context) {
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
@@ -129,14 +129,14 @@ func getPOAPActivityList(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity [post]
-func setPOAPActivityConfig(c *gin.Context) {
+func addActivity(c *gin.Context) {
 	var config *models.ActivityReq
 	if err := c.ShouldBind(&config); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
 
-	resp, err := services.InsertActivity(config, GetIdFromJwtClaim(c))
+	resp, err := activityService.InsertActivity(config, GetIdFromJwtClaim(c))
 	ginutils.RenderResp(c, resp, err)
 }
 
@@ -152,14 +152,14 @@ func setPOAPActivityConfig(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/h5 [post]
-func setPOAPH5Config(c *gin.Context) {
+func setActivityH5Config(c *gin.Context) {
 	var config *models.H5Config
 	if err := c.ShouldBind(&config); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
 
-	resp, err := services.POAPH5Config(config)
+	resp, err := activityService.POAPH5Config(config)
 	ginutils.RenderResp(c, resp, err)
 }
 
@@ -176,7 +176,7 @@ func setPOAPH5Config(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/{activity_id} [put]
-func updatePOAPConfig(c *gin.Context) {
+func updateActivity(c *gin.Context) {
 	var config models.ActivityReq
 	if err := c.ShouldBind(&config); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
@@ -185,7 +185,7 @@ func updatePOAPConfig(c *gin.Context) {
 	activityId := c.Param("activity_id")
 	// config.ActivityID = poapId
 
-	resp, err := services.UpdatePOAPActivityConfig(activityId, &config)
+	resp, err := activityService.UpdateActivity(activityId, &config)
 	ginutils.RenderResp(c, resp, err)
 }
 
@@ -262,7 +262,7 @@ func getMintCount(c *gin.Context) {
 	poapId := c.Param("activity_id")
 
 	var resp *int32
-	resp, err = services.GetMintCount(poapId, address)
+	resp, err = activityService.GetMintCount(poapId, address)
 	ginutils.RenderResp(c, resp, err)
 }
 

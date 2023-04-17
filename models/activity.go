@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"time"
 
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 )
@@ -105,12 +106,31 @@ func (p *Activity) VerifyMintable() error {
 		return errors.New("the activity has opened the white list, could not mint by user")
 	}
 
+	if p.StartedTime != -1 && time.Now().Unix() < p.StartedTime {
+		return errors.New("the activity has not been started")
+	}
+
+	if p.EndedTime != -1 && time.Now().Unix() > p.EndedTime {
+		return errors.New("the activity has been expired")
+	}
+
 	switch p.ActivityType {
 	case utils.BLIND_BOX:
 		if len(p.NFTConfigs) == 0 {
 			return errors.New("missing nft configs for blind box activity")
 		}
 	}
+
+	if p.Amount != -1 {
+		resp, err := CountPOAPResult(p.ActivityCode)
+		if err != nil {
+			return err
+		}
+		if int32(resp) >= p.Amount {
+			return errors.New("the mint amount has exceeded the limit")
+		}
+	}
+
 	return nil
 }
 

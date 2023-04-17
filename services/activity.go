@@ -1,25 +1,16 @@
 package services
 
 import (
-	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
+	"sync"
 
 	"fmt"
-	"image"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
-	"io/ioutil"
 	"math/rand"
-	"net/http"
-	"os"
-	"path"
 	"strconv"
 	"time"
 
-	"github.com/disintegration/imaging"
-	"github.com/fogleman/gg"
 	"github.com/mcuadros/go-defaults"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
@@ -27,10 +18,13 @@ import (
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/skip2/go-qrcode"
 	"github.com/spf13/viper"
-	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
+)
+
+var (
+	activityService     *ActivityService
+	activityServiceOnce sync.Once
 )
 
 type MintReq struct {
@@ -39,7 +33,19 @@ type MintReq struct {
 	Command     string `json:"command"`
 }
 
-func InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.Activity, error) {
+type ActivityService struct {
+}
+
+func GetActivityService() *ActivityService {
+	if activityService != nil {
+		activityServiceOnce.Do(func() {
+			activityService = &ActivityService{}
+		})
+	}
+	return activityService
+}
+
+func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.Activity, error) {
 	defaults.SetDefaults(activityReq)
 
 	activityId := utils.GenerateIDByTimeHash("", 8)
@@ -57,7 +63,7 @@ func InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.Activ
 	}
 
 	if activityReq.ContractRawID != nil {
-		if err := UpdateOrCreateContract(userId, activityReq.AppId, uint(*activityReq.ContractRawID)); err != nil {
+		if err := a.UpdateOrCreateContract(userId, activityReq.AppId, uint(*activityReq.ContractRawID)); err != nil {
 			return nil, err
 		}
 	}
@@ -73,7 +79,7 @@ func InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.Activ
 	return &config, nil
 }
 
-func POAPH5Config(config *models.H5Config) (*models.H5Config, error) {
+func (a *ActivityService) POAPH5Config(config *models.H5Config) (*models.H5Config, error) {
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
 		return nil, res.Error
@@ -82,7 +88,7 @@ func POAPH5Config(config *models.H5Config) (*models.H5Config, error) {
 	return config, nil
 }
 
-func UpdateOrCreateContract(userId uint, appId uint, contractId uint) error {
+func (a *ActivityService) UpdateOrCreateContract(userId uint, appId uint, contractId uint) error {
 	token, err := middlewares.GenerateRainbowOpenJWT(userId, appId)
 	if err != nil {
 		return err
@@ -108,7 +114,7 @@ func UpdateOrCreateContract(userId uint, appId uint, contractId uint) error {
 	return nil
 }
 
-func UpdatePOAPActivityConfig(activityId string, req *models.ActivityReq) (*models.Activity, error) {
+func (a *ActivityService) UpdateActivity(activityId string, req *models.ActivityReq) (*models.Activity, error) {
 	oldConfig, err := models.FindActivityByCode(activityId)
 	if err != nil {
 		return nil, err
@@ -116,7 +122,7 @@ func UpdatePOAPActivityConfig(activityId string, req *models.ActivityReq) (*mode
 
 	if req.ContractRawID != nil {
 		if uint(*req.ContractRawID) != uint(oldConfig.Contract.ContractRawID) {
-			if err := UpdateOrCreateContract(oldConfig.RainbowUserId, oldConfig.AppId, uint(*req.ContractRawID)); err != nil {
+			if err := a.UpdateOrCreateContract(oldConfig.RainbowUserId, oldConfig.AppId, uint(*req.ContractRawID)); err != nil {
 				return nil, err
 			}
 		}
@@ -236,107 +242,13 @@ func UpdatePOAPActivityConfig(activityId string, req *models.ActivityReq) (*mode
 	return oldConfig, res.Error
 }
 
-func HandlePOAPCSVMint(req *MintReq) (*models.POAPResult, error) {
-	config, err := models.FindActivityByCode(req.ActivityID)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := config.VerifyMintable(); err != nil {
-		return nil, err
-	}
-
-	token, err := middlewares.GenerateRainbowOpenJWT(config.RainbowUserId, config.AppId)
-	if err != nil {
-		return nil, err
-	}
-
-	err = commonCheck(config, req)
-	if err != nil {
-		return nil, err
-	}
-
-	if !checkWhiteList(config.WhiteListInfos, req.UserAddress) {
-		return nil, fmt.Errorf("The address is not listed in the white list")
-	}
-
-	err = checkWhiteListLimit(config, req.UserAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	err = checkPersonalAmount(config.ActivityCode, req.UserAddress, config.MaxMintCount)
-	if err != nil {
-		return nil, err
-	}
-
-	var metadataURI *string
-	if config.ActivityType == utils.SINGLE {
-		metadataURI, err = createMetadata(config, token, 0)
-		if err != nil {
-			return nil, err
-		}
-	} else if config.ActivityType == utils.BLIND_BOX {
-		var index int
-		probabilities := make([]float32, 0)
-		for i := 0; i < len(config.NFTConfigs); i++ {
-			probabilities = append(probabilities, config.NFTConfigs[i].Probability)
-		}
-		index = weightedRandomIndex(probabilities)
-		metadataURI, err = createMetadata(config, token, index)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	chain, err := utils.ChainById(uint(config.Contract.ChainId))
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := utils.SendCustomMintRequest(middlewares.PrefixToken(token), openapiclient.ServicesCustomMintDto{
-		Chain:           chain,
-		ContractAddress: config.Contract.ContractAddress,
-		MintToAddress:   req.UserAddress,
-		MetadataUri:     metadataURI,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	item := &models.POAPResult{
-		ConfigID:    int32(config.ID),
-		Address:     req.UserAddress,
-		ContractID:  config.Contract.ContractRawID,
-		TxID:        *resp.Id,
-		ActivityID:  config.ActivityCode,
-		ProjectorId: config.RainbowUserId,
-		AppId:       config.AppId,
-	}
-	res := models.GetDB().Create(&item)
-
-	cache, err := models.InitCache(req.ActivityID)
-	if err != nil {
-		return nil, err
-	}
-	cache.Lock()
-	cache.Count += 1
-	cache.Unlock()
-
-	return item, res.Error
-}
-
-func HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, error) {
+func (a *ActivityService) HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, error) {
 	config, err := models.FindActivityByCode(req.ActivityID)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	if err := config.VerifyMintable(); err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	err = commonCheck(config, req)
+	err = a.CheckMintable(config, req)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -430,297 +342,7 @@ func HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, error) {
 	return item, errors.WithStack(res.Error)
 }
 
-func drawPoster(templatePath string, fontPath string,
-	activityId string, activityPicUrl string,
-	name, description string, startTime, endTime int) (*bytes.Buffer, error) {
-	// now := time.Now()
-
-	var dc *gg.Context
-	paintSig := make(chan interface{}, 2)
-
-	drawBackground := func() error {
-		templateImg, err := gg.LoadImage(templatePath)
-		if err != nil {
-			return err
-		}
-
-		dc = gg.NewContext(templateImg.Bounds().Dx(), templateImg.Bounds().Dy())
-		// fmt.Printf("0 %v\n", time.Since(now))
-		dc.DrawImage(templateImg, 0, 0)
-		// fmt.Printf("1 %v\n", time.Since(now))
-		for i := 0; i < 2; i++ {
-			paintSig <- struct{}{}
-		}
-		// fmt.Println("loadTemplate done")
-		return nil
-	}
-
-	drawHeadPic := func() error {
-		resp, err := http.Get(activityPicUrl)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-
-		imgData, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-
-		img, err := imaging.Decode(bytes.NewReader(imgData))
-		if err != nil {
-			return err
-		}
-		img = imaging.Fill(img, 1260, 1260, 0, imaging.ResampleFilter{})
-		<-paintSig
-		dc.DrawImage(img, 120, 200)
-		// fmt.Printf("2 %v\n", time.Since(now))
-		// fmt.Println("drawBackground done")
-		return nil
-	}
-
-	drawTexts := func() error {
-		<-paintSig
-		// 增加文字
-		err := dc.LoadFontFace(fontPath, 88)
-		if err != nil {
-			return err
-		}
-		dc.SetHexColor("#05001F")
-		dc.DrawStringAnchored(name, 120, 1580, 0, 0)
-
-		// fmt.Printf("3 %v\n", time.Since(now))
-		// err = dc.LoadFontFace("./assets/fonts/PingFang.ttf", 64)
-		err = dc.LoadFontFace(fontPath, 48)
-		if err != nil {
-			return err
-		}
-
-		lines := []string{""}
-		var lineLen float64
-		for _, r := range description {
-			w, _ := dc.MeasureString(string(r))
-			if lineLen+w > 1260 {
-				if len(lines) == 3 {
-					lastLine := lines[len(lines)-1]
-					lines[len(lines)-1] = lastLine[:len(lastLine)-5] + "..."
-					break
-				}
-				lines = append(lines, "")
-				lineLen = 0
-			}
-			lines[len(lines)-1] += string(r)
-			lineLen += w
-		}
-
-		paintHeight := float64(1732)
-		addPaintHeight := func(delta int) float64 {
-			_paintHeight := paintHeight
-			paintHeight += float64(delta)
-			return _paintHeight
-		}
-
-		dc.SetHexColor("#696679")
-		for _, line := range lines {
-			dc.DrawString(line, 120, addPaintHeight(96))
-		}
-
-		var start, end string
-		if startTime == -1 {
-			start = "不限时"
-		} else {
-			start = time.Unix(int64(startTime), 0).Format("2006-01-02")
-		}
-		if endTime == -1 {
-			end = "不限时"
-		} else {
-			end = time.Unix(int64(endTime), 0).Format("2006-01-02")
-		}
-
-		err = dc.LoadFontFace(fontPath, 64)
-		if err != nil {
-			return err
-		}
-		paintHeight = 2084
-		dc.DrawStringAnchored(fmt.Sprintf("开始时间：%v", start), 120, addPaintHeight(96), 0, 0)
-		dc.DrawStringAnchored(fmt.Sprintf("结束时间：%v", end), 120, addPaintHeight(96), 0, 0)
-		// fmt.Printf("4 %v\n", time.Since(now))
-
-		// QR Code Generate
-		targetUrl := generateActivityURLById(activityId)
-		qrCode, err := qrcode.New(targetUrl, qrcode.Low)
-		if err != nil {
-			return err
-		}
-
-		paintHeight = 2245
-		qrImg := qrCode.Image(268)
-		dc.DrawImage(qrImg, 1112, int(paintHeight))
-		// fmt.Printf("5 %v\n", time.Since(now))
-		// fmt.Println("drawTexts done")
-		return nil
-	}
-
-	group := new(errgroup.Group)
-	group.Go(drawBackground)
-	group.Go(drawHeadPic)
-	group.Go(drawTexts)
-	err := group.Wait()
-	if err != nil {
-		return nil, err
-	}
-
-	// encode to png
-	buf := new(bytes.Buffer)
-	if err := dc.EncodePNG(buf); err != nil {
-		return nil, err
-	}
-	// fmt.Printf("6 %v\n", time.Since(now))
-
-	return buf, nil
-}
-
-func generateActivityPoster(config *models.ActivityReq, activityId string) (string, error) {
-	// if err := config.CheckActivityValid(); err != nil {
-	// 	return "", err
-	// }
-
-	buf, err := drawPoster("./assets/images/activityPoster.png",
-		"./assets/fonts/PingFang.ttf",
-		activityId,
-		config.ActivityPictureURL,
-		config.Name,
-		config.Description,
-		int(config.StartedTime),
-		int(config.EndedTime),
-	)
-	if err != nil {
-		return "", err
-	}
-
-	bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
-	if err != nil {
-		return "", err
-	}
-	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.activity"), activityId+".png"), buf); err != nil {
-		return "", err
-	}
-
-	url := generateAcvitivyPosterUrl(activityId)
-	logrus.WithField("url", url).Info("write activity poster img")
-	return url, nil
-}
-
-func generateResultPoster(result *models.POAPResult, name string) error {
-	templateImg, err := gg.LoadImage("./assets/images/resultPoster.png")
-
-	dc := gg.NewContext(templateImg.Bounds().Dx(), templateImg.Bounds().Dy())
-	dc.DrawImage(templateImg, 0, 0)
-
-	resp, err := http.Get(generateActivityUrlByFileUrl(result.FileURL, result.ActivityID))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	imgData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	img, err := imaging.Decode(bytes.NewReader(imgData))
-	if err != nil {
-		return err
-	}
-	img = imaging.Fit(img, 1260, 1260, imaging.Lanczos)
-	dc.DrawImage(img, 120, 200)
-
-	// QR Code Generate
-	targetUrl := generateActivityURLById(result.ActivityID)
-	qrCode, _ := qrcode.New(targetUrl, qrcode.Low)
-	qrImg := qrCode.Image(268)
-	dc.DrawImage(qrImg, 1112, 2212)
-
-	// 增加文字
-	err = dc.LoadFontFace("./assets/fonts/PingFang.ttf", 88)
-	if err != nil {
-		return err
-	}
-	dc.SetHexColor("#05001F")
-	dc.DrawStringAnchored(name, 120, 1708, 0, 0)
-
-	err = dc.LoadFontFace("./assets/fonts/PingFang.ttf", 64)
-	if err != nil {
-		return err
-	}
-	dc.SetHexColor("#696679")
-	x := 120.00
-	dc.DrawString("由「", x, 1580)
-	w, _ := dc.MeasureString("由「")
-	x += w
-	dc.SetHexColor("#6953EF")
-
-	dc.DrawString(fmt.Sprintf("%v", utils.SimpleAddress(result.Address)), x, 1580)
-	w, _ = dc.MeasureString(fmt.Sprintf("%v", utils.SimpleAddress(result.Address)))
-	x += w
-	dc.SetHexColor("#696679")
-	dc.DrawString("」拥有", x, 1580)
-
-	drawTimeStringWithColor(dc, "：", fmt.Sprintf("徽章编号：%v", result.TokenID), 120, 1908, "#6953EF")
-	drawTimeStringWithColor(dc, "：", fmt.Sprintf("领取时间：%v", result.CreatedAt.Format("2006-01-02")), 120, 2036, "#05001F")
-	buf := new(bytes.Buffer)
-	dc.EncodePNG(buf)
-
-	bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
-	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.result"), result.ActivityID, result.Address, strconv.Itoa(int(result.ID))+".png"), buf); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func AddLogoAndUpload(url, name, activity string) error {
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	imgData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	img, _, err := image.Decode(bytes.NewReader(imgData))
-	if err != nil {
-		return err
-	}
-
-	logoFile, err := os.Open("./assets/images/logo.png")
-	if err != nil {
-		return err
-	}
-	defer logoFile.Close()
-
-	logo, _, err := image.Decode(logoFile)
-	if err != nil {
-		return err
-	}
-
-	withLogo, err := addLogo(img, logo)
-	if err != nil {
-		return err
-	}
-
-	bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
-	if err := bucket.PutObject(path.Join(viper.GetString("imagesDir.minted"), activity, name), bytes.NewReader(withLogo)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func GetMintCount(activityID, address string) (*int32, error) {
+func (a *ActivityService) GetMintCount(activityID, address string) (*int32, error) {
 	config, err := models.FindActivityByCode(activityID)
 	if err != nil {
 		return nil, err
@@ -771,7 +393,11 @@ func GetMintCount(activityID, address string) (*int32, error) {
 	return &count, nil
 }
 
-func commonCheck(config *models.Activity, req *MintReq) error {
+func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) error {
+	if err := config.VerifyMintable(); err != nil {
+		return errors.WithStack(err)
+	}
+
 	// phone whiteList logic check
 	if config.IsPhoneWhiteListOpened {
 		phoneInfo, err := models.FindAnywebUserByAddress(req.UserAddress)
@@ -785,49 +411,14 @@ func commonCheck(config *models.Activity, req *MintReq) error {
 		}
 	}
 
-	if err := checkPersonalAmount(config.ActivityCode, req.UserAddress, config.MaxMintCount); err != nil {
+	if err := checkUserMintQuota(config.ActivityCode, req.UserAddress, config.MaxMintCount); err != nil {
 		return err
 	}
 
 	if req.Command != config.Command {
 		return errors.New("the command is wrong")
 	}
-	if config.StartedTime != -1 && time.Now().Unix() < config.StartedTime {
-		return errors.New("the activity has not been started")
-	}
 
-	if config.EndedTime != -1 && time.Now().Unix() > config.EndedTime {
-		return errors.New("the activity has been expired")
-	}
-
-	if err := checkAmount(config.ActivityCode, config.Amount); err != nil {
-		return err
-	}
-	return nil
-}
-
-func checkWhiteList(whiteList []models.WhiteListInfo, address string) bool {
-	for _, v := range whiteList {
-		if address == v.User {
-			return true
-		}
-	}
-	return false
-}
-
-func checkWhiteListLimit(config *models.Activity, address string) error {
-	// if err := config.CheckActivityValid(); err != nil {
-	// 	return err
-	// }
-	resp, err := models.CountPOAPResultByAddress(address, config.ActivityCode)
-	if err != nil {
-		return err
-	}
-	for _, v := range config.WhiteListInfos {
-		if v.User == address && resp >= int64(v.Count) {
-			return fmt.Errorf("The NFT minted by the account has exceeded the mint limit")
-		}
-	}
 	return nil
 }
 
@@ -864,32 +455,6 @@ func createMetadata(config *models.Activity, token string, index int) (*string, 
 	return resp.Uri, nil
 }
 
-func getPOAPId(address string, name string) (string, error) {
-	hash := sha256.New()
-
-	_, err := hash.Write([]byte(address + name + strconv.FormatInt(time.Now().UnixNano(), 10)))
-	if err != nil {
-		return "", err
-	}
-	sum := hash.Sum(nil)
-
-	pId := hex.EncodeToString(sum)
-	return pId[:8], nil
-}
-
-func checkAmount(poapId string, amount int32) error {
-	if amount != -1 {
-		resp, err := models.CountPOAPResult(poapId)
-		if err != nil {
-			return err
-		}
-		if int32(resp) >= amount {
-			return fmt.Errorf("The mint amount has exceeded the limit")
-		}
-	}
-	return nil
-}
-
 func weightedRandomIndex(weights []float32) int {
 	if len(weights) == 1 {
 		return 0
@@ -909,7 +474,7 @@ func weightedRandomIndex(weights []float32) int {
 	return len(weights) - 1
 }
 
-func checkPersonalAmount(activityId, user string, max int32) error {
+func checkUserMintQuota(activityId, user string, max int32) error {
 	if max == -1 {
 		return nil
 	}
@@ -920,7 +485,45 @@ func checkPersonalAmount(activityId, user string, max int32) error {
 	}
 
 	if int32(count) >= max {
-		return fmt.Errorf("The mint amount has exceeded the personal limit")
+		return fmt.Errorf("the mint amount has exceeded the personal limit")
 	}
 	return nil
 }
+
+// func getPOAPId(address string, name string) (string, error) {
+// 	hash := sha256.New()
+
+// 	_, err := hash.Write([]byte(address + name + strconv.FormatInt(time.Now().UnixNano(), 10)))
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	sum := hash.Sum(nil)
+
+// 	pId := hex.EncodeToString(sum)
+// 	return pId[:8], nil
+// }
+
+// func checkWhiteList(whiteList []models.WhiteListInfo, address string) bool {
+// 	for _, v := range whiteList {
+// 		if address == v.User {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
+// func checkWhiteListLimit(config *models.Activity, address string) error {
+// 	// if err := config.CheckActivityValid(); err != nil {
+// 	// 	return err
+// 	// }
+// 	resp, err := models.CountPOAPResultByAddress(address, config.ActivityCode)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	for _, v := range config.WhiteListInfos {
+// 		if v.User == address && resp >= int64(v.Count) {
+// 			return fmt.Errorf("The NFT minted by the account has exceeded the mint limit")
+// 		}
+// 	}
+// 	return nil
+// }
