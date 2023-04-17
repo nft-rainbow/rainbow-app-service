@@ -39,7 +39,7 @@ type MintReq struct {
 	Command     string `json:"command"`
 }
 
-func InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.POAPActivityConfig, error) {
+func InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.Activity, error) {
 	defaults.SetDefaults(activityReq)
 
 	activityId := utils.GenerateIDByTimeHash("", 8)
@@ -49,7 +49,7 @@ func InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.POAPA
 		return nil, err
 	}
 
-	config := models.POAPActivityConfig{
+	config := models.Activity{
 		ActivityReq:       *activityReq,
 		RainbowUserId:     userId,
 		ActivityCode:      activityId,
@@ -108,7 +108,7 @@ func UpdateOrCreateContract(userId uint, appId uint, contractId uint) error {
 	return nil
 }
 
-func UpdatePOAPActivityConfig(activityId string, req *models.ActivityReq) (*models.POAPActivityConfig, error) {
+func UpdatePOAPActivityConfig(activityId string, req *models.ActivityReq) (*models.Activity, error) {
 	oldConfig, err := models.FindActivityByCode(activityId)
 	if err != nil {
 		return nil, err
@@ -191,7 +191,7 @@ func UpdatePOAPActivityConfig(activityId string, req *models.ActivityReq) (*mode
 			models.GetDB().Save(&oldNFTConfig)
 		} else {
 			// Create new NFTConfig
-			newNFTConfig.POAPActivityConfigID = oldConfig.ID
+			newNFTConfig.ActivityID = oldConfig.ID
 			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs, newNFTConfig)
 		}
 	}
@@ -771,7 +771,7 @@ func GetMintCount(activityID, address string) (*int32, error) {
 	return &count, nil
 }
 
-func commonCheck(config *models.POAPActivityConfig, req *MintReq) error {
+func commonCheck(config *models.Activity, req *MintReq) error {
 	// phone whiteList logic check
 	if config.IsPhoneWhiteListOpened {
 		phoneInfo, err := models.FindAnywebUserByAddress(req.UserAddress)
@@ -815,7 +815,7 @@ func checkWhiteList(whiteList []models.WhiteListInfo, address string) bool {
 	return false
 }
 
-func checkWhiteListLimit(config *models.POAPActivityConfig, address string) error {
+func checkWhiteListLimit(config *models.Activity, address string) error {
 	// if err := config.CheckActivityValid(); err != nil {
 	// 	return err
 	// }
@@ -831,7 +831,7 @@ func checkWhiteListLimit(config *models.POAPActivityConfig, address string) erro
 	return nil
 }
 
-func createMetadata(config *models.POAPActivityConfig, token string, index int) (*string, error) {
+func createMetadata(config *models.Activity, token string, index int) (*string, error) {
 	attributes := make([]openapiclient.ModelsExposedMetadataAttribute, 0)
 	for _, v := range config.NFTConfigs[index].MetadataAttributes {
 		attributes = append(attributes, openapiclient.ModelsExposedMetadataAttribute{

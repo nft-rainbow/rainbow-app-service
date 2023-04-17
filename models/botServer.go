@@ -171,8 +171,8 @@ type PushInfo struct {
 	ColorTheme  string `gorm:"type:string" json:"color_theme"`
 }
 
-func (p *PushInfo) GetActivity() (*POAPActivityConfig, error) {
-	var activity POAPActivityConfig
+func (p *PushInfo) GetActivity() (*Activity, error) {
+	var activity Activity
 	activity.ID = p.ActivityId
 	if err := GetDB().Where(&activity).First(&activity).Error; err != nil {
 		return nil, err

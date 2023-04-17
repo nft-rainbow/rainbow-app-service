@@ -37,23 +37,26 @@ func ConnectDB() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&BotServer{})
-	// db.AutoMigrate(&CustomActivityConfig{})
-	db.AutoMigrate(&SocialUserConfig{})
-	db.AutoMigrate(&CustomMintCount{})
-	db.AutoMigrate(&CustomMintResult{})
-	db.AutoMigrate(&POAPResult{})
-	db.AutoMigrate(&POAPActivityConfig{})
-	db.AutoMigrate(&ActivityContract{})
-	db.AutoMigrate(&H5Config{})
-	db.AutoMigrate(&WhiteListInfo{})
-	db.AutoMigrate(&Statistic{})
-	db.AutoMigrate(&NFTConfig{})
-	db.AutoMigrate(&MetadataAttribute{})
-	db.AutoMigrate(&PushInfo{})
-	db.AutoMigrate(&BotServer{})
-	db.AutoMigrate(&AnywebUser{})
-	db.AutoMigrate(&PhoneWhiteList{})
+	if err = db.AutoMigrate(
+		&BotServer{},
+		&SocialUserConfig{},
+		&CustomMintCount{},
+		&CustomMintResult{},
+		&POAPResult{},
+		&H5Config{},
+		&NFTConfig{},
+		&WhiteListInfo{},
+		&Activity{},
+		&ActivityContract{},
+		&Statistic{},
+		&MetadataAttribute{},
+		&PushInfo{},
+		&BotServer{},
+		&AnywebUser{},
+		&PhoneWhiteList{},
+	); err != nil {
+		panic(err)
+	}
 }
 
 func GetDB() *gorm.DB {

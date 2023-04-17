@@ -9,11 +9,11 @@ import (
 type (
 	NFTConfig struct {
 		BaseModel
-		ImageURL             string               `gorm:"type:string" json:"image_url"`
-		Name                 string               `gorm:"type:string" json:"name"`
-		Probability          float32              `gorm:"type:float" json:"probability"`
-		MetadataAttributes   []*MetadataAttribute `json:"metadata_attributes"`
-		POAPActivityConfigID uint
+		ImageURL           string               `gorm:"type:string" json:"image_url"`
+		Name               string               `gorm:"type:string" json:"name"`
+		Probability        float32              `gorm:"type:float" json:"probability"`
+		MetadataAttributes []*MetadataAttribute `json:"metadata_attributes"`
+		ActivityID         uint
 	}
 
 	MetadataAttribute struct {
@@ -26,16 +26,16 @@ type (
 
 	WhiteListInfo struct {
 		BaseModel
-		User                 string `gorm:"type:string" json:"user"`
-		Count                int32  `gorm:"type:integer" json:"count"`
-		POAPActivityConfigID uint
+		User       string `gorm:"type:string" json:"user"`
+		Count      int32  `gorm:"type:integer" json:"count"`
+		ActivityID uint
 	}
 )
 
 type (
 	ActivityQueryResult struct {
-		Count int64                 `json:"count"`
-		Items []*POAPActivityConfig `json:"items"`
+		Count int64       `json:"count"`
+		Items []*Activity `json:"items"`
 	}
 
 	ActivityFindCondition struct {
@@ -65,7 +65,7 @@ type (
 		ContractRawID          *int32          `gorm:"type:string" json:"contract_raw_id"` //rainbow-api contract id
 	}
 
-	POAPActivityConfig struct {
+	Activity struct {
 		BaseModel
 		ActivityReq
 		ActivityCode      string            `gorm:"type:string;index" json:"activity_code"`
@@ -75,11 +75,11 @@ type (
 	}
 )
 
-func (p *POAPActivityConfig) NeedCommand() bool {
+func (p *Activity) NeedCommand() bool {
 	return p.Command == ""
 }
 
-func (p *POAPActivityConfig) LoadBindedContract() error {
+func (p *Activity) LoadBindedContract() error {
 	if p.ContractRawID == nil {
 		return nil
 	}
@@ -91,12 +91,12 @@ func (p *POAPActivityConfig) LoadBindedContract() error {
 	return nil
 }
 
-func (p *POAPActivityConfig) IsContractBinded() bool {
+func (p *Activity) IsContractBinded() bool {
 	return p.ContractRawID != nil
 }
 
 // check if mintable by user
-func (p *POAPActivityConfig) VerifyMintable() error {
+func (p *Activity) VerifyMintable() error {
 	if !p.IsContractBinded() {
 		return errors.New("not bind contract")
 	}
@@ -114,7 +114,7 @@ func (p *POAPActivityConfig) VerifyMintable() error {
 	return nil
 }
 
-func CompleteActivities(ps ...*POAPActivityConfig) error {
+func CompleteActivities(ps ...*Activity) error {
 	for _, p := range ps {
 		if err := p.LoadBindedContract(); err != nil {
 			return err
@@ -123,7 +123,7 @@ func CompleteActivities(ps ...*POAPActivityConfig) error {
 	return nil
 }
 
-func DoAndCompleteActivity(f func() (*POAPActivityConfig, error)) (*POAPActivityConfig, error) {
+func DoAndCompleteActivity(f func() (*Activity, error)) (*Activity, error) {
 	activity, err := f()
 	if err != nil {
 		return nil, err
@@ -134,23 +134,23 @@ func DoAndCompleteActivity(f func() (*POAPActivityConfig, error)) (*POAPActivity
 	return activity, nil
 }
 
-func FindActivity(name string, contractId int32) (*POAPActivityConfig, error) {
-	return DoAndCompleteActivity(func() (*POAPActivityConfig, error) {
-		var item POAPActivityConfig
-		err := db.Model(&POAPActivityConfig{}).Where("name = ?", name).Where("contract_id = ?", contractId).First(&item).Error
+func FindActivity(name string, contractId int32) (*Activity, error) {
+	return DoAndCompleteActivity(func() (*Activity, error) {
+		var item Activity
+		err := db.Model(&Activity{}).Where("name = ?", name).Where("contract_id = ?", contractId).First(&item).Error
 		return &item, err
 	})
 }
 
-func FindActivityByCode(activityCode string) (*POAPActivityConfig, error) {
-	return DoAndCompleteActivity(func() (*POAPActivityConfig, error) {
+func FindActivityByCode(activityCode string) (*Activity, error) {
+	return DoAndCompleteActivity(func() (*Activity, error) {
 		if activityCode == "" {
 			return nil, errors.New("activity_id is required")
 		}
 
-		var item POAPActivityConfig
+		var item Activity
 		item.ActivityCode = activityCode
-		err := db.Model(&POAPActivityConfig{}).Where(&item).Find(&item).Error
+		err := db.Model(&Activity{}).Where(&item).Find(&item).Error
 		if err != nil {
 			return nil, err
 		}
@@ -164,13 +164,13 @@ func FindActivityByCode(activityCode string) (*POAPActivityConfig, error) {
 }
 
 func FindAndCountActivity(ranbowUserId uint, offset int, limit int, _cond ActivityFindCondition) (*ActivityQueryResult, error) {
-	var items []*POAPActivityConfig
-	cond := &POAPActivityConfig{}
+	var items []*Activity
+	cond := &Activity{}
 	cond.RainbowUserId = ranbowUserId
 	cond.Name = _cond.Name
 	cond.ActivityCode = _cond.ActivityId
 
-	clause := db.Debug().Model(&POAPActivityConfig{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond)
+	clause := db.Debug().Model(&Activity{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond)
 
 	// _cond.ContractAddress 如果不为空，查找Contract, 拿到 contract_raw_id
 	if _cond.ContractAddress != nil {
