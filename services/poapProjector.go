@@ -115,7 +115,7 @@ func UpdatePOAPActivityConfig(activityId string, req *models.ActivityReq) (*mode
 	}
 
 	if req.ContractRawID != nil {
-		if uint(*req.ContractRawID) != uint(oldConfig.Contract.ContractID) {
+		if uint(*req.ContractRawID) != uint(oldConfig.Contract.ContractRawID) {
 			if err := UpdateOrCreateContract(oldConfig.RainbowUserId, oldConfig.AppId, uint(*req.ContractRawID)); err != nil {
 				return nil, err
 			}
@@ -307,7 +307,7 @@ func HandlePOAPCSVMint(req *MintReq) (*models.POAPResult, error) {
 	item := &models.POAPResult{
 		ConfigID:    int32(config.ID),
 		Address:     req.UserAddress,
-		ContractID:  config.Contract.ContractID,
+		ContractID:  config.Contract.ContractRawID,
 		TxID:        *resp.Id,
 		ActivityID:  config.ActivityCode,
 		ProjectorId: config.RainbowUserId,

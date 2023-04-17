@@ -68,10 +68,10 @@ type (
 	POAPActivityConfig struct {
 		BaseModel
 		ActivityReq
-		ActivityCode      string                `gorm:"type:string;index" json:"activity_code"`
-		RainbowUserId     uint                  `gorm:"type:integer" json:"rainbow_user_id"`
-		ActivityPosterURL string                `gorm:"type:string" json:"activity_poster_url"`
-		Contract          *ActivityBindContract `gorm:"-" json:"contract,omitempty"`
+		ActivityCode      string            `gorm:"type:string;index" json:"activity_code"`
+		RainbowUserId     uint              `gorm:"type:integer" json:"rainbow_user_id"`
+		ActivityPosterURL string            `gorm:"type:string" json:"activity_poster_url"`
+		Contract          *ActivityContract `gorm:"-" json:"contract,omitempty"`
 	}
 )
 
@@ -84,7 +84,7 @@ func (p *POAPActivityConfig) LoadBindedContract() error {
 		return nil
 	}
 
-	err := GetDB().Model(&ActivityBindContract{}).Where("contract_id=?", p.ContractRawID).First(&p.Contract).Error
+	err := GetDB().Model(&ActivityContract{}).Where("contract_id=?", p.ContractRawID).First(&p.Contract).Error
 	if err != nil {
 		return err
 	}
@@ -174,11 +174,11 @@ func FindAndCountActivity(ranbowUserId uint, offset int, limit int, _cond Activi
 
 	// _cond.ContractAddress 如果不为空，查找Contract, 拿到 contract_raw_id
 	if _cond.ContractAddress != nil {
-		contract, err := FirstContract(ActivityBindContract{ContractAddress: *_cond.ContractAddress})
+		contract, err := FirstContract(ActivityContract{ContractAddress: *_cond.ContractAddress})
 		if err != nil {
 			return nil, err
 		}
-		clause = clause.Where("contract_raw_id", contract.ContractID)
+		clause = clause.Where("contract_raw_id", contract.ContractRawID)
 	}
 
 	var count int64

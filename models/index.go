@@ -44,7 +44,7 @@ func ConnectDB() {
 	db.AutoMigrate(&CustomMintResult{})
 	db.AutoMigrate(&POAPResult{})
 	db.AutoMigrate(&POAPActivityConfig{})
-	db.AutoMigrate(&ActivityBindContract{})
+	db.AutoMigrate(&ActivityContract{})
 	db.AutoMigrate(&H5Config{})
 	db.AutoMigrate(&WhiteListInfo{})
 	db.AutoMigrate(&Statistic{})
