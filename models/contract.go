@@ -2,8 +2,8 @@ package models
 
 import "gorm.io/gorm"
 
-// Activity -- ActivityContract 1vs1
-type ActivityContract struct {
+// Activity -- Contract 1vs1
+type Contract struct {
 	BaseModel
 	// POAPActivityConfigID uint   `gorm:"column:poap_activity_config_id" json:"poap_activity_config_id"`
 	ContractRawID   int32  `gorm:"uniqueIndex" json:"contract_raw_id"` // rainbow-api contract id
@@ -13,32 +13,32 @@ type ActivityContract struct {
 	ChainType       int32  `gorm:"type:int" json:"chain_type"`
 }
 
-func FindContractByRawId(contractId uint) (*ActivityContract, error) {
-	var contract ActivityContract
+func FindContractByRawId(contractId uint) (*Contract, error) {
+	var contract Contract
 	if err := GetDB().Model(&contract).Where("contract_id=?", contractId).First(&contract).Error; err != nil {
 		return nil, err
 	}
 	return &contract, nil
 }
 
-func FindContract(cond ActivityContract) ([]*ActivityContract, error) {
-	var contracts []*ActivityContract
+func FindContract(cond Contract) ([]*Contract, error) {
+	var contracts []*Contract
 	if err := GetDB().Where(&cond).Find(&contracts).Error; err != nil {
 		return nil, err
 	}
 	return contracts, nil
 }
 
-func FirstContract(cond ActivityContract) (*ActivityContract, error) {
-	var contract *ActivityContract
+func FirstContract(cond Contract) (*Contract, error) {
+	var contract *Contract
 	if err := GetDB().Where(&cond).First(&contract).Error; err != nil {
 		return nil, err
 	}
 	return contract, nil
 }
 
-func UpdateOrCreateContract(contractId, contractType, chainId, chainType uint, contractAddress string) (*ActivityContract, error) {
-	var contract ActivityContract
+func UpdateOrCreateContract(contractId, contractType, chainId, chainType uint, contractAddress string) (*Contract, error) {
+	var contract Contract
 	c, err := FindContractByRawId(contractId)
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {

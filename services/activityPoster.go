@@ -15,6 +15,7 @@ import (
 	"github.com/fogleman/gg"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/skip2/go-qrcode"
 	"github.com/spf13/viper"
@@ -158,13 +159,13 @@ func drawPoster(templatePath string, fontPath string,
 	group.Go(drawTexts)
 	err := group.Wait()
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	// encode to png
 	buf := new(bytes.Buffer)
 	if err := dc.EncodePNG(buf); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	// fmt.Printf("6 %v\n", time.Since(now))
 
@@ -186,15 +187,15 @@ func generateActivityPoster(config *models.ActivityReq, activityId string) (stri
 		int(config.EndedTime),
 	)
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 
 	bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.activity"), activityId+".png"), buf); err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 
 	url := generateAcvitivyPosterUrl(activityId)

@@ -47,7 +47,7 @@ func ConnectDB() {
 		&NFTConfig{},
 		&WhiteListInfo{},
 		&Activity{},
-		&ActivityContract{},
+		&Contract{},
 		&Statistic{},
 		&MetadataAttribute{},
 		&PushInfo{},
