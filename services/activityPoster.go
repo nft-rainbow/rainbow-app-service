@@ -209,7 +209,7 @@ func generateResultPoster(result *models.POAPResult, name string) error {
 	dc := gg.NewContext(templateImg.Bounds().Dx(), templateImg.Bounds().Dy())
 	dc.DrawImage(templateImg, 0, 0)
 
-	resp, err := http.Get(generateActivityUrlByFileUrl(result.FileURL, result.ActivityID))
+	resp, err := http.Get(generateActivityUrlByFileUrl(result.FileURL, result.ActivityCode))
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func generateResultPoster(result *models.POAPResult, name string) error {
 	dc.DrawImage(img, 120, 200)
 
 	// QR Code Generate
-	targetUrl := generateActivityURLById(result.ActivityID)
+	targetUrl := generateActivityURLById(result.ActivityCode)
 	qrCode, _ := qrcode.New(targetUrl, qrcode.Low)
 	qrImg := qrCode.Image(268)
 	dc.DrawImage(qrImg, 1112, 2212)
@@ -268,7 +268,7 @@ func generateResultPoster(result *models.POAPResult, name string) error {
 		return err
 	}
 
-	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.result"), result.ActivityID, result.Address, strconv.Itoa(int(result.ID))+".png"), buf); err != nil {
+	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.result"), result.ActivityCode, result.Address, strconv.Itoa(int(result.ID))+".png"), buf); err != nil {
 		return err
 	}
 

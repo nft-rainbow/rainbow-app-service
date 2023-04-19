@@ -63,13 +63,13 @@ type (
 		NFTConfigs             []NFTConfig     `json:"nft_configs"`
 		MetadataUri            string          `gorm:"type:string" json:"metadata_uri"`
 		ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
-		ContractRawID          *int32          `gorm:"type:string" json:"contract_raw_id"` //rainbow-api contract id
+		ContractRawID          *int32          `gorm:"type:string" json:"contract_id"`
 	}
 
 	Activity struct {
 		BaseModel
 		ActivityReq
-		ActivityCode      string    `gorm:"type:string;index" json:"activity_code"`
+		ActivityCode      string    `gorm:"type:string;index" json:"activity_id"` //TODO: 与前端统一调整为activity_code
 		RainbowUserId     uint      `gorm:"type:integer" json:"rainbow_user_id"`
 		ActivityPosterURL string    `gorm:"type:string" json:"activity_poster_url"`
 		Contract          *Contract `gorm:"-" json:"contract,omitempty"`

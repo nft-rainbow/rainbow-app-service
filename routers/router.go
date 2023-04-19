@@ -76,10 +76,10 @@ func SetupRoutes(router *gin.Engine) {
 
 	poap := apps.Group("/poap")
 	poap.POST("/h5", middlewares.IpLimitMiddleware(), poapMintByH5)
-	poap.GET("/activity/:activity_id", getActivity)
-	poap.GET("/activity/result/:activity_id", getPOAPResultList)
-	poap.GET("/activity/result/:activity_id/:id", getPOAPResultDetail)
-	poap.GET("/count/:address/:activity_id", getMintCount)
+	poap.GET("/activity/:activity_code", getActivity)
+	poap.GET("/activity/result/:activity_code", getPOAPResultList)
+	poap.GET("/activity/result/:activity_code/:id", getPOAPResultDetail)
+	poap.GET("/count/:address/:activity_code", getMintCount)
 	poap.POST("/anyweb/code", collectAnywebUserCode)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
@@ -91,10 +91,10 @@ func SetupRoutes(router *gin.Engine) {
 		// poap.GET("/activity/channels/dodo/:island_id", getDoDoChannels)
 		// poap.GET("/activity/roles/discord/:guild_id", getDiscordRoles)
 		// poap.GET("/activity/roles/dodo/:island_id", getDoDoRoles)
-
 		// poap.POST("/csv", poapMintByCSV)
+
 		poap.POST("/activity", addActivity)
-		poap.PUT("/activity/:activity_id", updateActivity)
+		poap.PUT("/activity/:activity_code", updateActivity)
 		poap.POST("/activity/h5", setActivityH5Config)
 		poap.GET("/activity", getActivities)
 	}

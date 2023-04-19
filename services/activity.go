@@ -324,14 +324,14 @@ func (a *ActivityService) HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, er
 	}
 
 	item := &models.POAPResult{
-		ConfigID:    int32(config.ID),
-		Address:     req.UserAddress,
-		ContractID:  *config.ContractRawID,
-		TxID:        *resp.Id,
-		ActivityID:  config.ActivityCode,
-		FileURL:     fileUrl,
-		ProjectorId: config.RainbowUserId,
-		AppId:       config.AppId,
+		ConfigID:      int32(config.ID),
+		Address:       req.UserAddress,
+		ContractRawID: *config.ContractRawID,
+		TxID:          *resp.Id,
+		ActivityCode:  config.ActivityCode,
+		FileURL:       fileUrl,
+		ProjectorId:   config.RainbowUserId,
+		AppId:         config.AppId,
 	}
 	res := models.GetDB().Create(&item)
 
