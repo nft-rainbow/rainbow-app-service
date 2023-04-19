@@ -5,8 +5,8 @@ import "fmt"
 type WalletType uint
 
 const (
-	WALLET_CELLAR WalletType = iota + 1
-	WALLET_ANYWEB
+	WALLET_ANYWEB WalletType = iota + 1
+	WALLET_CELLAR
 )
 
 var (
