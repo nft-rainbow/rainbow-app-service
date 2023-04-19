@@ -186,7 +186,7 @@ func FindAndCountPOAPResult(poapId string, offset int, limit int) (*POAPResultQu
 		return nil, err
 	}
 
-	if err := db.Model(&POAPResult{}).Where(cond).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
+	if err := db.Model(&POAPResult{}).Where(cond).Order("id DESC").Offset(offset).Limit(limit).Find(&items).Error; err != nil {
 		return nil, err
 	}
 
