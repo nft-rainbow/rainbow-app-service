@@ -37,10 +37,8 @@ func ConnectDB() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&DiscordCustomProjectConfig{})
-	db.AutoMigrate(&DoDoCustomProjectConfig{})
-	db.AutoMigrate(&DiscordCustomActivityConfig{})
-	db.AutoMigrate(&DoDoCustomActivityConfig{})
+	db.AutoMigrate(&BotServer{})
+	// db.AutoMigrate(&CustomActivityConfig{})
 	db.AutoMigrate(&BindCFX{})
 	db.AutoMigrate(&CustomMintCount{})
 	db.AutoMigrate(&CustomMintResult{})
@@ -51,9 +49,9 @@ func ConnectDB() {
 	db.AutoMigrate(&Statistic{})
 	db.AutoMigrate(&NFTConfig{})
 	db.AutoMigrate(&MetadataAttribute{})
-	db.AutoMigrate(&PushInfo{})
-	db.AutoMigrate(&UserServer{})
-	db.AutoMigrate(&AnywebUser{})
+	// db.AutoMigrate(&PushInfo{})
+	db.AutoMigrate(&BotServer{})
+	db.AutoMigrate(&WalletUser{})
 	db.AutoMigrate(&PhoneWhiteList{})
 }
 

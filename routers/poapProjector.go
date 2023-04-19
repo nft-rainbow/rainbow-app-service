@@ -107,11 +107,13 @@ func getPOAPActivityList(c *gin.Context) {
 		return
 	}
 
-	contract := c.Query("contract_address")
-	activity := c.Query("activity_id")
-	name := c.Query("name")
+	var cond models.POAPActivityFindCondition
+	if err := c.ShouldBindQuery(&cond); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
 
-	mints, err := models.FindAndCountPOAPActivity(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit, name, activity, contract)
+	mints, err := models.FindAndCountPOAPActivity(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit, cond)
 	ginutils.RenderResp(c, mints, err)
 }
 
@@ -263,11 +265,6 @@ func getMintCount(c *gin.Context) {
 	ginutils.RenderResp(c, resp, err)
 }
 
-type UserAnywebCode struct {
-	Code    string `json:"code"`
-	Address string `json:"address"`
-}
-
 // @Tags        POAP
 // @ID          CollectUserAnywebCode
 // @Summary     Collect user code so backend can get user phone from anyweb
@@ -278,14 +275,14 @@ type UserAnywebCode struct {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/anyweb/code [POST]
-func collectAnywebUserCode(c *gin.Context) {
-	var config UserAnywebCode
+func addWalletUser(c *gin.Context) {
+	var config services.AddWalletUserReq
 	if err := c.ShouldBind(&config); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
 
-	err := services.GetAnywebUserInfo(config.Address, config.Code)
+	err := walletService.InsertUser(config)
 
 	ginutils.RenderResp(c, map[string]string{"message": "success"}, err)
 }

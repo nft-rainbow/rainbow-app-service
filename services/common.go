@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"image"
 	"image/draw"
 	_ "image/gif"
@@ -98,7 +99,7 @@ func GetDiscordChannelInfo(guildId string) ([]*discordgo.Channel, error) {
 
 func GetDoDoChannelInfo(islandId string) ([]*dodoModel.ChannelElement, error) {
 	st, err := (*GetInstance()).GetChannelList(context.Background(), &dodoModel.GetChannelListReq{
-		IslandId: islandId,
+		IslandSourceId: islandId,
 	})
 
 	if err != nil {
@@ -117,7 +118,7 @@ func GetDiscordGuildInfo(guildId string) (st *discordgo.Guild, err error) {
 
 func GetDoDoIslandInfo(islandId string) (st *dodoModel.GetIslandInfoRsp, err error) {
 	info, err := (*GetInstance()).GetIslandInfo(context.Background(), &dodoModel.GetIslandInfoReq{
-		IslandId: islandId,
+		IslandSourceId: islandId,
 	})
 	if err != nil {
 		return nil, err
@@ -125,11 +126,11 @@ func GetDoDoIslandInfo(islandId string) (st *dodoModel.GetIslandInfoRsp, err err
 	return info, err
 }
 
-func FindAuthUserServers(offset, limit, userId int, bot uint) (*models.UserServerQueryResult, error) {
-	var items []*models.UserServer
-	var cond models.UserServer
-	cond.RainbowUserId = int32(userId)
-	cond.Bot = bot
+func FindAuthUserServers(offset, limit int, userId uint, bot uint) (*models.UserServerQueryResult, error) {
+	var items []*models.BotServer
+	var cond models.BotServer
+	cond.RainbowUserId = userId
+	cond.SocialTool = models.SocialToolType(bot)
 
 	var count int64
 	if err := models.GetDB().Find(&items).Where(cond).Count(&count).Error; err != nil {
@@ -142,14 +143,14 @@ func FindAuthUserServers(offset, limit, userId int, bot uint) (*models.UserServe
 
 	if bot == utils.DoDo {
 		for i := range items {
-			if !CheckIslandIsActive(GetInstance(), items[i].ServerId) {
+			if !CheckIslandIsActive(GetInstance(), items[i].RawServerId) {
 				models.GetDB().Delete(&items[i])
 				items = append(items[:i], items[i+1:]...)
 			}
 		}
 	} else if bot == utils.Discord {
 		for i := range items {
-			if !CheckGuildIsActive(GetSession(), items[i].ServerId) {
+			if !CheckGuildIsActive(GetSession(), items[i].RawServerId) {
 				models.GetDB().Delete(&items[i])
 				items = append(items[:i], items[i+1:]...)
 			}
@@ -158,61 +159,61 @@ func FindAuthUserServers(offset, limit, userId int, bot uint) (*models.UserServe
 	return &models.UserServerQueryResult{count, items}, nil
 }
 
-func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
-	tokenId, hash, status, err := getTokenInfo(id, middlewares.PrefixToken(token))
-	if err != nil {
-		return nil, err
-	}
+// func GenDiscordMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
+// 	tokenId, hash, status, err := getTokenInfo(id, middlewares.PrefixToken(token))
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	res := &models.CustomMintResp{
-		UserAddress: userAddress,
-		NFTAddress:  viper.GetString("customMint.mintRespPrefix") + contractAddress + "/" + tokenId,
-		Contract:    contractAddress,
-		TokenID:     tokenId,
-		Time:        createTime,
-	}
-	_, err = models.UpdateDiscordCustomCount(userID, channelID)
-	if err != nil {
-		return nil, err
-	}
+// 	res := &models.CustomMintResp{
+// 		UserAddress: userAddress,
+// 		NFTAddress:  viper.GetString("customMint.mintRespPrefix") + contractAddress + "/" + tokenId,
+// 		Contract:    contractAddress,
+// 		TokenID:     tokenId,
+// 		Time:        createTime,
+// 	}
+// 	_, err = models.UpdateDiscordCustomCount(userID, channelID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	err = models.StoreCustomMintResult(models.CustomMintResult{
-		UserID:     userID,
-		ContractID: contractId,
-		TokenID:    tokenId,
-		Hash:       hash,
-		Status:     status,
-	})
-	return res, nil
-}
+// 	err = models.StoreCustomMintResult(models.CustomMintResult{
+// 		UserID:     userID,
+// 		ContractID: contractId,
+// 		TokenID:    tokenId,
+// 		Hash:       hash,
+// 		Status:     status,
+// 	})
+// 	return res, nil
+// }
 
-func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
-	tokenId, hash, status, err := getTokenInfo(id, middlewares.PrefixToken(token))
-	if err != nil {
-		return nil, err
-	}
+// func GenDoDoMintRes(token, createTime, contractAddress, userAddress, userID, channelID string, id, contractId int32) (*models.CustomMintResp, error) {
+// 	tokenId, hash, status, err := getTokenInfo(id, middlewares.PrefixToken(token))
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	res := &models.CustomMintResp{
-		UserAddress: userAddress,
-		NFTAddress:  viper.GetString("customMint.mintRespPrefix") + contractAddress + "/" + tokenId,
-		Contract:    contractAddress,
-		TokenID:     tokenId,
-		Time:        createTime,
-	}
-	_, err = models.UpdateDoDoCustomCount(userID, channelID)
-	if err != nil {
-		return nil, err
-	}
+// 	res := &models.CustomMintResp{
+// 		UserAddress: userAddress,
+// 		NFTAddress:  viper.GetString("customMint.mintRespPrefix") + contractAddress + "/" + tokenId,
+// 		Contract:    contractAddress,
+// 		TokenID:     tokenId,
+// 		Time:        createTime,
+// 	}
+// 	_, err = models.UpdateDoDoCustomCount(userID, channelID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	err = models.StoreCustomMintResult(models.CustomMintResult{
-		UserID:     userID,
-		ContractID: contractId,
-		TokenID:    tokenId,
-		Hash:       hash,
-		Status:     status,
-	})
-	return res, nil
-}
+// 	err = models.StoreCustomMintResult(models.CustomMintResult{
+// 		UserID:     userID,
+// 		ContractID: contractId,
+// 		TokenID:    tokenId,
+// 		Hash:       hash,
+// 		Status:     status,
+// 	})
+// 	return res, nil
+// }
 
 func sendBatchBurnNFTRequest(token string, dto openapiclient.ServicesBurnBatchDto) ([]openapiclient.ModelsBurnTask, error) {
 	logrus.Info("Start to Batch burn")
@@ -298,6 +299,10 @@ func generateActivityURLById(activityId string) string {
 func generateActivityUrlByFileUrl(file, activity string) string {
 	tmp := strings.Split(file, "/")
 	return "https://" + viper.GetString("oss.bucketName") + "." + viper.GetString("oss.endpoint") + "/" + path.Join(viper.GetString("imagesDir.minted"), activity, tmp[len(tmp)-1])
+}
+
+func generateAcvitivyPosterUrl(activityId string) string {
+	return fmt.Sprintf("https://%s.%s/%s%s", viper.GetString("oss.bucketName"), viper.GetString("oss.endpoint"), viper.GetString("posterDir.activity"), activityId+".png")
 }
 
 func getOSSBucket(bucketName string) (*oss.Bucket, error) {
@@ -391,7 +396,7 @@ func SyncPOAPResultStatus() {
 			continue
 		}
 		for _, v := range results {
-			jwtToken, err := middlewares.GenerateRainbowConsoleJWT(v.ProjectorId, v.AppId)
+			jwtToken, err := middlewares.GenerateRainbowOpenJWT(v.ProjectorId, v.AppId)
 			if err != nil {
 				logrus.Errorf("Failed to generate open JWT for %v:%v \n", v.ConfigID, err.Error())
 				continue

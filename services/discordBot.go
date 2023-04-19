@@ -142,19 +142,19 @@ var (
 				return
 			}
 
-			err = checkSocialLimit(i.Interaction.GuildID, i.Interaction.Member.User.ID, *config.ActivityID, utils.DoDo)
-			if err != nil {
-				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-					Embeds: failMessageEmbed(err.Error()),
-				})
-				return
-			}
+			// err = checkSocialLimit(i.Interaction.GuildID, i.Interaction.Member.User.ID, config.ActivityID, utils.DoDo)
+			// if err != nil {
+			// 	s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			// 		Embeds: failMessageEmbed(err.Error()),
+			// 	})
+			// 	return
+			// }
 			var command string
 			if len(options) > 1 {
 				command = options[1].Value.(string)
 			}
 			res, err := HandlePOAPH5Mint(&POAPRequest{
-				ActivityID:  *config.ActivityID,
+				ActivityID:  config.ActivityID,
 				UserAddress: bind.CFXAddress,
 				Command:     command,
 			})
@@ -166,7 +166,7 @@ var (
 			}
 
 			for {
-				resp, _ := models.FindPOAPResultById(*config.ActivityID, int(res.ID))
+				resp, _ := models.FindPOAPResultById(config.ActivityID, int(res.ID))
 				if resp.Hash == "" {
 					continue
 				}
@@ -378,18 +378,18 @@ func DiscordPushActivity(req *PushReq) (*discordgo.Message, error) {
 	}
 
 	models.GetDB().Create(&models.PushInfo{
-		ServerId:      req.ServerId,
-		ServerName:    req.ServerName,
-		ContractID:    config.ContractID,
-		ActivityId:    req.ActivityId,
-		ActivityName:  config.Name,
-		StartedTime:   config.StartedTime,
-		EndedTime:     config.EndedTime,
-		AccountLimit:  req.AccountLimit,
-		Contract:      config.ContractAddress,
-		ChannelId:     req.ChannelId,
-		Bot:           utils.Discord,
-		RainbowUserId: req.RainbowUserId,
+		// ServerId:      req.ServerId,
+		// ServerName:    req.ServerName,
+		// ContractID:    config.ContractID,
+		// ActivityId:    req.ActivityId,
+		// ActivityName:  config.Name,
+		// StartedTime:   config.StartedTime,
+		// EndedTime:     config.EndedTime,
+		// AccountLimit:  req.AccountLimit,
+		// Contract:      config.ContractAddress,
+		// ChannelId:     req.ChannelId,
+		// Bot:           utils.Discord,
+		// RainbowUserId: req.RainbowUserId,
 	})
 
 	return msg, nil
@@ -423,12 +423,12 @@ func createPushEmbed(config *models.POAPActivityConfig, roles, content string, c
 }
 
 func checkDiscordChannel(channelId, guildId string) bool {
-	push, err := models.FindPushInfoByServer(guildId)
+	push, err := models.FindBotServerByChannel(channelId)
 	if err != nil {
 		logrus.Errorf("Failed to find channel: %v", err.Error())
 		return false
 	}
-	if push.ChannelId != channelId {
+	if push.RawServerId != guildId {
 		return false
 	}
 	//channels, err := s.GuildChannels(guildId)

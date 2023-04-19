@@ -92,64 +92,90 @@ func InitRainbowJwtMiddleware() {
 	logrus.Info("init open jwt middleware done")
 }
 
-func GenerateDiscordOpenJWT(channelId string) (string, error) {
-	activity, err := models.FindDiscordCustomActivityConfigByChannelId(channelId)
-	if err != nil {
-		return "", err
-	}
-	config, err := models.FindDiscordConfigById(int(activity.AppId))
-	if err != nil {
-		return "", err
-	}
+// func GenerateDiscordOpenJWT(channelId string) (string, error) {
+// 	server, err := models.FindServerByChannel(channelId)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	appId := server.PushInfo.Activity.AppId
+// 	config, err := models.FindDiscordConfigById(int(appId))
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	kycType, err := getKycType(config.RainbowUserId)
-	if err != nil {
-		return "", err
-	}
+// 	kycType, err := getKycType(config.RainbowUserId)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	data := &App{
-		Id:        uint(config.AppId),
-		KycType:   kycType,
-		AppUserId: uint(config.RainbowUserId),
-	}
+// 	data := &App{
+// 		Id:        uint(appId),
+// 		KycType:   kycType,
+// 		AppUserId: uint(config.RainbowUserId),
+// 	}
 
-	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
+// 	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return tokenString, nil
+// }
 
-func GenDiscordOpenJWTByRainbowUserId(id uint) (string, error) {
-	config, err := models.FindDiscordConfigByUserId(int(id))
-	if err != nil {
-		return "", err
-	}
+// func GenDiscordOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
+// 	config, err := models.FindDiscordConfigByUserId(int(userId))
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	kycType, err := getKycType(int32(id))
-	if err != nil {
-		return "", err
-	}
+// 	kycType, err := getKycType(userId)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	data := &App{
-		Id:        uint(config.AppId),
-		KycType:   kycType,
-		AppUserId: uint(config.RainbowUserId),
-	}
+// 	data := &App{
+// 		Id:        uint(appId),
+// 		KycType:   kycType,
+// 		AppUserId: uint(config.RainbowUserId),
+// 	}
 
-	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
+// 	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return tokenString, nil
+// }
 
 func GenerateDoDoOpenJWT(channelId string) (string, error) {
-	activity, err := models.FindDoDoCustomActivityConfigByChannelId(channelId)
+	server, err := models.FindBotServerByChannel(channelId)
 	if err != nil {
 		return "", err
 	}
-	config, err := models.FindDoDoConfigById(int(activity.AppId))
+	appId := server.PushInfo.Activity.AppId
+	// config, err := models.FindDoDoConfigById(int(appId))
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	kycType, err := getKycType(server.RainbowUserId)
+	if err != nil {
+		return "", err
+	}
+
+	data := &App{
+		Id:        uint(appId),
+		KycType:   kycType,
+		AppUserId: uint(server.RainbowUserId),
+	}
+
+	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
+}
+
+func GenDoDoOpenJWTByRainbowUserId(userId uint, appId uint) (string, error) {
+	config, err := models.FirstBotServerByUserId(int(userId))
 	if err != nil {
 		return "", err
 	}
@@ -160,7 +186,7 @@ func GenerateDoDoOpenJWT(channelId string) (string, error) {
 	}
 
 	data := &App{
-		Id:        uint(config.AppId),
+		Id:        uint(appId),
 		KycType:   kycType,
 		AppUserId: uint(config.RainbowUserId),
 	}
@@ -172,31 +198,7 @@ func GenerateDoDoOpenJWT(channelId string) (string, error) {
 	return tokenString, nil
 }
 
-func GenDoDoOpenJWTByRainbowUserId(id uint) (string, error) {
-	config, err := models.FindDoDoConfigByUserId(int(id))
-	if err != nil {
-		return "", err
-	}
-
-	kycType, err := getKycType(config.RainbowUserId)
-	if err != nil {
-		return "", err
-	}
-
-	data := &App{
-		Id:        uint(config.AppId),
-		KycType:   kycType,
-		AppUserId: uint(config.RainbowUserId),
-	}
-
-	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
-func GenerateRainbowConsoleJWT(userId, appId int32) (string, error) {
+func GenerateRainbowOpenJWT(userId, appId uint) (string, error) {
 	kycType, err := getKycType(userId)
 	if err != nil {
 		return "", err
@@ -214,25 +216,6 @@ func GenerateRainbowConsoleJWT(userId, appId int32) (string, error) {
 	return tokenString, nil
 }
 
-func GenPOAPOpenJWTByRainbowUserId(activity models.POAPActivityConfig) (string, error) {
-	kycType, err := getKycType(activity.RainbowUserId)
-	if err != nil {
-		return "", err
-	}
-
-	data := &App{
-		Id:        uint(activity.AppId),
-		KycType:   kycType,
-		AppUserId: uint(activity.RainbowUserId),
-	}
-
-	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
 func PrefixToken(token string) string {
 	if strings.HasPrefix(token, "Bearer ") {
 		return token
@@ -240,7 +223,7 @@ func PrefixToken(token string) string {
 	return "Bearer " + token
 }
 
-func GenOpenJWTByRainbowUserId(rainbowUserId, appId int32) (string, error) {
+func GenOpenJWTByRainbowUserId(rainbowUserId, appId uint) (string, error) {
 	kycType, err := getKycType(rainbowUserId)
 	if err != nil {
 		return "", err
@@ -259,7 +242,7 @@ func GenOpenJWTByRainbowUserId(rainbowUserId, appId int32) (string, error) {
 	return tokenString, nil
 }
 
-func getKycType(userId int32) (uint, error) {
+func getKycType(userId uint) (uint, error) {
 	user := &User{
 		Id: uint(userId),
 	}
@@ -278,7 +261,7 @@ func getKycType(userId int32) (uint, error) {
 func queryKycType(tokenString string) (float64, error) {
 	req, err := http.NewRequest("GET", viper.GetString("rainbowDashboardApi")+"/dashboard/users/profile", nil)
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", PrefixToken(tokenString))

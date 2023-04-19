@@ -11,7 +11,7 @@ type POAPActivityConfig struct {
 	Amount                 int32           `gorm:"type:integer" json:"amount" binding:"required"`
 	Name                   string          `gorm:"type:string" json:"name" binding:"required"`
 	Description            string          `gorm:"type:string" json:"description" binding:"required"`
-	AppId                  int32           `gorm:"index" json:"app_id" binding:"required"`
+	AppId                  uint            `gorm:"index" json:"app_id" binding:"required"`
 	AppName                string          `gorm:"string" json:"app_name" binding:"required"`
 	ContractType           int32           `gorm:"type:int" json:"contract_type"`
 	ContractAddress        *string         `gorm:"type:string" json:"contract_address"`
@@ -23,13 +23,15 @@ type POAPActivityConfig struct {
 	IsPhoneWhiteListOpened bool            `gorm:"type:bool;default:false" json:"is_phone_white_list_opened"`
 	EndedTime              int64           `gorm:"type:integer" json:"end_time"`
 	StartedTime            int64           `gorm:"type:integer" json:"start_time"`
-	RainbowUserId          int32           `gorm:"type:integer" json:"rainbow_user_id"`
+	RainbowUserId          uint            `gorm:"type:integer" json:"rainbow_user_id"`
 	MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
-	ActivityID             *string         `gorm:"type:string;index" json:"activity_id"`
+	ActivityID             string          `gorm:"type:string;index" json:"activity_id"`
 	ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
+	ActivityPosterURL      string          `gorm:"type:string" json:"activity_poster_url"`
 	WhiteListInfos         []WhiteListInfo `json:"white_list_infos"`
 	NFTConfigs             []NFTConfig     `json:"nft_configs"`
 	MetadataUri            string          `gorm:"type:string" json:"metadata_uri"`
+	PushInfoID             *uint
 }
 
 func (p *POAPActivityConfig) CheckContractValid() error {
@@ -43,7 +45,7 @@ func (p *POAPActivityConfig) CheckContractValid() error {
 }
 
 func (p *POAPActivityConfig) CheckActivityValid() error {
-	if p.ActivityID == nil {
+	if p.ActivityID == "" {
 		return errors.New("activity id is empty")
 	}
 	return nil
@@ -58,10 +60,10 @@ func (p *POAPActivityConfig) CheckContractAndActivityValid() error {
 
 type NFTConfig struct {
 	BaseModel
-	ImageURL             string              `gorm:"type:string" json:"image_url"`
-	Name                 string              `gorm:"type:string" json:"name"`
-	Probability          float32             `gorm:"type:float" json:"probability"`
-	MetadataAttributes   []MetadataAttribute `json:"metadata_attributes"`
+	ImageURL             string               `gorm:"type:string" json:"image_url"`
+	Name                 string               `gorm:"type:string" json:"name"`
+	Probability          float32              `gorm:"type:float" json:"probability"`
+	MetadataAttributes   []*MetadataAttribute `json:"metadata_attributes"`
 	POAPActivityConfigID uint
 }
 
@@ -118,6 +120,12 @@ type POAPResultQueryResult struct {
 	Items []*POAPResult `json:"items"`
 }
 
+type POAPActivityFindCondition struct {
+	Name     string `form:"name"`
+	Activity string `form:"activity_id"`
+	Contract string `form:"contract_address"`
+}
+
 var Cache = make(map[string]*POAPResultCountCache)
 
 func FindPOAPActivityConfig(name string, contractId int32) (*POAPActivityConfig, error) {
@@ -130,7 +138,7 @@ func FindPOAPActivityConfigById(id string) (*POAPActivityConfig, error) {
 	var item POAPActivityConfig
 	var cond POAPActivityConfig
 
-	cond.ActivityID = &id
+	cond.ActivityID = id
 	err := db.Model(&POAPActivityConfig{}).Where(cond).Find(&item).Error
 	if err != nil {
 		return nil, err
@@ -143,20 +151,23 @@ func FindPOAPActivityConfigById(id string) (*POAPActivityConfig, error) {
 	return &item, err
 }
 
-func FindAndCountPOAPActivity(id uint, offset int, limit int, name, activity, contract string) (*POAPActivityQueryResult, error) {
+func FindAndCountPOAPActivity(ranbowUserId uint, offset int, limit int, _cond POAPActivityFindCondition) (*POAPActivityQueryResult, error) {
 	var items []*POAPActivityConfig
 	cond := &POAPActivityConfig{}
-	cond.RainbowUserId = int32(id)
-	cond.Name = name
-	cond.ActivityID = &activity
-	cond.ContractAddress = &contract
+	cond.RainbowUserId = ranbowUserId
+	cond.Name = _cond.Name
+	cond.ActivityID = _cond.Activity
+
+	if _cond.Contract != "" {
+		cond.ContractAddress = &_cond.Contract
+	}
 
 	var count int64
-	if err := db.Model(&POAPActivityConfig{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond).Count(&count).Error; err != nil {
+	if err := db.Debug().Model(&POAPActivityConfig{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond). /*.Where("activity_id=? and contract_address=?", activity, contract)*/ Count(&count).Error; err != nil {
 		return nil, err
 	}
 
-	if err := db.Model(&POAPActivityConfig{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond).Order("id DESC").Offset(offset).Limit(limit).
+	if err := db.Debug().Model(&POAPActivityConfig{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond). /*Where("activity_id=? and contract_address=?", activity, contract).*/ Order("id DESC").Offset(offset).Limit(limit).
 		Find(&items).Error; err != nil {
 		return nil, err
 	}
@@ -175,7 +186,7 @@ func FindAndCountPOAPResult(poapId string, offset int, limit int) (*POAPResultQu
 		return nil, err
 	}
 
-	if err := db.Model(&POAPResult{}).Where(cond).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
+	if err := db.Model(&POAPResult{}).Where(cond).Order("id DESC").Offset(offset).Limit(limit).Find(&items).Error; err != nil {
 		return nil, err
 	}
 

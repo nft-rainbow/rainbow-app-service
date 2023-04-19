@@ -38,22 +38,10 @@ type POAPRequest struct {
 }
 
 func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POAPActivityConfig, error) {
-	config.RainbowUserId = int32(id)
+	config.RainbowUserId = id
+	config.ActivityID = utils.GenerateIDByTimeHash("", 8)
+	config.IsCommand = config.Command != ""
 
-	if config.ContractAddress != nil {
-		poapId, err := getPOAPId(*config.ContractAddress, config.Name)
-		if err != nil {
-			return nil, err
-		}
-		config.ActivityID = &poapId
-	}
-
-	// deal default values
-	if config.Command != "" {
-		config.IsCommand = true
-	} else {
-		config.IsCommand = false
-	}
 	if config.StartedTime == 0 {
 		config.StartedTime = -1
 	}
@@ -61,20 +49,21 @@ func POAPActivityConfig(config *models.POAPActivityConfig, id uint) (*models.POA
 		config.EndedTime = -1
 	}
 
+	// generate event poster
+	// group := new(errgroup.Group)
+	// group.Go(func() error {
+	posterUrl, err := generateActivityPoster(config)
+	if err != nil {
+		logrus.Errorf("Failed to generate poster for activity %v:%v \n", config.ActivityID, err.Error())
+		return nil, err
+	}
+	// return err
+	// })
+	config.ActivityPosterURL = posterUrl
 	res := models.GetDB().Create(&config)
 	if res.Error != nil {
 		return nil, res.Error
 	}
-
-	// generate event poster
-	group := new(errgroup.Group)
-	group.Go(func() error {
-		err := generateActivityPoster(config)
-		if err != nil {
-			logrus.Errorf("Failed to generate poster for activity %v:%v \n", config.ActivityID, err.Error())
-		}
-		return err
-	})
 
 	return config, nil
 }
@@ -95,7 +84,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 	}
 
 	if config.ContractID != oldConfig.ContractID {
-		token, err := middlewares.GenPOAPOpenJWTByRainbowUserId(*oldConfig)
+		token, err := middlewares.GenerateRainbowOpenJWT(oldConfig.RainbowUserId, oldConfig.AppId)
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +96,7 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 			oldConfig.ContractType = *info.Type
 			oldConfig.ChainId = *info.ChainId
 			oldConfig.ChainType = *info.ChainType
-			oldConfig.AppId = *info.AppId
+			oldConfig.AppId = uint(*info.AppId)
 			oldConfig.ContractAddress = info.Address
 			oldConfig.ContractID = config.ContractID
 		}
@@ -140,11 +129,11 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 			newMetadataAttributesMap := make(map[uint]*models.MetadataAttribute)
 
 			for j, metadataAttribute := range oldNFTConfig.MetadataAttributes {
-				oldMetadataAttributesMap[metadataAttribute.ID] = &oldNFTConfig.MetadataAttributes[j]
+				oldMetadataAttributesMap[metadataAttribute.ID] = oldNFTConfig.MetadataAttributes[j]
 			}
 			for j, metadataAttribute := range newNFTConfig.MetadataAttributes {
 				if metadataAttribute.ID != 0 {
-					newMetadataAttributesMap[metadataAttribute.ID] = &newNFTConfig.MetadataAttributes[j]
+					newMetadataAttributesMap[metadataAttribute.ID] = newNFTConfig.MetadataAttributes[j]
 				}
 			}
 
@@ -223,18 +212,19 @@ func UpdatePOAPActivityConfig(config *models.POAPActivityConfig, activityId stri
 
 	if oldConfig.ActivityPictureURL != config.ActivityPictureURL {
 		oldConfig.ActivityPictureURL = config.ActivityPictureURL
-		group := new(errgroup.Group)
-		group.Go(func() error {
-			err := generateActivityPoster(config)
-			if err != nil {
-				logrus.Errorf("Failed to generate poster for activity %v:%v \n", config.ActivityID, err.Error())
-			}
-			return err
-		})
+		// group := new(errgroup.Group)
+		// group.Go(func() error {
+		posterUrl, err := generateActivityPoster(config)
+		if err != nil {
+			logrus.Errorf("Failed to generate poster for activity %v:%v \n", config.ActivityID, err.Error())
+			return nil, err
+		}
+		// return err
+		// })
+		oldConfig.ActivityPosterURL = posterUrl
 	}
 
 	res := models.GetDB().Save(&oldConfig)
-
 	return oldConfig, res.Error
 }
 
@@ -248,7 +238,7 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, fmt.Errorf("The activity has not opened the white list")
 	}
 
-	token, err := middlewares.GenerateRainbowConsoleJWT(config.RainbowUserId, config.AppId)
+	token, err := middlewares.GenerateRainbowOpenJWT(config.RainbowUserId, config.AppId)
 	if err != nil {
 		return nil, err
 	}
@@ -267,8 +257,8 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	if config.ActivityID != nil {
-		err = checkPersonalAmount(*config.ActivityID, req.UserAddress, config.MaxMintCount)
+	if config.ActivityID != "" {
+		err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
 		if err != nil {
 			return nil, err
 		}
@@ -317,7 +307,7 @@ func HandlePOAPCSVMint(req *POAPRequest) (*models.POAPResult, error) {
 		Address:     req.UserAddress,
 		ContractID:  *config.ContractID,
 		TxID:        *resp.Id,
-		ActivityID:  *config.ActivityID,
+		ActivityID:  config.ActivityID,
 		ProjectorId: config.RainbowUserId,
 		AppId:       config.AppId,
 	}
@@ -348,18 +338,25 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 
 	// phone whiteList logic check
 	if config.IsPhoneWhiteListOpened {
-		phoneInfo, err := models.FindAnywebUserByAddress(req.UserAddress)
-		if err == nil && len(phoneInfo.Phone) > 0 {
-			isInWhiteList := models.IsPhoneInWhiteList(req.ActivityID, phoneInfo.Phone)
+		users, err := models.FindWalletUserByAddress(req.UserAddress)
+		if err == nil && len(users) > 0 {
+			var isInWhiteList bool
+			for _, u := range users {
+				isInWhiteList = models.IsPhoneInWhiteList(req.ActivityID, u.Phone)
+				if isInWhiteList {
+					break
+				}
+			}
 			if !isInWhiteList { // phone not in whitelist
 				return nil, errors.New("无领取资格")
 			}
+
 		} else if errors.Is(err, gorm.ErrRecordNotFound) { // not found phone info
 			return nil, errors.New("无领取资格")
 		}
 	}
 
-	token, err := middlewares.GenerateRainbowConsoleJWT(config.RainbowUserId, config.AppId)
+	token, err := middlewares.GenerateRainbowOpenJWT(config.RainbowUserId, config.AppId)
 	if err != nil {
 		return nil, err
 	}
@@ -369,7 +366,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		return nil, err
 	}
 
-	err = checkPersonalAmount(*config.ActivityID, req.UserAddress, config.MaxMintCount)
+	err = checkPersonalAmount(config.ActivityID, req.UserAddress, config.MaxMintCount)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +435,7 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 		Address:     req.UserAddress,
 		ContractID:  *config.ContractID,
 		TxID:        *resp.Id,
-		ActivityID:  *config.ActivityID,
+		ActivityID:  config.ActivityID,
 		FileURL:     fileUrl,
 		ProjectorId: config.RainbowUserId,
 		AppId:       config.AppId,
@@ -452,97 +449,185 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 	return item, res.Error
 }
 
-func generateActivityPoster(config *models.POAPActivityConfig) error {
-	if err := config.CheckActivityValid(); err != nil {
-		return err
-	}
+func drawPoster(templatePath string, fontPath string,
+	activityId string, activityPicUrl string,
+	name, description string, startTime, endTime int) (*bytes.Buffer, error) {
+	// now := time.Now()
 
-	templateImg, err := gg.LoadImage("./assets/images/activityPoster.png")
-	if err != nil {
-		return err
-	}
+	var dc *gg.Context
+	paintSig := make(chan interface{}, 2)
 
-	dc := gg.NewContext(templateImg.Bounds().Dx(), templateImg.Bounds().Dy())
-	dc.DrawImage(templateImg, 0, 0)
-
-	resp, err := http.Get(config.ActivityPictureURL)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	imgData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	img, err := imaging.Decode(bytes.NewReader(imgData))
-	if err != nil {
-		return err
-	}
-	img = imaging.Fit(img, 1260, 1260, imaging.Lanczos)
-	dc.DrawImage(img, 120, 200)
-
-	// QR Code Generate
-	targetUrl := generateActivityURLById(*config.ActivityID)
-	qrCode, _ := qrcode.New(targetUrl, qrcode.Low)
-	qrImg := qrCode.Image(268)
-	dc.DrawImage(qrImg, 1112, 2212)
-
-	// 增加文字
-	err = dc.LoadFontFace("./assets/fonts/PingFang.ttf", 88)
-	if err != nil {
-		panic(err)
-	}
-	dc.SetHexColor("#05001F")
-	dc.DrawStringAnchored(config.Name, 120, 1580, 0, 0)
-
-	err = dc.LoadFontFace("./assets/fonts/PingFang.ttf", 64)
-	if err != nil {
-		panic(err)
-	}
-	lines := []string{"", ""}
-	curLine := 0
-	var lineLen float64
-	for _, r := range config.Description {
-		w, _ := dc.MeasureString(string(r))
-		if lineLen+w > 1260 {
-			curLine++
-			lineLen = 0
+	drawBackground := func() error {
+		templateImg, err := gg.LoadImage(templatePath)
+		if err != nil {
+			return err
 		}
-		lines[curLine] += string(r)
-		lineLen += w
+
+		dc = gg.NewContext(templateImg.Bounds().Dx(), templateImg.Bounds().Dy())
+		// fmt.Printf("0 %v\n", time.Since(now))
+		dc.DrawImage(templateImg, 0, 0)
+		// fmt.Printf("1 %v\n", time.Since(now))
+		for i := 0; i < 2; i++ {
+			paintSig <- struct{}{}
+		}
+		// fmt.Println("loadTemplate done")
+		return nil
 	}
 
-	dc.SetHexColor("#696679")
-	for i, line := range lines {
-		dc.DrawString(line, 120, float64(1732+i*96))
+	drawHeadPic := func() error {
+		resp, err := http.Get(activityPicUrl)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		imgData, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		img, err := imaging.Decode(bytes.NewReader(imgData))
+		if err != nil {
+			return err
+		}
+		img = imaging.Fill(img, 1260, 1260, 0, imaging.ResampleFilter{})
+		<-paintSig
+		dc.DrawImage(img, 120, 200)
+		// fmt.Printf("2 %v\n", time.Since(now))
+		// fmt.Println("drawBackground done")
+		return nil
 	}
-	var start, end string
-	if config.StartedTime == -1 {
-		start = "不限时"
-	} else {
-		start = time.Unix(config.StartedTime, 0).Format("2006-01-02")
+
+	drawTexts := func() error {
+		<-paintSig
+		// 增加文字
+		err := dc.LoadFontFace(fontPath, 88)
+		if err != nil {
+			return err
+		}
+		dc.SetHexColor("#05001F")
+		dc.DrawStringAnchored(name, 120, 1580, 0, 0)
+
+		// fmt.Printf("3 %v\n", time.Since(now))
+		// err = dc.LoadFontFace("./assets/fonts/PingFang.ttf", 64)
+		err = dc.LoadFontFace(fontPath, 48)
+		if err != nil {
+			return err
+		}
+
+		lines := []string{""}
+		var lineLen float64
+		for _, r := range description {
+			w, _ := dc.MeasureString(string(r))
+			if lineLen+w > 1260 {
+				if len(lines) == 3 {
+					lastLine := lines[len(lines)-1]
+					lines[len(lines)-1] = lastLine[:len(lastLine)-5] + "..."
+					break
+				}
+				lines = append(lines, "")
+				lineLen = 0
+			}
+			lines[len(lines)-1] += string(r)
+			lineLen += w
+		}
+
+		paintHeight := float64(1732)
+		addPaintHeight := func(delta int) float64 {
+			_paintHeight := paintHeight
+			paintHeight += float64(delta)
+			return _paintHeight
+		}
+
+		dc.SetHexColor("#696679")
+		for _, line := range lines {
+			dc.DrawString(line, 120, addPaintHeight(96))
+		}
+
+		var start, end string
+		if startTime == -1 {
+			start = "不限时"
+		} else {
+			start = time.Unix(int64(startTime), 0).Format("2006-01-02")
+		}
+		if endTime == -1 {
+			end = "不限时"
+		} else {
+			end = time.Unix(int64(endTime), 0).Format("2006-01-02")
+		}
+
+		err = dc.LoadFontFace(fontPath, 64)
+		if err != nil {
+			return err
+		}
+		paintHeight = 2084
+		dc.DrawStringAnchored(fmt.Sprintf("开始时间：%v", start), 120, addPaintHeight(96), 0, 0)
+		dc.DrawStringAnchored(fmt.Sprintf("结束时间：%v", end), 120, addPaintHeight(96), 0, 0)
+		// fmt.Printf("4 %v\n", time.Since(now))
+
+		// QR Code Generate
+		targetUrl := generateActivityURLById(activityId)
+		qrCode, err := qrcode.New(targetUrl, qrcode.Low)
+		if err != nil {
+			return err
+		}
+
+		paintHeight = 2245
+		qrImg := qrCode.Image(268)
+		dc.DrawImage(qrImg, 1112, int(paintHeight))
+		// fmt.Printf("5 %v\n", time.Since(now))
+		// fmt.Println("drawTexts done")
+		return nil
 	}
-	if config.EndedTime == -1 {
-		end = "不限时"
-	} else {
-		end = time.Unix(config.EndedTime, 0).Format("2006-01-02")
+
+	group := new(errgroup.Group)
+	group.Go(drawBackground)
+	group.Go(drawHeadPic)
+	group.Go(drawTexts)
+	err := group.Wait()
+	if err != nil {
+		return nil, err
 	}
-	dc.DrawStringAnchored(fmt.Sprintf("开始时间：%v", start), 120, 1988, 0, 0)
-	dc.DrawStringAnchored(fmt.Sprintf("结束时间：%v", end), 120, 2100, 0, 0)
+
+	// encode to png
 	buf := new(bytes.Buffer)
-	dc.EncodePNG(buf)
+	if err := dc.EncodePNG(buf); err != nil {
+		return nil, err
+	}
+	// fmt.Printf("6 %v\n", time.Since(now))
+
+	return buf, nil
+}
+
+func generateActivityPoster(config *models.POAPActivityConfig) (string, error) {
+	if err := config.CheckActivityValid(); err != nil {
+		return "", err
+	}
+
+	buf, err := drawPoster("./assets/images/activityPoster.png",
+		"./assets/fonts/PingFang.ttf",
+		config.ActivityID,
+		config.ActivityPictureURL,
+		config.Name,
+		config.Description,
+		int(config.StartedTime),
+		int(config.EndedTime),
+	)
+	if err != nil {
+		return "", err
+	}
 
 	bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
 	if err != nil {
-		return err
+		return "", err
 	}
-	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.activity"), *config.ActivityID+".png"), buf); err != nil {
-		return err
+	if err := bucket.PutObject(path.Join(viper.GetString("posterDir.activity"), config.ActivityID+".png"), buf); err != nil {
+		return "", err
 	}
 
-	return nil
+	url := generateAcvitivyPosterUrl(config.ActivityID)
+	logrus.WithField("url", url).Info("write activity poster img")
+	return url, nil
 }
 
 func generateResultPoster(result *models.POAPResult, name string) error {
@@ -663,9 +748,16 @@ func GetMintCount(activityID, address string) (*int32, error) {
 
 	// phone white list logic: if whiteList config opened and user not in whiteList then the mint count is 0
 	if config.IsPhoneWhiteListOpened {
-		phoneInfo, err := models.FindAnywebUserByAddress(address)
-		if err == nil && len(phoneInfo.Phone) > 0 { // TODO check the phone not found case
-			isInWhiteList := models.IsPhoneInWhiteList(activityID, phoneInfo.Phone)
+		users, err := models.FindWalletUserByAddress(address)
+		if err == nil && len(users) > 0 { // TODO check the phone not found case
+			var isInWhiteList bool
+			for _, u := range users {
+				isInWhiteList = models.IsPhoneInWhiteList(activityID, u.Phone)
+				if isInWhiteList {
+					break
+				}
+			}
+
 			if !isInWhiteList {
 				count = 0
 				return &count, nil
@@ -720,7 +812,7 @@ func commonCheck(config *models.POAPActivityConfig, req *POAPRequest) error {
 		return fmt.Errorf("The activity has been expired")
 	}
 
-	err := checkAmount(*config.ActivityID, config.Amount)
+	err := checkAmount(config.ActivityID, config.Amount)
 	if err != nil {
 		return err
 	}
@@ -740,7 +832,7 @@ func checkWhiteListLimit(config *models.POAPActivityConfig, address string) erro
 	if err := config.CheckActivityValid(); err != nil {
 		return err
 	}
-	resp, err := models.CountPOAPResultByAddress(address, *config.ActivityID)
+	resp, err := models.CountPOAPResultByAddress(address, config.ActivityID)
 	if err != nil {
 		return err
 	}

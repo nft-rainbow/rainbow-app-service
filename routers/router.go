@@ -10,8 +10,23 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/nft-rainbow/rainbow-app-service/docs"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
+	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
+
+var (
+	botServerHandler *BotServer
+	walletService    *services.WalletService
+)
+
+func Init() {
+	var err error
+	botServerHandler, err = NewBotServer()
+	if err != nil {
+		panic(err)
+	}
+	walletService = services.NewWalletService()
+}
 
 func SetupRoutes(router *gin.Engine) {
 	router.GET("/", indexEndpoint)
@@ -19,52 +34,64 @@ func SetupRoutes(router *gin.Engine) {
 	apps := router.Group("/apps")
 	apps.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
 
-	custom := apps.Group("/custom")
+	botServer := apps.Group("/botserver")
+	botServer.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	{
+		botServer.GET("/channels", botServerHandler.GetChannels)
+		botServer.GET("/roles", botServerHandler.GetRoles)
+
+		botServer.POST("/authcode", botServerHandler.verifyBotServer)
+		botServer.POST("", botServerHandler.insertBotServer)
+		botServer.GET("", botServerHandler.GetBotServers)
+
+		botServer.GET("/:id", botServerHandler.GetBotServer)
+		botServer.POST("/:id/activity", botServerHandler.AddActivity)
+		botServer.PUT("/:id/activity", botServerHandler.UpdateActivity)
+		botServer.POST("/push/:id", botServerHandler.Push)
+	}
+
+	// botActivity := bot.Group("/activity")
+	// botActivity.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	// {
+	// dodoProjector.GET("/", getProjectorList)
+	// dodoProjector.GET("/", getDoDoCustomProjectList)
+	// dodoProjector.GET("/:id", getProjector)
+	// botActivity.POST("", setDoDoCustomActivityConfig)
+	// botActivity.GET("", getDoDoCustomActivityList)
+	// botActivity.GET("/:id", getDoDoCustomActivity)
+	// }
+
+	// discord := bot.Group("/discord")
+	// discord.GET("/:guild_id/channels", getDiscordChannelInfo)
+	// discordCustomProjector := discord.Group("/projector")
+	// discordCustomProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	// {
+	// 	discordCustomProjector.POST("/", setDiscordCustomProjectConfig)
+	// 	discordCustomProjector.GET("/", getDiscordCustomProjectList)
+	// 	discordCustomProjector.GET("/:id", getDiscordCustomProject)
+	// 	discordCustomProjector.POST("/activity", setDiscordCustomActivityConfig)
+	// 	discordCustomProjector.GET("/activity", getDiscordCustomActivityList)
+	// 	discordCustomProjector.GET("/activity/:id", getDiscordCustomActivity)
+	// }
+
 	poap := apps.Group("/poap")
-
-	discord := custom.Group("/discord")
-	dodo := custom.Group("/dodo")
-	discord.GET("/:guild_id/channels", getDiscordChannelInfo)
-	dodo.GET("/:island_id/channels", getDoDoChannelInfo)
-
-	dodoCustomProject := dodo.Group("/projector")
-	dodoCustomProject.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
-	{
-		dodoCustomProject.POST("/", setDoDoCustomProjectConfig)
-		dodoCustomProject.GET("/", getDoDoCustomProjectList)
-		dodoCustomProject.GET("/:id", getDoDoCustomProject)
-		dodoCustomProject.POST("/activity", setDoDoCustomActivityConfig)
-		dodoCustomProject.GET("/activity", getDoDoCustomActivityList)
-		dodoCustomProject.GET("/activity/:id", getDoDoCustomActivity)
-	}
-
-	discordCustomProjector := discord.Group("/projector")
-	discordCustomProjector.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
-	{
-		discordCustomProjector.POST("/", setDiscordCustomProjectConfig)
-		discordCustomProjector.GET("/", getDiscordCustomProjectList)
-		discordCustomProjector.GET("/:id", getDiscordCustomProject)
-		discordCustomProjector.POST("/activity", setDiscordCustomActivityConfig)
-		discordCustomProjector.GET("/activity", getDiscordCustomActivityList)
-		discordCustomProjector.GET("/activity/:id", getDiscordCustomActivity)
-	}
-
 	poap.POST("/h5", middlewares.IpLimitMiddleware(), poapMintByH5)
 	poap.GET("/activity/:activity_id", getPOAPActivity)
 	poap.GET("/activity/result/:activity_id", getPOAPResultList)
 	poap.GET("/activity/result/:activity_id/:id", getPOAPResultDetail)
 	poap.GET("/count/:address/:activity_id", getMintCount)
-	poap.POST("/anyweb/code", collectAnywebUserCode)
+	poap.POST("/wallet/user", addWalletUser)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		poap.POST("/activity/push", pushActivity)
-		poap.POST("/activity/server", bindServerInfo)
-		poap.GET("/activity/push/:bot", getPushes)
-		poap.GET("/activity/servers/:bot", getServers)
-		poap.GET("/activity/channels/discord/:guild_id", getDiscordChannels)
-		poap.GET("/activity/channels/dodo/:island_id", getDoDoChannels)
-		poap.GET("/activity/roles/discord/:guild_id", getDiscordRoles)
-		poap.GET("/activity/roles/dodo/:island_id", getDoDoRoles)
+		// poap.POST("/activity/push", pushActivity)
+		// poap.POST("/activity/server", bindServerInfo)
+		// poap.GET("/activity/push/:bot", getPushes)
+		// poap.GET("/activity/servers/:bot", getServers)
+		// poap.GET("/activity/channels/discord/:guild_id", getDiscordChannels)
+		// poap.GET("/activity/channels/dodo/:island_id", getDoDoChannels)
+		// poap.GET("/activity/roles/discord/:guild_id", getDiscordRoles)
+		// poap.GET("/activity/roles/dodo/:island_id", getDoDoRoles)
+
 		poap.POST("/csv", poapMintByCSV)
 		poap.POST("/activity", setPOAPActivityConfig)
 		poap.PUT("/activity/:activity_id", updatePOAPConfig)
