@@ -11,12 +11,14 @@ import (
 	_ "github.com/nft-rainbow/rainbow-app-service/docs"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/services"
+	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
 
 var (
 	botServerHandler *BotServer
 	activityService  *services.ActivityService
+	walletService    *services.WalletService
 )
 
 func Init() {
@@ -25,6 +27,7 @@ func Init() {
 	if err != nil {
 		panic(err)
 	}
+	walletService = services.NewWalletService()
 	activityService = services.GetActivityService()
 }
 
@@ -80,7 +83,7 @@ func SetupRoutes(router *gin.Engine) {
 	poap.GET("/activity/result/:activity_code", getPOAPResultList)
 	poap.GET("/activity/result/:activity_code/:id", getPOAPResultDetail)
 	poap.GET("/count/:address/:activity_code", getMintCount)
-	poap.POST("/anyweb/code", collectAnywebUserCode)
+	poap.POST("/wallet/user", addWalletUser)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		// poap.POST("/activity/push", pushActivity)

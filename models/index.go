@@ -52,7 +52,7 @@ func ConnectDB() {
 		&MetadataAttribute{},
 		&PushInfo{},
 		&BotServer{},
-		&AnywebUser{},
+		&WalletUser{},
 		&PhoneWhiteList{},
 	); err != nil {
 		panic(err)

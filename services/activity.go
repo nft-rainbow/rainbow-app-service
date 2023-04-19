@@ -351,9 +351,16 @@ func (a *ActivityService) GetMintCount(activityID, address string) (*int32, erro
 
 	// phone white list logic: if whiteList config opened and user not in whiteList then the mint count is 0
 	if config.IsPhoneWhiteListOpened {
-		phoneInfo, err := models.FindAnywebUserByAddress(address)
-		if err == nil && len(phoneInfo.Phone) > 0 { // TODO check the phone not found case
-			isInWhiteList := models.IsPhoneInWhiteList(activityID, phoneInfo.Phone)
+		users, err := models.FindWalletUserByAddress(address)
+		if err == nil && len(users) > 0 { // TODO check the phone not found case
+			var isInWhiteList bool
+			for _, u := range users {
+				isInWhiteList = models.IsPhoneInWhiteList(activityID, u.Phone)
+				if isInWhiteList {
+					break
+				}
+			}
+
 			if !isInWhiteList {
 				count = 0
 				return &count, nil
@@ -398,16 +405,22 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 		return errors.WithStack(err)
 	}
 
-	// phone whiteList logic check
 	if config.IsPhoneWhiteListOpened {
-		phoneInfo, err := models.FindAnywebUserByAddress(req.UserAddress)
-		if err == nil && len(phoneInfo.Phone) > 0 {
-			isInWhiteList := models.IsPhoneInWhiteList(req.ActivityID, phoneInfo.Phone)
-			if !isInWhiteList { // phone not in whitelist
-				return errors.New("无领取资格")
+		users, err := models.FindWalletUserByAddress(req.UserAddress)
+		if err == nil && len(users) > 0 {
+			var isInWhiteList bool
+			for _, u := range users {
+				isInWhiteList = models.IsPhoneInWhiteList(req.ActivityID, u.Phone)
+				if isInWhiteList {
+					break
+				}
 			}
+			if !isInWhiteList { // phone not in whitelist
+				return nil, errors.New("无领取资格")
+			}
+
 		} else if errors.Is(err, gorm.ErrRecordNotFound) { // not found phone info
-			return errors.New("无领取资格")
+			return nil, errors.New("无领取资格")
 		}
 	}
 

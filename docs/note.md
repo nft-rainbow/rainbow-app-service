@@ -12,3 +12,31 @@
 
 - SocialToolServer: {[]PushInfo, RainbowUser}
 - PushInfo: {Activity, Channel, IdentityGroup, Msg, ColorTheme}
+
+
+# 数据迁移
+anywebUsers -> walletUsers
+```sql
+CREATE TABLE `wallet_users` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  `deleted_at` datetime(3) DEFAULT NULL,
+  `wallet` varchar(256) DEFAULT NULL,
+  `union_id` varchar(256) DEFAULT NULL,
+  `access_token` text,
+  `expire` int DEFAULT NULL,
+  `refresh_token` text,
+  `refresh_expire` int DEFAULT NULL,
+  `phone` varchar(256) DEFAULT NULL,
+  `address` varchar(256) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_wallet_users_deleted_at` (`deleted_at`),
+  KEY `idx_wallet_users_union_id` (`union_id`),
+  KEY `idx_wallet_users_phone` (`phone`),
+  KEY `idx_wallet_users_address` (`address`),
+  KEY `idx_wallet_phone` (`phone`,`wallet`)
+)  ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+insert into wallet_users (created_at,updated_at,deleted_at,wallet,union_id,access_token,expire,refresh_token,refresh_expire,phone,address) select created_at,updated_at,deleted_at,1,union_id,access_token,expire,refresh_token,refresh_expire,phone,address from anyweb_users;
+```
