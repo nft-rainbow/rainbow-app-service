@@ -40,3 +40,8 @@ CREATE TABLE `wallet_users` (
 
 insert into wallet_users (created_at,updated_at,deleted_at,wallet,union_id,access_token,expire,refresh_token,refresh_expire,phone,address) select created_at,updated_at,deleted_at,1,union_id,access_token,expire,refresh_token,refresh_expire,phone,address from anyweb_users;
 ```
+
+poap_activity_configs -> activities
+```sql
+
+```

@@ -49,7 +49,7 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId
 	defaults.SetDefaults(activityReq)
 
 	activityId := utils.GenerateIDByTimeHash("", 8)
-	posterUrl, err := generateActivityPoster(activityReq, activityId)
+	posterUrl, err := generateActivityPoster(&activityReq.UpdateActivityReq, activityId)
 	if err != nil {
 		logrus.Errorf("Failed to generate poster for activity %v:%v \n", activityId, err.Error())
 		return nil, err
@@ -114,17 +114,18 @@ func (a *ActivityService) UpdateOrCreateContract(userId uint, appId uint, contra
 	return nil
 }
 
-func (a *ActivityService) UpdateActivity(activityId string, req *models.ActivityReq) (*models.Activity, error) {
+func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateActivityReq) (*models.Activity, error) {
 	oldConfig, err := models.FindActivityByCode(activityId)
 	if err != nil {
 		return nil, err
 	}
 
 	if req.ContractRawID != nil {
-		if uint(*req.ContractRawID) != uint(oldConfig.Contract.ContractRawID) {
+		if oldConfig.ContractRawID == nil || uint(*req.ContractRawID) != uint(*oldConfig.ContractRawID) {
 			if err := a.UpdateOrCreateContract(oldConfig.RainbowUserId, oldConfig.AppId, uint(*req.ContractRawID)); err != nil {
 				return nil, err
 			}
+			oldConfig.ContractRawID = req.ContractRawID
 		}
 	}
 
@@ -215,7 +216,7 @@ func (a *ActivityService) UpdateActivity(activityId string, req *models.Activity
 		}
 	}
 
-	oldConfig.AppName = req.AppName
+	// oldConfig.AppName = req.AppName
 	oldConfig.MaxMintCount = req.MaxMintCount
 	oldConfig.Command = req.Command
 	oldConfig.StartedTime = req.StartedTime
@@ -238,8 +239,14 @@ func (a *ActivityService) UpdateActivity(activityId string, req *models.Activity
 		oldConfig.ActivityPosterURL = posterUrl
 	}
 
-	res := models.GetDB().Save(&oldConfig)
-	return oldConfig, res.Error
+	if err := models.GetDB().Save(&oldConfig).Error; err != nil {
+		return nil, err
+	}
+
+	if err := oldConfig.LoadBindedContract(); err != nil {
+		return nil, err
+	}
+	return oldConfig, nil
 }
 
 func (a *ActivityService) HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, error) {
@@ -416,11 +423,11 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 				}
 			}
 			if !isInWhiteList { // phone not in whitelist
-				return nil, errors.New("无领取资格")
+				return errors.New("无领取资格")
 			}
 
 		} else if errors.Is(err, gorm.ErrRecordNotFound) { // not found phone info
-			return nil, errors.New("无领取资格")
+			return errors.New("无领取资格")
 		}
 	}
 

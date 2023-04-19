@@ -11,7 +11,6 @@ import (
 	_ "github.com/nft-rainbow/rainbow-app-service/docs"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/services"
-	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
 

@@ -76,7 +76,7 @@ func poapMintByH5(c *gin.Context) {
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/{activity_id} [get]
 func getActivity(c *gin.Context) {
-	poapId := c.Param("activity_id")
+	poapId := c.Param(ACTIVITY_CODE_KEY)
 	item, err := models.FindActivityByCode(poapId)
 	// if item.NeedCommand() == true {
 	// 	item.Command = ""
@@ -177,15 +177,15 @@ func setActivityH5Config(c *gin.Context) {
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/{activity_id} [put]
 func updateActivity(c *gin.Context) {
-	var config models.ActivityReq
+	var config models.UpdateActivityReq
 	if err := c.ShouldBind(&config); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	activityId := c.Param("activity_id")
+	activityCode := c.Param(ACTIVITY_CODE_KEY)
 	// config.ActivityID = poapId
 
-	resp, err := activityService.UpdateActivity(activityId, &config)
+	resp, err := activityService.UpdateActivity(activityCode, &config)
 	ginutils.RenderResp(c, resp, err)
 }
 
@@ -208,7 +208,7 @@ func getPOAPResultList(c *gin.Context) {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
 		return
 	}
-	poapId := c.Param("activity_id")
+	poapId := c.Param(ACTIVITY_CODE_KEY)
 	if poapId == "" {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
@@ -230,7 +230,7 @@ func getPOAPResultList(c *gin.Context) {
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/result/{activity_id}/{id} [get]
 func getPOAPResultDetail(c *gin.Context) {
-	poapId := c.Param("activity_id")
+	poapId := c.Param(ACTIVITY_CODE_KEY)
 	if poapId == "" {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
@@ -259,10 +259,10 @@ func getPOAPResultDetail(c *gin.Context) {
 func getMintCount(c *gin.Context) {
 	var err error
 	address := c.Param("address")
-	poapId := c.Param("activity_id")
+	activityCode := c.Param(ACTIVITY_CODE_KEY)
 
 	var resp *int32
-	resp, err = activityService.GetMintCount(poapId, address)
+	resp, err = activityService.GetMintCount(activityCode, address)
 	ginutils.RenderResp(c, resp, err)
 }
 

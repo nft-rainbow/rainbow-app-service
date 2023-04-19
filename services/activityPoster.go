@@ -172,7 +172,7 @@ func drawPoster(templatePath string, fontPath string,
 	return buf, nil
 }
 
-func generateActivityPoster(config *models.ActivityReq, activityId string) (string, error) {
+func generateActivityPoster(config *models.UpdateActivityReq, activityId string) (string, error) {
 	// if err := config.CheckActivityValid(); err != nil {
 	// 	return "", err
 	// }

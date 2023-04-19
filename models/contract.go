@@ -13,9 +13,9 @@ type Contract struct {
 	ChainType       int32  `gorm:"type:int" json:"chain_type"`
 }
 
-func FindContractByRawId(contractId uint) (*Contract, error) {
+func FindContractByRawId(contractRawId uint) (*Contract, error) {
 	var contract Contract
-	if err := GetDB().Model(&contract).Where("contract_id=?", contractId).First(&contract).Error; err != nil {
+	if err := GetDB().Model(&contract).Where("contract_raw_id=?", contractRawId).First(&contract).Error; err != nil {
 		return nil, err
 	}
 	return &contract, nil

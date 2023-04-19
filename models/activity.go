@@ -47,13 +47,10 @@ type (
 )
 
 type (
-	ActivityReq struct {
-		AppId                  uint            `gorm:"index" json:"app_id" binding:"required"`
+	UpdateActivityReq struct {
 		Amount                 int32           `gorm:"type:integer" json:"amount" binding:"required"`
 		Name                   string          `gorm:"type:string" json:"name" binding:"required"`
 		Description            string          `gorm:"type:string" json:"description" binding:"required"`
-		AppName                string          `gorm:"string" json:"app_name" binding:"required"`
-		ActivityType           uint            `gorm:"type:uint" json:"activity_type" binding:"required"`
 		Command                string          `gorm:"type:string" json:"command,omitempty"`
 		IsPhoneWhiteListOpened bool            `gorm:"type:bool;default:false" json:"is_phone_white_list_opened"`
 		EndedTime              int64           `gorm:"type:integer" json:"end_time" default:"-1"`
@@ -64,6 +61,12 @@ type (
 		MetadataUri            string          `gorm:"type:string" json:"metadata_uri"`
 		ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
 		ContractRawID          *int32          `gorm:"type:string" json:"contract_id"`
+	}
+	ActivityReq struct {
+		UpdateActivityReq
+		AppId        uint   `gorm:"index" json:"app_id" binding:"required"`
+		AppName      string `gorm:"string" json:"app_name"`
+		ActivityType uint   `gorm:"type:uint" json:"activity_type" binding:"required"`
 	}
 
 	Activity struct {
@@ -165,7 +168,7 @@ func FindActivity(name string, contractId int32) (*Activity, error) {
 func FindActivityByCode(activityCode string) (*Activity, error) {
 	return DoAndCompleteActivity(func() (*Activity, error) {
 		if activityCode == "" {
-			return nil, errors.New("activity_id is required")
+			return nil, errors.New("activity_code is required")
 		}
 
 		var item Activity
