@@ -41,6 +41,7 @@ func init() {
 func startGin() {
 	engine := gin.New()
 	engine.Use(gin.Logger())
+	engine.Use(middlewares.Logger())
 	engine.Use(cors.Default())
 	engine.Use(middlewares.Statistic())
 	engine.Use(middlewares.Recovery())

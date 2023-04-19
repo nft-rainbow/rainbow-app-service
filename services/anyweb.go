@@ -1,22 +1,29 @@
 package services
 
 import (
+	"errors"
 	"time"
 
 	"github.com/nft-rainbow/rainbow-app-service/clients"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 )
 
-func GetAnywebUserInfo(address, code string) error {
+type Anyweb struct {
+}
+
+func (a *Anyweb) InsertUser(userReq AddWalletUserReq) error {
+	if userReq.Wallet != models.WALLET_ANYWEB {
+		return errors.New("not anyweb wallet")
+	}
 	// check exist in db first if have directly return
-	user, err := models.FindAnywebUserByAddress(address)
+	user, err := models.FindWalletUser(userReq.Wallet, userReq.Address)
 	if err == nil && user != nil {
 		// user exist
 		return nil
 	}
 
 	// retrieve accessToken through code
-	tokenInfo, err := clients.GetAnywebAccessToken(code)
+	tokenInfo, err := clients.GetAnywebAccessToken(userReq.Code)
 	if err != nil {
 		return err
 	}
@@ -29,14 +36,14 @@ func GetAnywebUserInfo(address, code string) error {
 
 	// save db
 	now := time.Now().Unix()
-	anywebUser := &models.AnywebUser{
+	anywebUser := &models.WalletUser{
 		UnionId:       tokenInfo.UnionId,
 		AccessToken:   tokenInfo.AccessToken,
 		Expire:        now + tokenInfo.Expire,
 		RefreshToken:  tokenInfo.RefreshToken,
 		RefreshExpire: now + tokenInfo.RefreshExpire,
 		Phone:         userInfo.Phone,
-		Address:       address,
+		Address:       userReq.Address,
 	}
 
 	err = models.GetDB().Create(anywebUser).Error

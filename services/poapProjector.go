@@ -338,12 +338,19 @@ func HandlePOAPH5Mint(req *POAPRequest) (*models.POAPResult, error) {
 
 	// phone whiteList logic check
 	if config.IsPhoneWhiteListOpened {
-		phoneInfo, err := models.FindAnywebUserByAddress(req.UserAddress)
-		if err == nil && len(phoneInfo.Phone) > 0 {
-			isInWhiteList := models.IsPhoneInWhiteList(req.ActivityID, phoneInfo.Phone)
+		users, err := models.FindWalletUserByAddress(req.UserAddress)
+		if err == nil && len(users) > 0 {
+			var isInWhiteList bool
+			for _, u := range users {
+				isInWhiteList = models.IsPhoneInWhiteList(req.ActivityID, u.Phone)
+				if isInWhiteList {
+					break
+				}
+			}
 			if !isInWhiteList { // phone not in whitelist
 				return nil, errors.New("无领取资格")
 			}
+
 		} else if errors.Is(err, gorm.ErrRecordNotFound) { // not found phone info
 			return nil, errors.New("无领取资格")
 		}
@@ -741,9 +748,16 @@ func GetMintCount(activityID, address string) (*int32, error) {
 
 	// phone white list logic: if whiteList config opened and user not in whiteList then the mint count is 0
 	if config.IsPhoneWhiteListOpened {
-		phoneInfo, err := models.FindAnywebUserByAddress(address)
-		if err == nil && len(phoneInfo.Phone) > 0 { // TODO check the phone not found case
-			isInWhiteList := models.IsPhoneInWhiteList(activityID, phoneInfo.Phone)
+		users, err := models.FindWalletUserByAddress(address)
+		if err == nil && len(users) > 0 { // TODO check the phone not found case
+			var isInWhiteList bool
+			for _, u := range users {
+				isInWhiteList = models.IsPhoneInWhiteList(activityID, u.Phone)
+				if isInWhiteList {
+					break
+				}
+			}
+
 			if !isInWhiteList {
 				count = 0
 				return &count, nil

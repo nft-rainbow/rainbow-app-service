@@ -51,7 +51,7 @@ func ConnectDB() {
 	db.AutoMigrate(&MetadataAttribute{})
 	// db.AutoMigrate(&PushInfo{})
 	db.AutoMigrate(&BotServer{})
-	db.AutoMigrate(&AnywebUser{})
+	db.AutoMigrate(&WalletUser{})
 	db.AutoMigrate(&PhoneWhiteList{})
 }
 
