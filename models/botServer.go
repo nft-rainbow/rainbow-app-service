@@ -111,7 +111,7 @@ func FindBotServers(rainbowUserId uint, socialTool *SocialToolType) ([]*BotServe
 }
 
 func FindActivitiesOfUserBotServers(rainbowUserId uint, cond *FindBotServerActivitiesCond) (*FindBotServerActivitiesResult, error) {
-	filters := fmt.Sprintf("b.rainbow_user_id=%v and b.social_tool=%v", rainbowUserId, uint(cond.SocialTool))
+	filters := fmt.Sprintf("b.rainbow_user_id=%v and b.social_tool=%v and c.contract_address!=\"\"", rainbowUserId, uint(cond.SocialTool))
 	if cond.ActivityName != nil {
 		filters += fmt.Sprintf(" and a.name=%s", *cond.ActivityName)
 	}
