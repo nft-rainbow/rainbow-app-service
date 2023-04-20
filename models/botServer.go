@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 // type DiscordCustomProjectConfig struct {
 // 	BaseModel
 // 	AppId         int32  `gorm:"index" json:"app_id" binding:"required"`
@@ -16,8 +18,8 @@ type BotServer struct {
 	BaseModel
 	RainbowUserId uint           `gorm:"type:integer" json:"rainbow_user_id" binding:"required"`
 	SocialTool    SocialToolType `json:"social_tool"`
-	RawServerId   string         `json:"server_id" binding:"required"`
-	OwnerSocialId string         `json:"user_social_id" binding:"required"`
+	RawServerId   string         `json:"raw_server_id" binding:"required"`
+	OwnerSocialId string         `json:"owner_social_id" binding:"required"`
 	PushInfos     []PushInfo     `gorm:"-" json:"push_infos"`
 	// Platform PlatformType `json:"platform" binding:"required"`
 	// AppId         int32  `gorm:"index" json:"app_id" binding:"required"`
@@ -29,6 +31,34 @@ type BotServer struct {
 	// ChainType     string `gorm:"type:string" json:"chain_type" binding:"required"`
 	// PlatformUserId string `gorm:"type:varchar(255)" json:"platform_user_id" binding:"required"`
 }
+
+type (
+	FindBotServerActivitiesCond struct {
+		Pagination
+		SocialTool      SocialToolType `uri:"social_tool" form:"social_tool" binding:"required"`
+		ActivityName    *string        `form:"activity_name"`
+		ContractAddress *string        `form:"contract_address"`
+	}
+
+	PlattenBotServerActivity struct {
+		RainbowUserId   uint           `gorm:"type:integer" json:"rainbow_user_id"`
+		SocialTool      SocialToolType `json:"social_tool"`
+		RawServerId     string         `json:"raw_server_id"`
+		OwnerSocialId   string         `json:"owner_social_id"`
+		ActivityId      uint           `gorm:"index:idx_member" json:"activity_id"`
+		ChannelId       string         `gorm:"index:idx_member" json:"channel_id"`
+		Name            string         `gorm:"type:string" json:"name" binding:"required"`
+		EndedTime       int64          `gorm:"type:integer" json:"end_time" default:"-1"`
+		StartedTime     int64          `gorm:"type:integer" json:"start_time" default:"-1"`
+		ContractRawID   *int32         `gorm:"type:string" json:"contract_id"`
+		ContractAddress string         `form:"contract_address"`
+	}
+
+	FindBotServerActivitiesResult struct {
+		Count int64                       `json:"count"`
+		Items []*PlattenBotServerActivity `json:"result"`
+	}
+)
 
 func (b *BotServer) LoadPushInfos() error {
 	return GetDB().Model(&PushInfo{}).Where("bot_server_id=?", b.ID).Find(&b.PushInfos).Error
@@ -78,6 +108,33 @@ func FindBotServers(rainbowUserId uint, socialTool *SocialToolType) ([]*BotServe
 		}
 		return result, nil
 	})
+}
+
+func FindActivitiesOfUserBotServers(rainbowUserId uint, cond *FindBotServerActivitiesCond) (*FindBotServerActivitiesResult, error) {
+	filters := fmt.Sprintf("b.rainbow_user_id=%v and b.social_tool=%v", rainbowUserId, uint(cond.SocialTool))
+	if cond.ActivityName != nil {
+		filters += fmt.Sprintf(" and a.name=%s", *cond.ActivityName)
+	}
+	if cond.ContractAddress != nil {
+		filters += fmt.Sprintf(" and c.contract_address=%s", *cond.ContractAddress)
+	}
+
+	fields := "b.rainbow_user_id,b.social_tool,b.raw_server_id,b.owner_social_id,p.activity_id,p.channel_id,a.name,a.ended_time,a.started_time,c.contract_raw_id,c.contract_address"
+	joins := "bot_servers as b left join push_infos as p on b.id=p.bot_server_id left join activities as a on p.activity_id=a.id left join contracts as c on a.contract_raw_id=c.contract_raw_id"
+
+	itemsSql := fmt.Sprintf("select %s from  %s  where %s order by p.id desc limit %v,%v", fields, joins, filters, (cond.Page-1)*cond.Limit, cond.Limit)
+	countSql := fmt.Sprintf("select %s from  %s  where %s order by p.id desc", "count(*)", joins, filters)
+
+	var result FindBotServerActivitiesResult
+
+	if err := db.Debug().Raw(itemsSql).Scan(&result.Items).Error; err != nil {
+		return nil, err
+	}
+
+	if err := db.Raw(countSql).Scan(&result.Count).Error; err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 func FindBotServerByChannel(channelId string) (*BotServer, error) {
@@ -160,232 +217,3 @@ func FirstBotServerByUserId(rainbowUserId int) (*BotServer, error) {
 // 	Chain           int32          `gorm:"type:int" json:"chain_type"`
 // 	MetadataURI     string         `gorm:"type:string" json:"metadata_uri"`
 // }
-
-type PushInfo struct {
-	BaseModel
-	BotServerID uint   `json:"bot_server_id"`
-	ActivityId  uint   `gorm:"index:idx_member" json:"activity_id"`
-	ChannelId   string `gorm:"index:idx_member" json:"channel_id"`
-	Roles       string `gorm:"type:string" json:"roles"`
-	Content     string `gorm:"type:string" json:"content"`
-	ColorTheme  string `gorm:"type:string" json:"color_theme"`
-}
-
-func (p *PushInfo) GetActivity() (*Activity, error) {
-	var activity Activity
-	activity.ID = p.ActivityId
-	if err := GetDB().Where(&activity).First(&activity).Error; err != nil {
-		return nil, err
-	}
-	return &activity, nil
-}
-
-func FindPushInfoById(id uint) (*PushInfo, error) {
-	var pushInfo PushInfo
-	pushInfo.ID = id
-	if err := GetDB().Debug().Where(&pushInfo).First(&pushInfo).Error; err != nil {
-		return nil, err
-	}
-	return &pushInfo, nil
-}
-
-func FindPushInfo(cond PushInfo) (*PushInfo, error) {
-	if err := GetDB().Debug().Where(&cond).First(&cond).Error; err != nil {
-		return nil, err
-	}
-	return &cond, nil
-}
-
-// type PushInfo struct {
-// 	BaseModel
-// ServerId      string  `gorm:"type:varchar(256);index" json:"server_id"`
-// ServerName    string  `gorm:"type:varchar(256)" json:"server_name"`
-// Activity  Activity `gorm:"type:string;index" json:"activity_id"`
-// ChannelId string   `gorm:"type:string" json:"channel_id"`
-
-// ActivityName  string  `gorm:"type:string" json:"activity_name"`
-// AccountLimit  int     `gorm:"type:integer" json:"account_limit"`
-// ContractID    *int32  `gorm:"type:integer" json:"contract_id"`
-// EndedTime     int64   `gorm:"type:integer" json:"end_time"`
-// StartedTime   int64   `gorm:"type:integer" json:"start_time"`
-// ActivityType  uint    `gorm:"type:uint" json:"activity_type"`
-// Bot           uint    `gorm:"type:integer" json:"bot"`
-// Contract      *string `gorm:"type:string" json:"contract"`
-// RainbowUserId int32   `gorm:"type:integer" json:"rainbow_user_id"`
-// }
-
-// type SocialToolServer struct {
-// 	BaseModel
-// 	ServerId      string `gorm:"type:varchar(256);index" json:"server_id" binding:"required"`
-// 	ServerName    string `gorm:"type:varchar(256)" json:"server_name"`
-// 	RainbowUserId int32  `gorm:"type:integer" json:"rainbow_user_id"`
-// 	UserId        int32  `gorm:"type:integer" json:"user_id"`
-// 	Bot           uint   `gorm:"type:integer" json:"bot" binding:"required"`
-// }
-
-// type PushInfoQueryResult struct {
-// 	Count int64       `json:"count"`
-// 	Items []*PushInfo `json:"items"`
-// }
-
-type UserServerQueryResult struct {
-	Count int64        `json:"count"`
-	Items []*BotServer `json:"items"`
-}
-
-// type DiscordActivityQueryResult struct {
-// 	Count int64                   `json:"count"`
-// 	Items []*CustomActivityConfig `json:"items"`
-// }
-
-// type DoDoActivityQueryResult struct {
-// 	Count int64                   `json:"count"`
-// 	Items []*CustomActivityConfig `json:"items"`
-// }
-
-type DiscordCustomProjectConfigQueryResult struct {
-	Count int64        `json:"count"`
-	Items []*BotServer `json:"items"`
-}
-
-type DoDoCustomProjectConfigQueryResult struct {
-	Count int64        `json:"count"`
-	Items []*BotServer `json:"items"`
-}
-
-// func FindPushInfo(serverId, activityId string) (*PushInfo, error) {
-// 	var res PushInfo
-// 	var cond PushInfo
-// 	cond.ActivityId = activityId
-// 	cond.ServerId = serverId
-
-// 	err := db.Where(&cond).Last(&res).Error
-// 	return &res, err
-// }
-
-// func FindAndCountPushInfo(offset, limit, userId int, bot uint) (*PushInfoQueryResult, error) {
-// 	var items []*PushInfo
-// 	var cond PushInfo
-// 	cond.RainbowUserId = int32(userId)
-// 	cond.Bot = bot
-
-// 	var count int64
-// 	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
-// 		return nil, err
-// 	}
-
-// 	if err := db.Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
-// 		return nil, err
-// 	}
-// 	return &PushInfoQueryResult{count, items}, nil
-// }
-
-// func FindDiscordCustomActivityConfigByChannelId(id string) (*CustomActivityConfig, error) {
-// 	var item CustomActivityConfig
-// 	err := db.Where("channel_id = ?", id).First(&item).Error
-// 	return &item, err
-// }
-
-// func FindDoDoCustomActivityConfigByChannelId(id string) (*CustomActivityConfig, error) {
-// 	var item CustomActivityConfig
-// 	err := db.Where("channel_id = ?", id).First(&item).Error
-// 	return &item, err
-// }
-
-// func FindDiscordConfigById(id int) (*SocialToolServer, error) {
-// 	var item SocialToolServer
-// 	err := db.Where("id = ?", id).First(&item).Error
-// 	return &item, err
-// }
-
-// func FindDiscordConfigByUserId(id int) (*SocialToolServer, error) {
-// 	var item SocialToolServer
-// 	err := db.Where("rainbow_user_id = ?", id).First(&item).Error
-// 	return &item, err
-// }
-
-// func FindDoDoConfigById(id int) (*SocialToolServer, error) {
-// 	var item SocialToolServer
-// 	err := db.Where("id = ?", id).First(&item).Error
-// 	return &item, err
-// }
-
-// func FindDiscordCustomActivityConfigById(id int) (*CustomActivityConfig, error) {
-// 	var item CustomActivityConfig
-// 	err := db.Where("id = ?", id).First(&item).Error
-// 	return &item, err
-// }
-
-// func FindDoDoCustomActivityConfigById(id int) (*CustomActivityConfig, error) {
-// 	var item CustomActivityConfig
-// 	err := db.Where("id = ?", id).First(&item).Error
-// 	return &item, err
-// }
-
-// func FindAndCountDiscordActivity(id uint, offset int, limit int) (*DiscordActivityQueryResult, error) {
-// 	var items []*CustomActivityConfig
-// 	cond := &CustomActivityConfig{}
-// 	cond.AppId = id
-
-// 	var count int64
-// 	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
-// 		return nil, err
-// 	}
-
-// 	if err := db.Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
-// 		return nil, err
-// 	}
-
-// 	return &DiscordActivityQueryResult{count, items}, nil
-// }
-
-// func FindAndCountDoDoActivity(id uint, offset int, limit int) (*DoDoActivityQueryResult, error) {
-// 	var items []*CustomActivityConfig
-// 	cond := &CustomActivityConfig{}
-// 	cond.AppId = id
-
-// 	var count int64
-// 	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
-// 		return nil, err
-// 	}
-
-// 	if err := db.Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
-// 		return nil, err
-// 	}
-
-// 	return &DoDoActivityQueryResult{count, items}, nil
-// }
-
-func FindAndCountDiscordCustomProjectConfig(id uint, offset int, limit int) (*DiscordCustomProjectConfigQueryResult, error) {
-	var items []*BotServer
-	cond := &BotServer{}
-	cond.RainbowUserId = id
-
-	var count int64
-	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
-		return nil, err
-	}
-
-	if err := db.Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
-		return nil, err
-	}
-
-	return &DiscordCustomProjectConfigQueryResult{count, items}, nil
-}
-
-func FindAndCountDoDoCustomProjectConfig(id uint, offset int, limit int) (*DoDoCustomProjectConfigQueryResult, error) {
-	var items []*BotServer
-	cond := &BotServer{}
-	cond.RainbowUserId = id
-
-	var count int64
-	if err := db.Find(&items).Where(cond).Count(&count).Error; err != nil {
-		return nil, err
-	}
-
-	if err := db.Find(&items).Where(cond).Offset(offset).Limit(limit).Error; err != nil {
-		return nil, err
-	}
-
-	return &DoDoCustomProjectConfigQueryResult{count, items}, nil
-}

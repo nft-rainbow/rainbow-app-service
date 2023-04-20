@@ -46,6 +46,7 @@ func SetupRoutes(router *gin.Engine) {
 		botServer.POST("", botServerHandler.insertBotServer)
 		botServer.GET("", botServerHandler.GetBotServers)
 		botServer.GET("/:id", botServerHandler.GetBotServer)
+		botServer.GET("/activities", botServerHandler.GetActivitiesOfUserBotServers)
 
 		botServer.POST("/:id/activity", botServerHandler.AddActivity)
 		botServer.PUT("/:id/activity", botServerHandler.UpdateActivity)
@@ -107,8 +108,8 @@ func indexEndpoint(c *gin.Context) {
 }
 
 type Pagination struct {
-	Page  int `json:"page" form:"page"`
-	Limit int `json:"limit" form:"limit"`
+	Page  int `json:"page" form:"page" default:"1"`
+	Limit int `json:"limit" form:"limit" default:"10"`
 }
 
 func (p Pagination) Offset() int {

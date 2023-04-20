@@ -2,6 +2,7 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/mcuadros/go-defaults"
 	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/services"
@@ -9,9 +10,6 @@ import (
 )
 
 type BotServer struct {
-	// Dodo        *services.BotServerService
-	// Discord     *services.BotServerService
-	// botServices map[models.SocialToolType]*services.BotServerService
 	botService *services.BotServerService
 }
 
@@ -60,11 +58,6 @@ func (b *BotServer) verifyBotServer(c *gin.Context) {
 		return
 	}
 
-	// var social SocialToolReq
-	// if err := c.ShouldBindUri(&social); err != nil {
-	// 	ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-	// 	return
-	// }
 	err := b.botService.VerifyBotServer(verifyUserReq.SocialTool, verifyUserReq.ServerId)
 	ginutils.RenderResp(c, services.Success, err)
 }
@@ -75,12 +68,6 @@ func (b *BotServer) insertBotServer(c *gin.Context) {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-
-	// var social SocialToolReq
-	// if err := c.ShouldBindUri(&social); err != nil {
-	// 	ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-	// 	return
-	// }
 
 	userId := GetIdFromJwtClaim(c)
 	err := b.botService.InsertBotServer(userId, req)
@@ -97,6 +84,20 @@ func (b *BotServer) GetBotServers(c *gin.Context) {
 	userId := GetIdFromJwtClaim(c)
 	p, err := b.botService.GetBotServers(userId, queryParams.SocialTool)
 	ginutils.RenderResp(c, p, err)
+}
+
+func (b *BotServer) GetActivitiesOfUserBotServers(c *gin.Context) {
+	var req models.FindBotServerActivitiesCond
+	if err := c.ShouldBindQuery(&req); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+	defaults.SetDefaults(&req)
+
+	userId := GetIdFromJwtClaim(c)
+	result, err := b.botService.GetActivitiesOfBotServers(userId, &req)
+	ginutils.RenderResp(c, result, err)
+
 }
 
 func (b *BotServer) GetBotServer(c *gin.Context) {
@@ -165,11 +166,6 @@ func (b *BotServer) GetChannels(c *gin.Context) {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	// var uirParams SocialToolUriReq
-	// if err := c.ShouldBindUri(&uirParams); err != nil {
-	// 	ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-	// 	return
-	// }
 
 	channels, err := b.botService.GetChannels(req.SocialTool, req.ServerId)
 	ginutils.RenderResp(c, channels, err)

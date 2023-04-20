@@ -1,12 +1,5 @@
 package routers
 
-import (
-	"github.com/gin-gonic/gin"
-	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
-	"github.com/nft-rainbow/rainbow-app-service/models"
-	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
-)
-
 // @Tags        CustomMint
 // @ID          SetDiscordCustomProjectConfig
 // @Summary     Set Discord custom project
@@ -200,15 +193,15 @@ import (
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/projector/ [get]
-func getDiscordCustomProjectList(c *gin.Context) {
-	pagination, err := GetPagination(c)
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
-		return
-	}
-	mints, err := models.FindAndCountDiscordCustomProjectConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
-	ginutils.RenderResp(c, mints, err)
-}
+// func getDiscordCustomProjectList(c *gin.Context) {
+// 	pagination, err := GetPagination(c)
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
+// 		return
+// 	}
+// 	mints, err := models.FindAndCountDiscordCustomProjectConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
+// 	ginutils.RenderResp(c, mints, err)
+// }
 
 // @Tags        CustomMint
 // @ID          GetDoDoCustomProjectList
@@ -223,15 +216,15 @@ func getDiscordCustomProjectList(c *gin.Context) {
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/projector/ [get]
-func getDoDoCustomProjectList(c *gin.Context) {
-	pagination, err := GetPagination(c)
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
-		return
-	}
-	mints, err := models.FindAndCountDoDoCustomProjectConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
-	ginutils.RenderResp(c, mints, err)
-}
+// func getDoDoCustomProjectList(c *gin.Context) {
+// 	pagination, err := GetPagination(c)
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
+// 		return
+// 	}
+// 	mints, err := models.FindAndCountDoDoCustomProjectConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
+// 	ginutils.RenderResp(c, mints, err)
+// }
 
 // @Tags        CustomMint
 // @ID          GetDiscordCustomProjectDetail

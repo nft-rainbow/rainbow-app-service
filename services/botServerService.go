@@ -111,6 +111,10 @@ func (d *BotServerService) GetBotServers(userId uint, socialType *models.SocialT
 	return models.FindBotServers(userId, socialType)
 }
 
+func (d *BotServerService) GetActivitiesOfBotServers(userId uint, cond *models.FindBotServerActivitiesCond) (*models.FindBotServerActivitiesResult, error) {
+	return models.FindActivitiesOfUserBotServers(userId, cond)
+}
+
 func (d *BotServerService) GetBotServer(userId uint, serverId uint) (*models.BotServer, error) {
 	return VerifyServerBelongsToUser(userId, serverId)
 }

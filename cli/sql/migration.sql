@@ -90,7 +90,7 @@ alter table nft_configs DROP foreign key fk_poap_activity_configs_nft_configs;
 alter table nft_configs DROP INDEX fk_poap_activity_configs_nft_configs;
 
 -- drop tables
-drop table if exists bind_cfxs;
+drop table if exists bind_cfxes;
 drop table if exists poap_activity_configs;
 
 -- rename columns
