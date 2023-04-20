@@ -17,6 +17,7 @@ type (
 		GetSocialToolType() models.SocialToolType
 		GetChannels(serverId string) ([]*Channel, error)
 		GetRoles(serverId string) ([]*Role, error)
+		GetInviteUrl() string
 		Push(channelId string, roles []string, name, activityId, content, color string) error
 	}
 

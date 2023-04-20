@@ -15,6 +15,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 type DodoBot struct {
@@ -166,6 +167,10 @@ func (d *DodoBot) GetRoles(serverId string) ([]*Role, error) {
 	}
 
 	return roles, nil
+}
+
+func (d *DodoBot) GetInviteUrl() string {
+	return viper.GetString("dodoBot.inviteUrl")
 }
 
 func (d *DodoBot) RunCommand(channelId string, userDodoSourceId string, command string) error {

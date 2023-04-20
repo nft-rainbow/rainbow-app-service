@@ -182,6 +182,15 @@ func (b *BotServer) GetRoles(c *gin.Context) {
 	ginutils.RenderResp(c, roles, err)
 }
 
+func (b *BotServer) GetInviteUrl(c *gin.Context) {
+	var req SocialToolReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+	
+}
+
 func mustGetSocialToolFromPath(c *gin.Context) *models.SocialToolType {
 	return mustGetSocialToolType(c.Param("social_tool"))
 }

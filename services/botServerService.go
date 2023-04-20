@@ -203,6 +203,10 @@ func (d *BotServerService) GetRoles(socialTool models.SocialToolType, rawServerI
 	return d.mustGetBot(socialTool).GetRoles(rawServerId)
 }
 
+func (d *BotServerService) GetInviteUrl(socialTool models.SocialToolType) string {
+	return d.mustGetBot(socialTool).GetInviteUrl()
+}
+
 func (d *BotServerService) GetServerAuthCodeKey(socialTool models.SocialToolType, serverId string) string {
 	return fmt.Sprintf("%s%s", serverId, d.mustGetBot(socialTool).GetSocialToolType())
 }
