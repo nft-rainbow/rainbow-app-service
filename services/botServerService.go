@@ -14,6 +14,21 @@ import (
 	"gorm.io/gorm"
 )
 
+type (
+	VerifyBotServerReq struct {
+		ServerId   string                `form:"server_id" json:"server_id" binding:"required"`
+		SocialTool models.SocialToolType `form:"social_tool" json:"social_tool" binding:"required"`
+	}
+	InsertBotServerReq struct {
+		SocialTool models.SocialToolType `json:"social_tool" binding:"required"`
+		ServerId   string                `json:"server_id" binding:"required"`
+		AuthCode   string                `json:"auth_code" binding:"required"`
+	}
+	GetBotServersReq struct {
+		SocialTool models.SocialToolType `form:"social_tool" json:"social_tool" binding:"required"`
+		models.Pagination
+	}
+)
 type BotServerService struct {
 	authcodes sync.Map
 	bots      map[models.SocialToolType]Bot
@@ -50,7 +65,7 @@ func (d *BotServerService) mustGetBot(socialTool models.SocialToolType) Bot {
 	return b
 }
 
-func (d *BotServerService) VerifyBotServer(socialTool models.SocialToolType, serverId string) error {
+func (d *BotServerService) GetAuthcode(socialTool models.SocialToolType, serverId string) error {
 	authcodeKey := d.GetServerAuthCodeKey(socialTool, serverId)
 	v, loaded := d.authcodes.LoadOrStore(authcodeKey, rand.NumString(6))
 	if !loaded {
@@ -75,24 +90,24 @@ func (d *BotServerService) VerifyBotServer(socialTool models.SocialToolType, ser
 	return nil
 }
 
-func (d *BotServerService) InsertBotServer(userId uint, req InsertSocialServerReq) error {
+func (d *BotServerService) InsertBotServer(userId uint, req InsertBotServerReq) (*models.BotServer, error) {
 	code, ok := d.authcodes.Load(d.GetServerAuthCodeKey(req.SocialTool, req.ServerId))
 	if !ok || code.(string) != req.AuthCode {
-		return errors.New("auth code not match")
+		return nil, errors.New("auth code not match")
 	}
 
 	val, err := models.FindBotServerByRawID(req.ServerId, &req.SocialTool)
 	if val != nil {
-		return errors.New("already exists")
+		return nil, errors.New("already exists")
 	}
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return err
+		return nil, err
 	}
 
 	// get user social id
 	serverInfo, err := d.mustGetBot(req.SocialTool).GetSeverInfo(context.Background(), req.ServerId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var p models.BotServer
@@ -102,13 +117,13 @@ func (d *BotServerService) InsertBotServer(userId uint, req InsertSocialServerRe
 	p.OwnerSocialId = serverInfo.OwnerId
 
 	if err := models.GetDB().Save(&p).Error; err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &p, nil
 }
 
-func (d *BotServerService) GetBotServers(userId uint, socialType *models.SocialToolType) ([]*models.BotServer, error) {
-	return models.FindBotServers(userId, socialType)
+func (d *BotServerService) GetBotServers(userId uint, queryParams *GetBotServersReq) (*models.FindBotServersResult, error) {
+	return models.FindBotServers(userId, &queryParams.SocialTool, queryParams.Pagination)
 }
 
 func (d *BotServerService) GetActivitiesOfBotServers(userId uint, cond *models.FindBotServerActivitiesCond) (*models.FindBotServerActivitiesResult, error) {

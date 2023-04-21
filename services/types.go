@@ -6,20 +6,6 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models"
 )
 
-var (
-	Success = map[string]string{"msg": "success"}
-)
-
-type VerifySocialServerReq struct {
-	ServerId   string                `json:"server_id" binding:"required"`
-	SocialTool models.SocialToolType `json:"social_tool" binding:"required"`
-}
-type InsertSocialServerReq struct {
-	SocialTool models.SocialToolType `json:"social_tool" binding:"required"`
-	ServerId   string                `json:"server_id" binding:"required"`
-	AuthCode   string                `json:"auth_code" binding:"required"`
-}
-
 type PushInfoReq struct {
 	ID         uint     `json:"id"`
 	ChannelId  string   `json:"channel_id"`

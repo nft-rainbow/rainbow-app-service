@@ -39,15 +39,15 @@ import (
 // }
 
 // @Tags        POAP
-// @ID          POAPMintByH5
-// @Summary     POAP Mint By H5
-// @Description POAP Mint By H5
+// @ID          MintByH5
+// @Summary     Mint By H5
+// @Description Mint By H5
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       poap_h5_mint_dto body     services.POAPRequest true "poap_h5_mint_dto"
-// @Success     200              {object} models.POAPResult
-// @Failure     400              {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500              {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       mint_req body     services.MintReq true "mint request"
+// @Success     200      {object} models.POAPResult
+// @Failure     400      {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500      {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/h5 [post]
 func poapMintByH5(c *gin.Context) {
 	var poapRequest *services.MintReq
@@ -65,16 +65,16 @@ func poapMintByH5(c *gin.Context) {
 }
 
 // @Tags        POAP
-// @ID          GetPOAPActivityDetail
-// @Summary     Get POAP Activity detail
-// @Description Get POAP Activity detail info
+// @ID          GetActivityDetail
+// @Summary     Get Activity detail
+// @Description Get Activity detail info
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       activity_id path     string true "activity_id"
-// @Success     200         {object} models.POAPActivityConfig
-// @Failure     400         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/{activity_id} [get]
+// @Param       activity_code path     string true "activity_code"
+// @Success     200           {object} models.Activity
+// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/{activity_code} [get]
 func getActivity(c *gin.Context) {
 	poapId := c.Param(ACTIVITY_CODE_KEY)
 	item, err := models.FindActivityByCode(poapId)
@@ -85,22 +85,20 @@ func getActivity(c *gin.Context) {
 }
 
 // @Tags        POAP
-// @ID          GetPOAPActivityList
-// @Summary     Get POAP Activity list
-// @Description Get POAP Activity list
+// @ID          GetUserActivities
+// @Summary     Get User Activity list
+// @Description Get User Activity list
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization    header   string  true  "Bearer JWT"
-// @Param       page             query    integer false "page"
-// @Param       limit            query    integer false "limit"
-// @Param       contract_address query    string  false "contract_address"
-// @Param       activity_id      query    string  false "activity_id"
-// @Param       name             query    string  false "name"
-// @Success     200              {object} models.POAPActivityQueryResult
-// @Failure     400              {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500              {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       Authorization           header   string                       true  "Bearer JWT"
+// @Param       page                    query    integer                      false "page"
+// @Param       limit                   query    integer                      false "limit"
+// @Param       activity_find_condition query    models.ActivityFindCondition false "activity find condition"
+// @Success     200                     {object} models.ActivityQueryResult
+// @Failure     400                     {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500                     {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity [get]
-func getActivities(c *gin.Context) {
+func getUserActivities(c *gin.Context) {
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
@@ -118,16 +116,16 @@ func getActivities(c *gin.Context) {
 }
 
 // @Tags        POAP
-// @ID          SetPOAPActivity
-// @Summary     Set POAP Activity
-// @Description Set POAP Activity
+// @ID          AddActivity
+// @Summary     Add Activity
+// @Description Add Activity
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization        header   string                    true "Bearer JWT"
-// @Param       poap_activity_config body     models.POAPActivityConfig true "poap_activity_config"
-// @Success     200                  {object} models.POAPActivityConfig
-// @Failure     400                  {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500                  {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       Authorization    header   string             true "Bearer JWT"
+// @Param       activity_request body     models.ActivityReq true "activity config"
+// @Success     200              {object} models.Activity
+// @Failure     400              {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500              {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity [post]
 func addActivity(c *gin.Context) {
 	var config *models.ActivityReq
@@ -141,7 +139,7 @@ func addActivity(c *gin.Context) {
 }
 
 // @Tags        POAP
-// @ID          SetH5Config
+// @ID          SetActivityH5Config
 // @Summary     Set H5 Config
 // @Description Set H5 Page Config
 // @security    ApiKeyAuth
@@ -169,13 +167,13 @@ func setActivityH5Config(c *gin.Context) {
 // @Description Update Activity
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization        header   string                    true "Bearer JWT"
-// @Param       activity_id          path     string                    true "activity_id"
-// @Param       poap_activity_config body     models.POAPActivityConfig true "poap_activity_config"
-// @Success     200                  {object} models.POAPActivityConfig
-// @Failure     400                  {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500                  {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/{activity_id} [put]
+// @Param       Authorization           header   string                   true "Bearer JWT"
+// @Param       activity_id             path     string                   true "activity_id"
+// @Param       update_activity_request body     models.UpdateActivityReq true "update activity request"
+// @Success     200                     {object} models.Activity
+// @Failure     400                     {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500                     {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/{activity_code} [put]
 func updateActivity(c *gin.Context) {
 	var config models.UpdateActivityReq
 	if err := c.ShouldBind(&config); err != nil {
@@ -190,19 +188,19 @@ func updateActivity(c *gin.Context) {
 }
 
 // @Tags        POAP
-// @ID          GetPOAPResultList
-// @Summary     Get POAP Result list
-// @Description Get POAP Result list
+// @ID          GetMintResultList
+// @Summary     Get Mint Result list
+// @Description Get Mint Result list
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       page        query    integer false "page"
-// @Param       limit       query    integer false "limit"
-// @Param       activity_id path     string  true  "activity_id"
-// @Success     200         {object} models.POAPResultQueryResult
-// @Failure     400         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/result/{activity_id} [get]
-func getPOAPResultList(c *gin.Context) {
+// @Param       page          query    integer false "page"
+// @Param       limit         query    integer false "limit"
+// @Param       activity_code path     string  true  "activity_code"
+// @Success     200           {object} models.POAPResultQueryResult
+// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/result/{activity_code} [get]
+func getMintResultList(c *gin.Context) {
 	pagination, err := GetPagination(c)
 	if err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
@@ -218,18 +216,18 @@ func getPOAPResultList(c *gin.Context) {
 }
 
 // @Tags        POAP
-// @ID          GetPOAPResult
-// @Summary     Get POAP Result
-// @Description Get POAP Result
+// @ID          GetMintResult
+// @Summary     Get Mint Result
+// @Description Get Mint Result
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       activity_id path     string true "activity_id"
-// @Param       id          path     int    true "id"
-// @Success     200         {object} models.POAPResult
-// @Failure     400         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/result/{activity_id}/{id} [get]
-func getPOAPResultDetail(c *gin.Context) {
+// @Param       activity_code path     string true "activity_code"
+// @Param       id            path     int    true "id"
+// @Success     200           {object} models.POAPResult
+// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/activity/result/{activity_code}/{id} [get]
+func getMintResultDetail(c *gin.Context) {
 	poapId := c.Param(ACTIVITY_CODE_KEY)
 	if poapId == "" {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
@@ -246,16 +244,16 @@ func getPOAPResultDetail(c *gin.Context) {
 
 // @Tags        POAP
 // @ID          GetMintCount
-// @Summary     Get Common Mint Count
-// @Description Get Common Mint Count
+// @Summary     Get Mint Count
+// @Description Get Mint Count
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       activity_id path     string true "activity_id"
-// @Param       address     path     string true "address"
-// @Success     200         {object} int
-// @Failure     400         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/count/{address}/{activity_id} [get]
+// @Param       activity_code path     string true "activity_code"
+// @Param       address       path     string true "address"
+// @Success     200           {object} int
+// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/count/{address}/{activity_code} [get]
 func getMintCount(c *gin.Context) {
 	var err error
 	address := c.Param("address")
@@ -267,15 +265,16 @@ func getMintCount(c *gin.Context) {
 }
 
 // @Tags        POAP
-// @ID          CollectUserAnywebCode
-// @Summary     Collect user code so backend can get user phone from anyweb
-// @Description Collect user code so backend can get user phone from anyweb
+// @ID          AddWalletUser
+// @Summary     Add user wallet profile, so backend can get user phone from anyweb
+// @Description Add user wallet profile, so backend can get user phone from anyweb
 // @security    ApiKeyAuth
 // @Produce     json
-// @Success     200 {object} int
-// @Failure     400 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/anyweb/code [POST]
+// @Param       add_wallet_user_request query    services.AddWalletUserReq true "add wallet user request"
+// @Success     200                     {object} ginutils.CommonMessage
+// @Failure     400                     {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500                     {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Router      /poap/wallet/user [POST]
 func addWalletUser(c *gin.Context) {
 	var config services.AddWalletUserReq
 	if err := c.ShouldBind(&config); err != nil {
@@ -285,5 +284,5 @@ func addWalletUser(c *gin.Context) {
 
 	err := walletService.InsertUser(config)
 
-	ginutils.RenderResp(c, map[string]string{"message": "success"}, err)
+	ginutils.RenderResp(c, ginutils.CommonSuccessMessage, err)
 }

@@ -21,15 +21,6 @@ type BotServer struct {
 	RawServerId   string         `json:"raw_server_id" binding:"required"`
 	OwnerSocialId string         `json:"owner_social_id" binding:"required"`
 	PushInfos     []PushInfo     `gorm:"-" json:"push_infos"`
-	// Platform PlatformType `json:"platform" binding:"required"`
-	// AppId         int32  `gorm:"index" json:"app_id" binding:"required"`
-	// IslandId      string `gorm:"type:varchar(256)" json:"island_id" binding:"required"`
-	// IslandName    string `gorm:"type:varchar(256)" json:"island_name"`
-	// RainbowUserId int32 `gorm:"type:integer" json:"rainbow_user_id" binding:"required"`
-	// ProjectName   string `gorm:"type:string" json:"Project_name" binding:"required"`
-	// Description   string `gorm:"type:string" json:"description" binding:"required"`
-	// ChainType     string `gorm:"type:string" json:"chain_type" binding:"required"`
-	// PlatformUserId string `gorm:"type:varchar(255)" json:"platform_user_id" binding:"required"`
 }
 
 type (
@@ -56,7 +47,12 @@ type (
 
 	FindBotServerActivitiesResult struct {
 		Count int64                       `json:"count"`
-		Items []*PlattenBotServerActivity `json:"result"`
+		Items []*PlattenBotServerActivity `json:"items"`
+	}
+
+	FindBotServersResult struct {
+		Count int64        `json:"count"`
+		Items []*BotServer `json:"items"`
 	}
 )
 
@@ -95,19 +91,34 @@ func DoAndCompleteBotServer(f func() (*BotServer, error)) (*BotServer, error) {
 	return botServer, nil
 }
 
-func FindBotServers(rainbowUserId uint, socialTool *SocialToolType) ([]*BotServer, error) {
-	return DoAndCompleteBotServers(func() ([]*BotServer, error) {
-		cond := BotServer{RainbowUserId: rainbowUserId}
-		if socialTool != nil {
-			cond.SocialTool = *socialTool
-		}
+func FindBotServers(rainbowUserId uint, socialTool *SocialToolType, pagination Pagination) (*FindBotServersResult, error) {
+	cond := BotServer{RainbowUserId: rainbowUserId}
+	if socialTool != nil {
+		cond.SocialTool = *socialTool
+	}
+
+	botServers, err := DoAndCompleteBotServers(func() ([]*BotServer, error) {
 		var result []*BotServer
-		err := GetDB().Debug().Where(&cond).Find(&result).Error
+		err := GetDB().Debug().Where(&cond).Offset(pagination.Offset()).Limit(pagination.Limit).Find(&result).Error
 		if err != nil {
 			return nil, err
 		}
 		return result, nil
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	var count int64
+	if err := GetDB().Debug().Where(&cond).Count(&count).Error; err != nil {
+		return nil, err
+	}
+
+	return &FindBotServersResult{
+		Count: count,
+		Items: botServers,
+	}, nil
+
 }
 
 func FindActivitiesOfUserBotServers(rainbowUserId uint, cond *FindBotServerActivitiesCond) (*FindBotServerActivitiesResult, error) {

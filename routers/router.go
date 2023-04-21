@@ -15,14 +15,14 @@ import (
 )
 
 var (
-	botServerHandler *BotServer
-	activityService  *services.ActivityService
-	walletService    *services.WalletService
+	botServerController *BotServerController
+	activityService     *services.ActivityService
+	walletService       *services.WalletService
 )
 
 func Init() {
 	var err error
-	botServerHandler, err = NewBotServer()
+	botServerController, err = NewBotServerController()
 	if err != nil {
 		panic(err)
 	}
@@ -34,27 +34,27 @@ func SetupRoutes(router *gin.Engine) {
 	router.GET("/", indexEndpoint)
 
 	apps := router.Group("/apps")
-	apps.GET("/swagger/xxx", gs.WrapHandler(swaggerFiles.Handler))
+	apps.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
 
 	bot := apps.Group("/bot")
-	bot.GET("/invite_url", botServerHandler.GetInviteUrl)
+	bot.GET("/invite_url", botServerController.GetInviteUrl)
 
 	botServer := bot.Group("/server")
 	botServer.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		botServer.GET("/channels", botServerHandler.GetChannels)
-		botServer.GET("/roles", botServerHandler.GetRoles)
+		botServer.GET("/channels", botServerController.GetChannels)
+		botServer.GET("/roles", botServerController.GetRoles)
 
-		botServer.POST("/authcode", botServerHandler.verifyBotServer)
-		botServer.POST("", botServerHandler.insertBotServer)
-		botServer.GET("", botServerHandler.GetBotServers)
-		botServer.GET("/:id", botServerHandler.GetBotServer)
+		botServer.GET("/authcode", botServerController.getAuthCode)
+		botServer.POST("", botServerController.insertBotServer)
+		botServer.GET("", botServerController.GetBotServers)
+		botServer.GET("/:id", botServerController.GetBotServer)
 
-		botServer.POST("/:id/pushinfo", botServerHandler.AddPushInfo)
-		botServer.PUT("/:id/pushinfo", botServerHandler.UpdatePushInfo)
-		botServer.POST("/push/:id", botServerHandler.Push)
+		botServer.POST("/:id/pushinfo", botServerController.AddPushInfo)
+		botServer.PUT("/pushinfo/:id", botServerController.UpdatePushInfo)
+		botServer.POST("/push/:id", botServerController.Push)
 
-		botServer.GET("/activities", botServerHandler.GetActivitiesOfUserBotServers)
+		botServer.GET("/activities", botServerController.GetActivitiesOfUserBotServers)
 	}
 
 	// botActivity := bot.Group("/activity")
@@ -84,8 +84,8 @@ func SetupRoutes(router *gin.Engine) {
 	poap := apps.Group("/poap")
 	poap.POST("/h5", middlewares.IpLimitMiddleware(), poapMintByH5)
 	poap.GET("/activity/:activity_code", getActivity)
-	poap.GET("/activity/result/:activity_code", getPOAPResultList)
-	poap.GET("/activity/result/:activity_code/:id", getPOAPResultDetail)
+	poap.GET("/activity/result/:activity_code", getMintResultList)
+	poap.GET("/activity/result/:activity_code/:id", getMintResultDetail)
 	poap.GET("/count/:address/:activity_code", getMintCount)
 	poap.POST("/wallet/user", addWalletUser)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
@@ -103,7 +103,7 @@ func SetupRoutes(router *gin.Engine) {
 		poap.POST("/activity", addActivity)
 		poap.PUT("/activity/:activity_code", updateActivity)
 		poap.POST("/activity/h5", setActivityH5Config)
-		poap.GET("/activity", getActivities)
+		poap.GET("/activity", getUserActivities)
 	}
 }
 

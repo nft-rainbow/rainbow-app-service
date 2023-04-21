@@ -1,11 +1,20 @@
 package ginutils
 
 import (
-	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"net/http"
 	"runtime/debug"
 
+	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
+
 	"github.com/gin-gonic/gin"
+)
+
+type CommonMessage struct {
+	Message string `json:"message"`
+}
+
+var (
+	CommonSuccessMessage = CommonMessage{Message: "Success"}
 )
 
 func DataResponse(data interface{}) interface{} {
