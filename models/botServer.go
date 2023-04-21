@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 
+	"github.com/mcuadros/go-defaults"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 )
 
@@ -96,6 +97,8 @@ func DoAndCompleteBotServer(f func() (*BotServer, error)) (*BotServer, error) {
 }
 
 func FindBotServers(rainbowUserId uint, socialTool *enums.SocialToolType, pagination Pagination) (*FindBotServersResult, error) {
+	defaults.SetDefaults(&pagination)
+
 	cond := BotServer{RainbowUserId: rainbowUserId}
 	if socialTool != nil {
 		cond.SocialTool = *socialTool

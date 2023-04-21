@@ -2,7 +2,6 @@ package routers
 
 import (
 	"net/http"
-	"strconv"
 
 	swaggerFiles "github.com/swaggo/files"
 	gs "github.com/swaggo/gin-swagger"
@@ -111,35 +110,35 @@ func indexEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, ginutils.DataResponse("Rainbow-App-Service"))
 }
 
-type Pagination struct {
-	Page  int `json:"page" form:"page" default:"1"`
-	Limit int `json:"limit" form:"limit" default:"10"`
-}
+// type Pagination struct {
+// 	Page  int `json:"page" form:"page" default:"1"`
+// 	Limit int `json:"limit" form:"limit" default:"10"`
+// }
 
-func (p Pagination) Offset() int {
-	return (p.Page - 1) * p.Limit
-}
+// func (p Pagination) Offset() int {
+// 	return (p.Page - 1) * p.Limit
+// }
 
-func GetPagination(c *gin.Context) (*Pagination, error) {
-	var pagination Pagination
-	var err error
-	pageStr := c.DefaultQuery("page", "1")
-	sizeStr := c.DefaultQuery("limit", "10")
-	if pagination.Page, err = strconv.Atoi(pageStr); err != nil {
-		return nil, err
-	}
-	if pagination.Page < 1 {
-		pagination.Page = 1
-	}
+// func GetPagination(c *gin.Context) (*Pagination, error) {
+// 	var pagination Pagination
+// 	var err error
+// 	pageStr := c.DefaultQuery("page", "1")
+// 	sizeStr := c.DefaultQuery("limit", "10")
+// 	if pagination.Page, err = strconv.Atoi(pageStr); err != nil {
+// 		return nil, err
+// 	}
+// 	if pagination.Page < 1 {
+// 		pagination.Page = 1
+// 	}
 
-	if pagination.Limit, err = strconv.Atoi(sizeStr); err != nil {
-		return nil, err
-	}
-	if pagination.Limit < 1 {
-		pagination.Limit = 10
-	}
-	return &pagination, nil
-}
+// 	if pagination.Limit, err = strconv.Atoi(sizeStr); err != nil {
+// 		return nil, err
+// 	}
+// 	if pagination.Limit < 1 {
+// 		pagination.Limit = 10
+// 	}
+// 	return &pagination, nil
+// }
 
 func GetIdFromJwtClaim(c *gin.Context) uint {
 	return c.GetUint(middlewares.JwtIdentityKey)

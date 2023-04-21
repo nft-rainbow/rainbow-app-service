@@ -7,7 +7,7 @@ import (
 )
 
 type SocialToolQueryReq struct {
-	SocialTool string `uri:"social_tool" form:"social_tool" binding:"required,oneof=dodo discord"`
+	SocialTool string `uri:"social_tool" form:"social_tool" swaggerignore:"true" query:"social_tool" binding:"required,oneof=dodo discord"`
 }
 type PushInfoReq struct {
 	ID         uint     `json:"id"`

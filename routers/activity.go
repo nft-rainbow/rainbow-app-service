@@ -99,11 +99,11 @@ func getActivity(c *gin.Context) {
 // @Failure     500                     {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity [get]
 func getUserActivities(c *gin.Context) {
-	pagination, err := GetPagination(c)
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
-		return
-	}
+	// pagination, err := GetPagination(c)
+	// if err != nil {
+	// 	ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
+	// 	return
+	// }
 
 	var cond models.ActivityFindCondition
 	if err := c.ShouldBindQuery(&cond); err != nil {
@@ -111,7 +111,7 @@ func getUserActivities(c *gin.Context) {
 		return
 	}
 
-	mints, err := models.FindAndCountActivity(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit, cond)
+	mints, err := models.FindAndCountActivity(GetIdFromJwtClaim(c), cond)
 	ginutils.RenderResp(c, mints, err)
 }
 
@@ -201,17 +201,18 @@ func updateActivity(c *gin.Context) {
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/result/{activity_code} [get]
 func getMintResultList(c *gin.Context) {
-	pagination, err := GetPagination(c)
-	if err != nil {
+	var pagination models.Pagination
+	if err := c.ShouldBindQuery(&pagination); err != nil {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
 		return
 	}
+
 	poapId := c.Param(ACTIVITY_CODE_KEY)
 	if poapId == "" {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	mints, err := models.FindAndCountPOAPResult(poapId, pagination.Offset(), pagination.Limit)
+	mints, err := models.FindAndCountPOAPResult(poapId, pagination)
 	ginutils.RenderResp(c, mints, err)
 }
 

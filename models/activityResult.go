@@ -1,6 +1,10 @@
 package models
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/mcuadros/go-defaults"
+)
 
 var (
 	Cache = make(map[string]*POAPResultCountCache)
@@ -28,7 +32,9 @@ type POAPResultQueryResult struct {
 	Items []*POAPResult `json:"items"`
 }
 
-func FindAndCountPOAPResult(poapId string, offset int, limit int) (*POAPResultQueryResult, error) {
+func FindAndCountPOAPResult(poapId string, pagination Pagination) (*POAPResultQueryResult, error) {
+	defaults.SetDefaults(&pagination)
+
 	var items []*POAPResult
 	cond := &POAPResult{}
 	cond.ActivityCode = poapId
@@ -39,7 +45,7 @@ func FindAndCountPOAPResult(poapId string, offset int, limit int) (*POAPResultQu
 		return nil, err
 	}
 
-	if err := db.Model(&POAPResult{}).Where(cond).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
+	if err := db.Model(&POAPResult{}).Where(cond).Offset(pagination.Offset()).Limit(pagination.Limit).Find(&items).Error; err != nil {
 		return nil, err
 	}
 

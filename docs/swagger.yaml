@@ -465,15 +465,9 @@ definitions:
         type: string
       server_id:
         type: string
-      socialTool:
-        enum:
-        - dodo
-        - discord
-        type: string
     required:
     - auth_code
     - server_id
-    - socialTool
     type: object
   services.MintReq:
     properties:
@@ -529,11 +523,12 @@ paths:
       description: get invite url
       operationId: GetInviteUrl
       parameters:
-      - enum:
+      - description: social tool
+        enum:
         - dodo
         - discord
         in: query
-        name: socialTool
+        name: social_tool
         required: true
         type: string
       produces:
@@ -569,11 +564,12 @@ paths:
         in: query
         name: page
         type: integer
-      - enum:
+      - description: social tool
+        enum:
         - dodo
         - discord
         in: query
-        name: socialTool
+        name: social_tool
         required: true
         type: string
       produces:
@@ -718,6 +714,14 @@ paths:
         name: socialTool
         required: true
         type: string
+      - description: social tool
+        enum:
+        - dodo
+        - discord
+        in: query
+        name: social_tool
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -747,11 +751,12 @@ paths:
         name: server_id
         required: true
         type: string
-      - enum:
+      - description: social tool
+        enum:
         - dodo
         - discord
         in: query
-        name: socialTool
+        name: social_tool
         required: true
         type: string
       produces:
@@ -783,11 +788,12 @@ paths:
         name: serverId
         required: true
         type: string
-      - enum:
+      - description: social tool
+        enum:
         - dodo
         - discord
         in: query
-        name: socialTool
+        name: social_tool
         required: true
         type: string
       produces:
@@ -887,11 +893,12 @@ paths:
         name: serverId
         required: true
         type: string
-      - enum:
+      - description: social tool
+        enum:
         - dodo
         - discord
         in: query
-        name: socialTool
+        name: social_tool
         required: true
         type: string
       produces:
@@ -940,9 +947,17 @@ paths:
       - in: query
         name: contractAddress
         type: string
+      - default: 10
+        in: query
+        name: limit
+        type: integer
       - in: query
         name: name
         type: string
+      - default: 1
+        in: query
+        name: page
+        type: integer
       produces:
       - application/json
       responses:

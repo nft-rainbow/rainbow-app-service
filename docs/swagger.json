@@ -40,7 +40,8 @@
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
+                        "description": "social tool",
+                        "name": "social_tool",
                         "in": "query",
                         "required": true
                     }
@@ -102,7 +103,8 @@
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
+                        "description": "social tool",
+                        "name": "social_tool",
                         "in": "query",
                         "required": true
                     }
@@ -224,6 +226,17 @@
                         "name": "socialTool",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
+                        "description": "social tool",
+                        "name": "social_tool",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -277,7 +290,8 @@
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
+                        "description": "social tool",
+                        "name": "social_tool",
                         "in": "query",
                         "required": true
                     }
@@ -333,7 +347,8 @@
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
+                        "description": "social tool",
+                        "name": "social_tool",
                         "in": "query",
                         "required": true
                     }
@@ -495,7 +510,8 @@
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
+                        "description": "social tool",
+                        "name": "social_tool",
                         "in": "query",
                         "required": true
                     }
@@ -675,8 +691,20 @@
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "default": 10,
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "name": "page",
                         "in": "query"
                     }
                 ],
@@ -1884,8 +1912,7 @@
             "type": "object",
             "required": [
                 "auth_code",
-                "server_id",
-                "socialTool"
+                "server_id"
             ],
             "properties": {
                 "auth_code": {
@@ -1893,13 +1920,6 @@
                 },
                 "server_id": {
                     "type": "string"
-                },
-                "socialTool": {
-                    "type": "string",
-                    "enum": [
-                        "dodo",
-                        "discord"
-                    ]
                 }
             }
         },

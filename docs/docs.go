@@ -43,7 +43,8 @@ const docTemplate = `{
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
+                        "description": "social tool",
+                        "name": "social_tool",
                         "in": "query",
                         "required": true
                     }
@@ -105,7 +106,8 @@ const docTemplate = `{
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
+                        "description": "social tool",
+                        "name": "social_tool",
                         "in": "query",
                         "required": true
                     }
@@ -227,6 +229,17 @@ const docTemplate = `{
                         "name": "socialTool",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
+                        "description": "social tool",
+                        "name": "social_tool",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -280,7 +293,8 @@ const docTemplate = `{
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
+                        "description": "social tool",
+                        "name": "social_tool",
                         "in": "query",
                         "required": true
                     }
@@ -336,7 +350,8 @@ const docTemplate = `{
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
+                        "description": "social tool",
+                        "name": "social_tool",
                         "in": "query",
                         "required": true
                     }
@@ -498,7 +513,8 @@ const docTemplate = `{
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
+                        "description": "social tool",
+                        "name": "social_tool",
                         "in": "query",
                         "required": true
                     }
@@ -678,8 +694,20 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "default": 10,
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "name": "page",
                         "in": "query"
                     }
                 ],
@@ -1887,8 +1915,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "auth_code",
-                "server_id",
-                "socialTool"
+                "server_id"
             ],
             "properties": {
                 "auth_code": {
@@ -1896,13 +1923,6 @@ const docTemplate = `{
                 },
                 "server_id": {
                     "type": "string"
-                },
-                "socialTool": {
-                    "type": "string",
-                    "enum": [
-                        "dodo",
-                        "discord"
-                    ]
                 }
             }
         },

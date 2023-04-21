@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/mcuadros/go-defaults"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 )
 
@@ -40,6 +41,7 @@ type (
 	}
 
 	ActivityFindCondition struct {
+		Pagination
 		Name            string  `form:"name"`
 		ActivityId      string  `form:"activity_id"`
 		ContractAddress *string `form:"contract_address"`
@@ -186,7 +188,9 @@ func FindActivityByCode(activityCode string) (*Activity, error) {
 	})
 }
 
-func FindAndCountActivity(ranbowUserId uint, offset int, limit int, _cond ActivityFindCondition) (*ActivityQueryResult, error) {
+func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*ActivityQueryResult, error) {
+	defaults.SetDefaults(&_cond)
+
 	var items []*Activity
 	cond := &Activity{}
 	cond.RainbowUserId = ranbowUserId
@@ -209,7 +213,7 @@ func FindAndCountActivity(ranbowUserId uint, offset int, limit int, _cond Activi
 		return nil, err
 	}
 
-	if err := clause.Order("id DESC").Offset(offset).Limit(limit).
+	if err := clause.Order("id DESC").Offset(_cond.Offset()).Limit(_cond.Limit).
 		Find(&items).Error; err != nil {
 		return nil, err
 	}
