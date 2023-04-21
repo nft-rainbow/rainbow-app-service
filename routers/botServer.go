@@ -330,5 +330,5 @@ func (b *BotServerController) GetInviteUrl(c *gin.Context) {
 	}
 
 	url := b.botService.GetInviteUrl(*socialTool)
-	ginutils.RenderRespOK(c, url)
+	ginutils.RenderRespOK(c, ginutils.CommonMessage{Message: url})
 }
