@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils/rand"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -16,38 +17,38 @@ import (
 
 type (
 	VerifyBotServerReq struct {
-		ServerId   string                `form:"server_id" json:"server_id" binding:"required"`
-		SocialTool models.SocialToolType `form:"social_tool" json:"social_tool" binding:"required"`
+		ServerId   string               `form:"server_id" json:"server_id" binding:"required"`
+		SocialTool enums.SocialToolType `form:"social_tool" json:"social_tool" binding:"required"`
 	}
 	InsertBotServerReq struct {
-		SocialTool models.SocialToolType `json:"social_tool" binding:"required"`
-		ServerId   string                `json:"server_id" binding:"required"`
-		AuthCode   string                `json:"auth_code" binding:"required"`
+		SocialTool enums.SocialToolType `json:"social_tool" binding:"required"`
+		ServerId   string               `json:"server_id" binding:"required"`
+		AuthCode   string               `json:"auth_code" binding:"required"`
 	}
 	GetBotServersReq struct {
-		SocialTool models.SocialToolType `form:"social_tool" json:"social_tool" binding:"required"`
+		SocialTool enums.SocialToolType `form:"social_tool" json:"social_tool" binding:"required"`
 		models.Pagination
 	}
 )
 type BotServerService struct {
 	authcodes sync.Map
-	bots      map[models.SocialToolType]Bot
+	bots      map[enums.SocialToolType]Bot
 	botsLock  sync.Mutex
 }
 
 func NewBotServerService() (*BotServerService, error) {
-	dodo, err := getSocialToolBot(models.SOCIAL_TOOL_DODO)
+	dodo, err := getSocialToolBot(enums.SOCIAL_TOOL_DODO)
 	if err != nil {
 		return nil, err
 	}
 	return &BotServerService{
-		bots: map[models.SocialToolType]Bot{
-			models.SOCIAL_TOOL_DODO: dodo,
+		bots: map[enums.SocialToolType]Bot{
+			enums.SOCIAL_TOOL_DODO: dodo,
 		},
 	}, nil
 }
 
-func (d *BotServerService) getBot(socialTool models.SocialToolType) (Bot, error) {
+func (d *BotServerService) getBot(socialTool enums.SocialToolType) (Bot, error) {
 	d.botsLock.Lock()
 	defer d.botsLock.Unlock()
 	if bot, ok := d.bots[socialTool]; !ok {
@@ -57,7 +58,7 @@ func (d *BotServerService) getBot(socialTool models.SocialToolType) (Bot, error)
 	}
 }
 
-func (d *BotServerService) mustGetBot(socialTool models.SocialToolType) Bot {
+func (d *BotServerService) mustGetBot(socialTool enums.SocialToolType) Bot {
 	b, err := d.getBot(socialTool)
 	if err != nil {
 		panic(err)
@@ -65,7 +66,7 @@ func (d *BotServerService) mustGetBot(socialTool models.SocialToolType) Bot {
 	return b
 }
 
-func (d *BotServerService) GetAuthcode(socialTool models.SocialToolType, serverId string) error {
+func (d *BotServerService) GetAuthcode(socialTool enums.SocialToolType, serverId string) error {
 	authcodeKey := d.GetServerAuthCodeKey(socialTool, serverId)
 	v, loaded := d.authcodes.LoadOrStore(authcodeKey, rand.NumString(6))
 	if !loaded {
@@ -210,19 +211,19 @@ func (d *BotServerService) UpdatePushInfo(userId uint, serverId uint, pushInfoRe
 	return pushInfo, nil
 }
 
-func (d *BotServerService) GetChannels(socialTool models.SocialToolType, rawServerId string) ([]*Channel, error) {
+func (d *BotServerService) GetChannels(socialTool enums.SocialToolType, rawServerId string) ([]*Channel, error) {
 	return d.mustGetBot(socialTool).GetChannels(rawServerId)
 }
 
-func (d *BotServerService) GetRoles(socialTool models.SocialToolType, rawServerId string) ([]*Role, error) {
+func (d *BotServerService) GetRoles(socialTool enums.SocialToolType, rawServerId string) ([]*Role, error) {
 	return d.mustGetBot(socialTool).GetRoles(rawServerId)
 }
 
-func (d *BotServerService) GetInviteUrl(socialTool models.SocialToolType) string {
+func (d *BotServerService) GetInviteUrl(socialTool enums.SocialToolType) string {
 	return d.mustGetBot(socialTool).GetInviteUrl()
 }
 
-func (d *BotServerService) GetServerAuthCodeKey(socialTool models.SocialToolType, serverId string) string {
+func (d *BotServerService) GetServerAuthCodeKey(socialTool enums.SocialToolType, serverId string) string {
 	return fmt.Sprintf("%s%s", serverId, d.mustGetBot(socialTool).GetSocialToolType())
 }
 

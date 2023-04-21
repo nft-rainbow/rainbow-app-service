@@ -13,7 +13,7 @@ import (
 	"github.com/dodo-open/dodo-open-go/tools"
 	"github.com/dodo-open/dodo-open-go/websocket"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -45,8 +45,8 @@ func NewDodoBot(clientId, tokenId string) (*DodoBot, error) {
 	return b, nil
 }
 
-func (d *DodoBot) GetSocialToolType() models.SocialToolType {
-	return models.SOCIAL_TOOL_DODO
+func (d *DodoBot) GetSocialToolType() enums.SocialToolType {
+	return enums.SOCIAL_TOOL_DODO
 }
 
 func (d *DodoBot) SendChannelMessage(ctx context.Context, channedId string, msg string) error {

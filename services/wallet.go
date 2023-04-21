@@ -3,14 +3,14 @@ package services
 import (
 	"fmt"
 
-	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 )
 
 type AddWalletUserReq struct {
-	Wallet  models.WalletType `json:"wallet"`
-	Code    string            `json:"code"`
-	Phone   string            `json:"phone"`
-	Address string            `json:"address"`
+	Wallet  enums.WalletType `json:"wallet"`
+	Code    string           `json:"code"`
+	Phone   string           `json:"phone"`
+	Address string           `json:"address"`
 }
 
 type Wallet interface {
@@ -18,13 +18,13 @@ type Wallet interface {
 }
 
 type WalletService struct {
-	wallets map[models.WalletType]Wallet
+	wallets map[enums.WalletType]Wallet
 }
 
 func NewWalletService() *WalletService {
-	wallets := map[models.WalletType]Wallet{
-		models.WALLET_ANYWEB: &Anyweb{},
-		models.WALLET_CELLAR: &Cellar{},
+	wallets := map[enums.WalletType]Wallet{
+		enums.WALLET_ANYWEB: &Anyweb{},
+		enums.WALLET_CELLAR: &Cellar{},
 	}
 
 	return &WalletService{wallets: wallets}

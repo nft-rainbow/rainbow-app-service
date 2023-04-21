@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/spf13/viper"
 )
 
@@ -14,7 +14,7 @@ type (
 		SendChannelMessage(ctx context.Context, channedId string, msg string) error
 		SendDirectMessage(ctx context.Context, serverId string, userId string, msg string) error
 		GetSeverInfo(ctx context.Context, serverId string) (*SeverInfo, error)
-		GetSocialToolType() models.SocialToolType
+		GetSocialToolType() enums.SocialToolType
 		GetChannels(serverId string) ([]*Channel, error)
 		GetRoles(serverId string) ([]*Role, error)
 		GetInviteUrl() string
@@ -49,9 +49,9 @@ var (
 	dodoBotCreateOnce sync.Once
 )
 
-func getSocialToolBot(socialToolType models.SocialToolType) (Bot, error) {
+func getSocialToolBot(socialToolType enums.SocialToolType) (Bot, error) {
 	switch socialToolType {
-	case models.SOCIAL_TOOL_DODO:
+	case enums.SOCIAL_TOOL_DODO:
 		var err error
 		dodoBotCreateOnce.Do(func() {
 			clientId := viper.GetString("dodoBot.clientId")

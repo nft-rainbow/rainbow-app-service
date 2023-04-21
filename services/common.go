@@ -19,13 +19,14 @@ import (
 	"github.com/fogleman/gg"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
-func BindCfxAddress(userId, userAddress string, socialTool models.SocialToolType) (string, string, error) {
+func BindCfxAddress(userId, userAddress string, socialTool enums.SocialToolType) (string, string, error) {
 	config := &models.SocialUserConfig{
 		UserId:     userId,
 		CFXAddress: userAddress,
@@ -54,7 +55,7 @@ func BindCfxAddress(userId, userAddress string, socialTool models.SocialToolType
 	return GetBindAddress(config.UserId, config.SocialTool)
 }
 
-func GetBindAddress(userDodoSourceId string, socialTool models.SocialToolType) (string, string, error) {
+func GetBindAddress(userDodoSourceId string, socialTool enums.SocialToolType) (string, string, error) {
 	userConfig, err := models.FindSocialUserConfig(userDodoSourceId, socialTool)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

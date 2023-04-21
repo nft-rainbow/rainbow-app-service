@@ -1,10 +1,12 @@
 package models
 
+import "github.com/nft-rainbow/rainbow-app-service/models/enums"
+
 type SocialUserConfig struct {
 	BaseModel
-	UserId     string         `gorm:"type:varchar(256)" json:"user_id" binding:"required"`
-	CFXAddress string         `gorm:"type:varchar(256)" json:"cfx_address" binding:"required"`
-	SocialTool SocialToolType `gorm:"type:integer" json:"social_tool" binding:"required"`
+	UserId     string               `gorm:"type:varchar(256)" json:"user_id" binding:"required"`
+	CFXAddress string               `gorm:"type:varchar(256)" json:"cfx_address" binding:"required"`
+	SocialTool enums.SocialToolType `gorm:"type:integer" json:"social_tool" binding:"required"`
 }
 
 type CustomMintCount struct {
@@ -14,7 +16,7 @@ type CustomMintCount struct {
 	Count     uint   `gorm:"type:integer" json:"count" binding:"required"`
 }
 
-func FindSocialUserConfig(userSocialId string, socialTool SocialToolType) (*SocialUserConfig, error) {
+func FindSocialUserConfig(userSocialId string, socialTool enums.SocialToolType) (*SocialUserConfig, error) {
 	result := SocialUserConfig{UserId: userSocialId, SocialTool: socialTool}
 	if err := db.Where(&result).First(&result).Error; err != nil {
 		return nil, err

@@ -6,13 +6,14 @@ import (
 
 	"github.com/nft-rainbow/rainbow-app-service/clients"
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 )
 
 type Anyweb struct {
 }
 
 func (a *Anyweb) InsertUser(userReq AddWalletUserReq) error {
-	if userReq.Wallet != models.WALLET_ANYWEB {
+	if userReq.Wallet != enums.WALLET_ANYWEB {
 		return errors.New("not anyweb wallet")
 	}
 	// check exist in db first if have directly return

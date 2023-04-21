@@ -1,6 +1,10 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+)
 
 // type DiscordCustomProjectConfig struct {
 // 	BaseModel
@@ -16,33 +20,33 @@ import "fmt"
 // dodo/discord 群组
 type BotServer struct {
 	BaseModel
-	RainbowUserId uint           `gorm:"type:integer" json:"rainbow_user_id" binding:"required"`
-	SocialTool    SocialToolType `json:"social_tool"`
-	RawServerId   string         `json:"raw_server_id" binding:"required"`
-	OwnerSocialId string         `json:"owner_social_id" binding:"required"`
-	PushInfos     []PushInfo     `gorm:"-" json:"push_infos"`
+	RainbowUserId uint                 `gorm:"type:integer" json:"rainbow_user_id" binding:"required"`
+	SocialTool    enums.SocialToolType `json:"social_tool"`
+	RawServerId   string               `json:"raw_server_id" binding:"required"`
+	OwnerSocialId string               `json:"owner_social_id" binding:"required"`
+	PushInfos     []PushInfo           `gorm:"-" json:"push_infos"`
 }
 
 type (
 	FindBotServerActivitiesCond struct {
 		Pagination
-		SocialTool      SocialToolType `uri:"social_tool" form:"social_tool" binding:"required"`
-		ActivityName    *string        `form:"activity_name"`
-		ContractAddress *string        `form:"contract_address"`
+		SocialTool      enums.SocialToolType `uri:"social_tool" form:"social_tool" binding:"required"`
+		ActivityName    *string              `form:"activity_name"`
+		ContractAddress *string              `form:"contract_address"`
 	}
 
 	PlattenBotServerActivity struct {
-		RainbowUserId   uint           `gorm:"type:integer" json:"rainbow_user_id"`
-		SocialTool      SocialToolType `json:"social_tool"`
-		RawServerId     string         `json:"raw_server_id"`
-		OwnerSocialId   string         `json:"owner_social_id"`
-		ActivityId      uint           `gorm:"index:idx_member" json:"activity_id"`
-		ChannelId       string         `gorm:"index:idx_member" json:"channel_id"`
-		Name            string         `gorm:"type:string" json:"name" binding:"required"`
-		EndedTime       int64          `gorm:"type:integer" json:"end_time" default:"-1"`
-		StartedTime     int64          `gorm:"type:integer" json:"start_time" default:"-1"`
-		ContractRawID   *int32         `gorm:"type:string" json:"contract_id"`
-		ContractAddress string         `form:"contract_address"`
+		RainbowUserId   uint                 `gorm:"type:integer" json:"rainbow_user_id"`
+		SocialTool      enums.SocialToolType `json:"social_tool"`
+		RawServerId     string               `json:"raw_server_id"`
+		OwnerSocialId   string               `json:"owner_social_id"`
+		ActivityId      uint                 `gorm:"index:idx_member" json:"activity_id"`
+		ChannelId       string               `gorm:"index:idx_member" json:"channel_id"`
+		Name            string               `gorm:"type:string" json:"name" binding:"required"`
+		EndedTime       int64                `gorm:"type:integer" json:"end_time" default:"-1"`
+		StartedTime     int64                `gorm:"type:integer" json:"start_time" default:"-1"`
+		ContractRawID   *int32               `gorm:"type:string" json:"contract_id"`
+		ContractAddress string               `form:"contract_address"`
 	}
 
 	FindBotServerActivitiesResult struct {
@@ -91,7 +95,7 @@ func DoAndCompleteBotServer(f func() (*BotServer, error)) (*BotServer, error) {
 	return botServer, nil
 }
 
-func FindBotServers(rainbowUserId uint, socialTool *SocialToolType, pagination Pagination) (*FindBotServersResult, error) {
+func FindBotServers(rainbowUserId uint, socialTool *enums.SocialToolType, pagination Pagination) (*FindBotServersResult, error) {
 	cond := BotServer{RainbowUserId: rainbowUserId}
 	if socialTool != nil {
 		cond.SocialTool = *socialTool
@@ -161,7 +165,7 @@ func FindBotServerByChannel(channelId string) (*BotServer, error) {
 	return bs, err
 }
 
-func FindBotServerByRawID(rawServerId string, socialTool *SocialToolType) (*BotServer, error) {
+func FindBotServerByRawID(rawServerId string, socialTool *enums.SocialToolType) (*BotServer, error) {
 	bs, err := DoAndCompleteBotServer(func() (*BotServer, error) {
 		cond := BotServer{
 			RawServerId: rawServerId,

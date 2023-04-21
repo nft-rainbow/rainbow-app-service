@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -103,7 +104,7 @@ func (d *DodoBotCommander) ExcuteCommand(channelId string, userDodoSourceId stri
 
 // TODO: verify channel match activity
 func (d *DodoBotCommander) Mint(channelId string, userDodoSourceId string, activityId string, verbalSecret string) error {
-	mainAddr, testAddr, err := GetBindAddress(userDodoSourceId, models.SOCIAL_TOOL_DODO)
+	mainAddr, testAddr, err := GetBindAddress(userDodoSourceId, enums.SOCIAL_TOOL_DODO)
 	if err != nil {
 		return err
 	}
@@ -149,7 +150,7 @@ func (d *DodoBotCommander) Mint(channelId string, userDodoSourceId string, activ
 }
 
 func (d *DodoBotCommander) Bind(channelId string, userDodoSourceId string, userAddress string) error {
-	mainAddr, testAddr, err := BindCfxAddress(userDodoSourceId, userAddress, models.SOCIAL_TOOL_DODO)
+	mainAddr, testAddr, err := BindCfxAddress(userDodoSourceId, userAddress, enums.SOCIAL_TOOL_DODO)
 	if err != nil {
 		return err
 	}
@@ -159,7 +160,7 @@ func (d *DodoBotCommander) Bind(channelId string, userDodoSourceId string, userA
 }
 
 func (d *DodoBotCommander) GetAddress(channelId string, userDodoSourceId string) error {
-	mainAddr, testAddr, err := GetBindAddress(userDodoSourceId, models.SOCIAL_TOOL_DODO)
+	mainAddr, testAddr, err := GetBindAddress(userDodoSourceId, enums.SOCIAL_TOOL_DODO)
 	if err != nil {
 		return err
 	}

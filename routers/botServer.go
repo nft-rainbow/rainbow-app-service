@@ -5,6 +5,7 @@ import (
 	"github.com/mcuadros/go-defaults"
 	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
@@ -15,11 +16,11 @@ type BotServerController struct {
 
 type (
 	SocialToolReq struct {
-		SocialTool models.SocialToolType `uri:"social_tool" form:"social_tool" binding:"required"`
+		SocialTool enums.SocialToolType `uri:"social_tool" form:"social_tool" binding:"required"`
 	}
 
 	SocialToolMaybeReq struct {
-		SocialTool *models.SocialToolType `uri:"social_tool" form:"social_tool"`
+		SocialTool *enums.SocialToolType `uri:"social_tool" form:"social_tool"`
 	}
 
 	IdUintReq struct {
@@ -37,7 +38,7 @@ type (
 
 	SocialAndServerIdReq struct {
 		ServerIdReq
-		SocialTool models.SocialToolType `form:"social_tool" binding:"required"`
+		SocialTool enums.SocialToolType `form:"social_tool" binding:"required"`
 	}
 )
 

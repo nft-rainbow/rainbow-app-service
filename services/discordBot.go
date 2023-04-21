@@ -7,6 +7,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -193,7 +194,7 @@ var (
 						Content: startFlag,
 					},
 				})
-				_, _, err = BindCfxAddress(i.Interaction.Member.User.ID, userAddress, models.SOCIAL_TOOL_DISCORD)
+				_, _, err = BindCfxAddress(i.Interaction.Member.User.ID, userAddress, enums.SOCIAL_TOOL_DISCORD)
 			}
 			if err != nil {
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
@@ -213,7 +214,7 @@ var (
 			options := i.ApplicationCommandData().Options
 			switch options[0].Name {
 			case "conflux":
-				resp, err := models.FindSocialUserConfig(i.Interaction.Member.User.ID, models.SOCIAL_TOOL_DISCORD)
+				resp, err := models.FindSocialUserConfig(i.Interaction.Member.User.ID, enums.SOCIAL_TOOL_DISCORD)
 				if err != nil {
 					s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 						Embeds: failMessageEmbed(err.Error()),
