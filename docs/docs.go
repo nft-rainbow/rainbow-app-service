@@ -38,7 +38,11 @@ const docTemplate = `{
                 "operationId": "GetInviteUrl",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
                         "name": "socialTool",
                         "in": "query",
                         "required": true
@@ -96,8 +100,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "name": "social_tool",
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
+                        "name": "socialTool",
                         "in": "query",
                         "required": true
                     }
@@ -211,7 +219,11 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
                         "name": "socialTool",
                         "in": "query",
                         "required": true
@@ -263,8 +275,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "name": "social_tool",
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
+                        "name": "socialTool",
                         "in": "query",
                         "required": true
                     }
@@ -315,7 +331,11 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
                         "name": "socialTool",
                         "in": "query",
                         "required": true
@@ -473,7 +493,11 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
                         "name": "socialTool",
                         "in": "query",
                         "required": true
@@ -523,8 +547,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "name": "id",
-                        "in": "query",
+                        "description": "get_bot_server_param",
+                        "name": "get_bot_server_param",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -1863,7 +1888,7 @@ const docTemplate = `{
             "required": [
                 "auth_code",
                 "server_id",
-                "social_tool"
+                "socialTool"
             ],
             "properties": {
                 "auth_code": {
@@ -1872,8 +1897,12 @@ const docTemplate = `{
                 "server_id": {
                     "type": "string"
                 },
-                "social_tool": {
-                    "type": "integer"
+                "socialTool": {
+                    "type": "string",
+                    "enum": [
+                        "dodo",
+                        "discord"
+                    ]
                 }
             }
         },

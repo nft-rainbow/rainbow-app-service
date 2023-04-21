@@ -30,9 +30,9 @@ type BotServer struct {
 type (
 	FindBotServerActivitiesCond struct {
 		Pagination
-		SocialTool      enums.SocialToolType `uri:"social_tool" form:"social_tool" binding:"required"`
-		ActivityName    *string              `form:"activity_name"`
-		ContractAddress *string              `form:"contract_address"`
+		SocialTool      string  `uri:"social_tool" form:"social_tool" binding:"required,oneof=dodo discord"`
+		ActivityName    *string `form:"activity_name"`
+		ContractAddress *string `form:"contract_address"`
 	}
 
 	PlattenBotServerActivity struct {
@@ -126,7 +126,12 @@ func FindBotServers(rainbowUserId uint, socialTool *enums.SocialToolType, pagina
 }
 
 func FindActivitiesOfUserBotServers(rainbowUserId uint, cond *FindBotServerActivitiesCond) (*FindBotServerActivitiesResult, error) {
-	filters := fmt.Sprintf("b.rainbow_user_id=%v and b.social_tool=%v and c.contract_address!=\"\"", rainbowUserId, uint(cond.SocialTool))
+	socialTool, err := enums.ParseSocialToolType(cond.SocialTool)
+	if err != nil {
+		return nil, err
+	}
+
+	filters := fmt.Sprintf("b.rainbow_user_id=%v and b.social_tool=%v and c.contract_address!=\"\"", rainbowUserId, uint(*socialTool))
 	if cond.ActivityName != nil {
 		filters += fmt.Sprintf(" and a.name=%s", *cond.ActivityName)
 	}

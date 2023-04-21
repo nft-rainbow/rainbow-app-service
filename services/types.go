@@ -6,6 +6,9 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models"
 )
 
+type SocialToolQueryReq struct {
+	SocialTool string `uri:"social_tool" form:"social_tool" binding:"required,oneof=dodo discord"`
+}
 type PushInfoReq struct {
 	ID         uint     `json:"id"`
 	ChannelId  string   `json:"channel_id"`

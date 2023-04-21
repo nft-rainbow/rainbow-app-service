@@ -15,14 +15,6 @@ type BotServerController struct {
 }
 
 type (
-	SocialToolReq struct {
-		SocialTool enums.SocialToolType `uri:"social_tool" form:"social_tool" binding:"required"`
-	}
-
-	SocialToolMaybeReq struct {
-		SocialTool *enums.SocialToolType `uri:"social_tool" form:"social_tool"`
-	}
-
 	IdUintReq struct {
 		Id uint `uri:"id" form:"id" binding:"required"`
 	}
@@ -31,14 +23,9 @@ type (
 		ServerId string `uri:"server_id" form:"server_id" binding:"required"`
 	}
 
-	SocialAndIdUriReq struct {
-		SocialToolReq
-		IdUintReq
-	}
-
 	SocialAndServerIdReq struct {
 		ServerIdReq
-		SocialTool enums.SocialToolType `form:"social_tool" binding:"required"`
+		services.SocialToolQueryReq
 	}
 )
 
@@ -70,7 +57,13 @@ func (b *BotServerController) getAuthCode(c *gin.Context) {
 		return
 	}
 
-	err := b.botService.GetAuthcode(verifyUserReq.SocialTool, verifyUserReq.ServerId)
+	socialTool, err := enums.ParseSocialToolType(verifyUserReq.SocialTool)
+	if err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+
+	err = b.botService.GetAuthcode(*socialTool, verifyUserReq.ServerId)
 	ginutils.RenderResp(c, ginutils.CommonSuccessMessage, err)
 }
 
@@ -126,7 +119,7 @@ func (b *BotServerController) GetBotServers(c *gin.Context) {
 // @Description get bot server
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       get_bot_server_param query    IdUintReq true "get_bot_server_param"
+// @Param       get_bot_server_param path     uint true "get_bot_server_param"
 // @Success     200                  {object} models.BotServer
 // @Failure     400                  {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500                  {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
@@ -269,7 +262,13 @@ func (b *BotServerController) GetChannels(c *gin.Context) {
 		return
 	}
 
-	channels, err := b.botService.GetChannels(req.SocialTool, req.ServerId)
+	socialTool, err := enums.ParseSocialToolType(req.SocialTool)
+	if err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+
+	channels, err := b.botService.GetChannels(*socialTool, req.ServerId)
 	ginutils.RenderResp(c, channels, err)
 }
 
@@ -291,7 +290,13 @@ func (b *BotServerController) GetRoles(c *gin.Context) {
 		return
 	}
 
-	roles, err := b.botService.GetRoles(req.SocialTool, req.ServerId)
+	socialTool, err := enums.ParseSocialToolType(req.SocialTool)
+	if err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+
+	roles, err := b.botService.GetRoles(*socialTool, req.ServerId)
 	ginutils.RenderResp(c, roles, err)
 }
 
@@ -301,17 +306,24 @@ func (b *BotServerController) GetRoles(c *gin.Context) {
 // @Description get invite url
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       social_tool query    SocialToolReq false "social tool"
+// @Param       social_tool query    services.SocialToolQueryReq false "social tool"
 // @Success     200         {string} string
 // @Failure     400         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /bot/invite_url [get]
 func (b *BotServerController) GetInviteUrl(c *gin.Context) {
-	var req SocialToolReq
+	var req services.SocialToolQueryReq
 	if err := c.ShouldBindQuery(&req); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	url := b.botService.GetInviteUrl(req.SocialTool)
+
+	socialTool, err := enums.ParseSocialToolType(req.SocialTool)
+	if err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+
+	url := b.botService.GetInviteUrl(*socialTool)
 	ginutils.RenderRespOK(c, url)
 }

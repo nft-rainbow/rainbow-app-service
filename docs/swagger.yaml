@@ -465,12 +465,15 @@ definitions:
         type: string
       server_id:
         type: string
-      social_tool:
-        type: integer
+      socialTool:
+        enum:
+        - dodo
+        - discord
+        type: string
     required:
     - auth_code
     - server_id
-    - social_tool
+    - socialTool
     type: object
   services.MintReq:
     properties:
@@ -526,10 +529,13 @@ paths:
       description: get invite url
       operationId: GetInviteUrl
       parameters:
-      - in: query
+      - enum:
+        - dodo
+        - discord
+        in: query
         name: socialTool
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -563,10 +569,13 @@ paths:
         in: query
         name: page
         type: integer
-      - in: query
-        name: social_tool
+      - enum:
+        - dodo
+        - discord
+        in: query
+        name: socialTool
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -622,8 +631,9 @@ paths:
       description: get bot server
       operationId: GetBotServer
       parameters:
-      - in: query
-        name: id
+      - description: get_bot_server_param
+        in: path
+        name: get_bot_server_param
         required: true
         type: integer
       produces:
@@ -701,10 +711,13 @@ paths:
         in: query
         name: page
         type: integer
-      - in: query
+      - enum:
+        - dodo
+        - discord
+        in: query
         name: socialTool
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -734,10 +747,13 @@ paths:
         name: server_id
         required: true
         type: string
-      - in: query
-        name: social_tool
+      - enum:
+        - dodo
+        - discord
+        in: query
+        name: socialTool
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -767,10 +783,13 @@ paths:
         name: serverId
         required: true
         type: string
-      - in: query
+      - enum:
+        - dodo
+        - discord
+        in: query
         name: socialTool
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -868,10 +887,13 @@ paths:
         name: serverId
         required: true
         type: string
-      - in: query
+      - enum:
+        - dodo
+        - discord
+        in: query
         name: socialTool
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:

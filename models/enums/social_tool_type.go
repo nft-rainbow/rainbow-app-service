@@ -1,8 +1,8 @@
 package enums
 
 import (
-	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 type SocialToolType uint
@@ -33,34 +33,46 @@ func init() {
 	}
 }
 
-func (t SocialToolType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(t.String())
-}
-
-func (t *SocialToolType) UnmarshalJSON(data []byte) error {
-	var str string
-	if err := json.Unmarshal(data, &str); err != nil {
-		return err
-	}
-
-	val, ok := ParseSocialToolType(str)
-	if !ok {
-		return errors.New("unkown social_tool_type")
-	}
-	*t = *val
-
-	return nil
-}
+// func (t SocialToolType) MarshalJSON() ([]byte, error) {
+// 	return json.Marshal(t.String())
+// }
 
 func (t SocialToolType) String() string {
 	v, ok := socialTypeValue2StrMap[t]
 	if ok {
 		return v
 	}
-	return "UNKNOWN"
+	return "unkown"
 }
 
-func ParseSocialToolType(str string) (*SocialToolType, bool) {
+func (t *SocialToolType) UnmarshalText(data []byte) error {
+	v, ok := socialTypeStr2ValueMap[string(data)]
+	if ok {
+		*t = v
+		return nil
+	}
+	return fmt.Errorf("unknown social tool type %v", string(data))
+}
+
+// func (t *SocialToolType) UnmarshalJSON(data []byte) error {
+// 	var str string
+// 	if err := json.Unmarshal(data, &str); err != nil {
+// 		return err
+// 	}
+
+// 	val, ok := ParseSocialToolType(str)
+// 	if !ok {
+// 		return errors.New("unkown social_tool_type")
+// 	}
+// 	*t = *val
+
+// 	return nil
+// }
+
+func ParseSocialToolType(str string) (*SocialToolType, error) {
 	v, ok := socialTypeStr2ValueMap[str]
-	return &v, ok
+	if !ok {
+		return nil, fmt.Errorf("unknown social tool type %v", str)
+	}
+	return &v, nil
 }

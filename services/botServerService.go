@@ -17,16 +17,16 @@ import (
 
 type (
 	VerifyBotServerReq struct {
-		ServerId   string               `form:"server_id" json:"server_id" binding:"required"`
-		SocialTool enums.SocialToolType `form:"social_tool" json:"social_tool" binding:"required"`
+		ServerId string `form:"server_id" json:"server_id" binding:"required"`
+		SocialToolQueryReq
 	}
 	InsertBotServerReq struct {
-		SocialTool enums.SocialToolType `json:"social_tool" binding:"required"`
-		ServerId   string               `json:"server_id" binding:"required"`
-		AuthCode   string               `json:"auth_code" binding:"required"`
+		SocialToolQueryReq
+		ServerId string `json:"server_id" binding:"required"`
+		AuthCode string `json:"auth_code" binding:"required"`
 	}
 	GetBotServersReq struct {
-		SocialTool enums.SocialToolType `form:"social_tool" json:"social_tool" binding:"required"`
+		SocialToolQueryReq
 		models.Pagination
 	}
 )
@@ -92,12 +92,18 @@ func (d *BotServerService) GetAuthcode(socialTool enums.SocialToolType, serverId
 }
 
 func (d *BotServerService) InsertBotServer(userId uint, req InsertBotServerReq) (*models.BotServer, error) {
-	code, ok := d.authcodes.Load(d.GetServerAuthCodeKey(req.SocialTool, req.ServerId))
+
+	socialTool, err := enums.ParseSocialToolType(req.SocialTool)
+	if err != nil {
+		return nil, err
+	}
+
+	code, ok := d.authcodes.Load(d.GetServerAuthCodeKey(*socialTool, req.ServerId))
 	if !ok || code.(string) != req.AuthCode {
 		return nil, errors.New("auth code not match")
 	}
 
-	val, err := models.FindBotServerByRawID(req.ServerId, &req.SocialTool)
+	val, err := models.FindBotServerByRawID(req.ServerId, socialTool)
 	if val != nil {
 		return nil, errors.New("already exists")
 	}
@@ -106,14 +112,14 @@ func (d *BotServerService) InsertBotServer(userId uint, req InsertBotServerReq) 
 	}
 
 	// get user social id
-	serverInfo, err := d.mustGetBot(req.SocialTool).GetSeverInfo(context.Background(), req.ServerId)
+	serverInfo, err := d.mustGetBot(*socialTool).GetSeverInfo(context.Background(), req.ServerId)
 	if err != nil {
 		return nil, err
 	}
 
 	var p models.BotServer
 	p.RainbowUserId = userId
-	p.SocialTool = req.SocialTool
+	p.SocialTool = *socialTool
 	p.RawServerId = req.ServerId
 	p.OwnerSocialId = serverInfo.OwnerId
 
@@ -124,7 +130,11 @@ func (d *BotServerService) InsertBotServer(userId uint, req InsertBotServerReq) 
 }
 
 func (d *BotServerService) GetBotServers(userId uint, queryParams *GetBotServersReq) (*models.FindBotServersResult, error) {
-	return models.FindBotServers(userId, &queryParams.SocialTool, queryParams.Pagination)
+	socialTool, err := enums.ParseSocialToolType(queryParams.SocialTool)
+	if err != nil {
+		return nil, err
+	}
+	return models.FindBotServers(userId, socialTool, queryParams.Pagination)
 }
 
 func (d *BotServerService) GetActivitiesOfBotServers(userId uint, cond *models.FindBotServerActivitiesCond) (*models.FindBotServerActivitiesResult, error) {
