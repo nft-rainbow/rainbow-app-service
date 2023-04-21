@@ -36,8 +36,10 @@ func SetupRoutes(router *gin.Engine) {
 	apps := router.Group("/apps")
 	apps.GET("/swagger/xxx", gs.WrapHandler(swaggerFiles.Handler))
 
-	botServer := apps.Group("/botserver")
-	botServer.GET("/invite_url", botServerHandler.GetInviteUrl)
+	bot := apps.Group("/bot")
+	bot.GET("/invite_url", botServerHandler.GetInviteUrl)
+
+	botServer := bot.Group("/server")
 	botServer.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		botServer.GET("/channels", botServerHandler.GetChannels)
