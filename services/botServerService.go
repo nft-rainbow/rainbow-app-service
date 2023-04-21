@@ -119,7 +119,7 @@ func (d *BotServerService) GetBotServer(userId uint, serverId uint) (*models.Bot
 	return VerifyServerBelongsToUser(userId, serverId)
 }
 
-func (d *BotServerService) AddActivity(userId uint, serverId uint, pushInfoReq PushInfoReq) (*models.PushInfo, error) {
+func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq PushInfoReq) (*models.PushInfo, error) {
 	// check server belongs to user
 	botServer, err := VerifyServerBelongsToUser(userId, serverId)
 	if err != nil {
@@ -174,7 +174,7 @@ func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
 		pushInfo.ColorTheme)
 }
 
-func (d *BotServerService) UpdateActivity(userId uint, serverId uint, pushInfoReq PushInfoReq) (*models.PushInfo, error) {
+func (d *BotServerService) UpdatePushInfo(userId uint, serverId uint, pushInfoReq PushInfoReq) (*models.PushInfo, error) {
 	if _, err := VerifyServerBelongsToUser(userId, serverId); err != nil {
 		return nil, err
 	}

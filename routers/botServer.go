@@ -113,7 +113,7 @@ func (b *BotServer) GetBotServer(c *gin.Context) {
 	ginutils.RenderResp(c, p, err)
 }
 
-func (b *BotServer) AddActivity(c *gin.Context) {
+func (b *BotServer) AddPushInfo(c *gin.Context) {
 	var req services.PushInfoReq
 	if err := c.ShouldBind(&req); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
@@ -126,7 +126,7 @@ func (b *BotServer) AddActivity(c *gin.Context) {
 	}
 
 	userId := GetIdFromJwtClaim(c)
-	res, err := b.botService.AddActivity(userId, uriParams.Id, req)
+	res, err := b.botService.AddPushInfo(userId, uriParams.Id, req)
 	ginutils.RenderResp(c, res, err)
 }
 
@@ -142,7 +142,7 @@ func (b *BotServer) Push(c *gin.Context) {
 	ginutils.RenderResp(c, services.Success, err)
 }
 
-func (b *BotServer) UpdateActivity(c *gin.Context) {
+func (b *BotServer) UpdatePushInfo(c *gin.Context) {
 	var req services.PushInfoReq
 	if err := c.ShouldBind(&req); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
@@ -155,7 +155,7 @@ func (b *BotServer) UpdateActivity(c *gin.Context) {
 	}
 
 	userId := GetIdFromJwtClaim(c)
-	res, err := b.botService.UpdateActivity(userId, uriParams.Id, req)
+	res, err := b.botService.UpdatePushInfo(userId, uriParams.Id, req)
 	ginutils.RenderResp(c, res, err)
 
 }
@@ -188,7 +188,7 @@ func (b *BotServer) GetInviteUrl(c *gin.Context) {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	
+
 }
 
 func mustGetSocialToolFromPath(c *gin.Context) *models.SocialToolType {

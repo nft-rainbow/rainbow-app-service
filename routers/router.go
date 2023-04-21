@@ -49,11 +49,12 @@ func SetupRoutes(router *gin.Engine) {
 		botServer.POST("", botServerHandler.insertBotServer)
 		botServer.GET("", botServerHandler.GetBotServers)
 		botServer.GET("/:id", botServerHandler.GetBotServer)
-		botServer.GET("/activities", botServerHandler.GetActivitiesOfUserBotServers)
 
-		botServer.POST("/:id/activity", botServerHandler.AddActivity)
-		botServer.PUT("/:id/activity", botServerHandler.UpdateActivity)
+		botServer.POST("/:id/pushinfo", botServerHandler.AddPushInfo)
+		botServer.PUT("/:id/pushinfo", botServerHandler.UpdatePushInfo)
 		botServer.POST("/push/:id", botServerHandler.Push)
+
+		botServer.GET("/activities", botServerHandler.GetActivitiesOfUserBotServers)
 	}
 
 	// botActivity := bot.Group("/activity")

@@ -14,9 +14,9 @@ import (
 // @Description Get Discord Channel detail info
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       guild_id      path     int    true "guild_id"
-// @Success     200           {array} discordgo.Channel
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       guild_id path     int true "guild_id"
+// @Success     200      {array}  discordgo.Channel
+// @Failure     500      {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/{guild_id}/channels [get]
 func getDiscordChannelInfo(c *gin.Context) {
 	guildId := c.Param("guild_id")
@@ -31,9 +31,9 @@ func getDiscordChannelInfo(c *gin.Context) {
 // @Description Get DoDo Channel detail info
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       island_id     path     int    true "island_id"
-// @Success     200           {array} model.ChannelElement
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       island_id path     int true "island_id"
+// @Success     200       {array}  model.ChannelElement
+// @Failure     500       {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/{island_id}/channels [get]
 // func getDoDoChannelInfo(c *gin.Context) {
 // 	islandId := c.Param("island_id")
@@ -78,9 +78,9 @@ func getDiscordChannelInfo(c *gin.Context) {
 // @Description Bind Server Info
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       user_server     body     models.UserServer    true "user_server"
-// @Success     200           {object} string "success"
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       user_server body     models.UserServer                                  true "user_server"
+// @Success     200         {object} string                                             "success"
+// @Failure     500         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/server [post]
 func bindServerInfo(c *gin.Context) {
 	var req *models.BotServer
@@ -101,10 +101,10 @@ func bindServerInfo(c *gin.Context) {
 // @Description Get Pushes List
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       app_id        path     string   true "app_id"
-// @Param       bot           path     string   true "bot"
-// @Success     200           {object} models.PushInfoQueryResult
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       app_id path     string true "app_id"
+// @Param       bot    path     string true "bot"
+// @Success     200    {object} models.PushInfoQueryResult
+// @Failure     500    {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/push/{bot} [get]
 // func getPushes(c *gin.Context) {
 // 	pagination, err := GetPagination(c)
@@ -130,9 +130,9 @@ func bindServerInfo(c *gin.Context) {
 // @Description Get Server List
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       bot           path     string   true "bot"
-// @Success     200           {object} models.UserServerQueryResult
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       bot path     string true "bot"
+// @Success     200 {object} models.UserServerQueryResult
+// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/servers/{bot} [get]
 // func getServers(c *gin.Context) {
 // 	pagination, err := GetPagination(c)
@@ -158,9 +158,9 @@ func bindServerInfo(c *gin.Context) {
 // @Description Get Discord Channels
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       bot           path     string   true "guild_id"
-// @Success     200           {array} model.Channel
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       bot path     string true "guild_id"
+// @Success     200 {array}  model.Channel
+// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/channels/discord/{guild_id} [get]
 // func getDiscordChannels(c *gin.Context) {
 // 	guild := c.Param("guild_id")
@@ -174,9 +174,9 @@ func bindServerInfo(c *gin.Context) {
 // @Description Get Discord Roles
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       bot           path     string   true "guild_id"
-// @Success     200           {array} model.Role
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       bot path     string true "guild_id"
+// @Success     200 {array}  model.Role
+// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/roles/discord/{guild_id} [get]
 // func getDiscordRoles(c *gin.Context) {
 // 	guild := c.Param("guild_id")
@@ -190,9 +190,9 @@ func bindServerInfo(c *gin.Context) {
 // @Description Get DoDo Channels
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       bot           path     string   true "island_id"
-// @Success     200           {array} model.Channel
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       bot path     string true "island_id"
+// @Success     200 {array}  model.Channel
+// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/channels/dodo/{island_id} [get]
 // func getDoDoChannels(c *gin.Context) {
 // 	guild := c.Param("island_id")
@@ -206,9 +206,9 @@ func bindServerInfo(c *gin.Context) {
 // @Description Get DoDo Roles
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       bot           path     string   true "island_id"
-// @Success     200           {array} model.Role
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       bot path     string true "island_id"
+// @Success     200 {array}  model.Role
+// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/activity/roles/dodo/{island_id} [get]
 // func getDoDoRoles(c *gin.Context) {
 // 	guild := c.Param("island_id")
