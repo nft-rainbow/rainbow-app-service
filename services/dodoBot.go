@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -16,6 +15,33 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+)
+
+const (
+	pushTemplate = `{
+		"content": "",
+		"card": {
+		  "type": "card",
+		  "components": [
+			{
+			  "type": "section",
+			  "text": {
+				"type": "dodo-md",
+				"content": "{roles} {name}#{activity} 来了！\n在频道中发送【教程】，机器人将私信你领取教程"
+			  }
+			},
+			{
+			  "type": "section",
+			  "text": {
+				"type": "dodo-md",
+				"content": "{content}"
+			  }
+			}
+		  ],
+		  "theme": "{color}",
+		  "title": "新活动发布啦！"
+		}
+	  }`
 )
 
 type DodoBot struct {
@@ -98,41 +124,16 @@ func (d *DodoBot) GetChannels(serverId string) ([]*Channel, error) {
 }
 
 func (d *DodoBot) Push(channelId string, roles []string, name, activityId, content, color string) error {
-	var card = `{
-		"content": "",
-		"card": {
-		  "type": "card",
-		  "components": [
-			{
-			  "type": "section",
-			  "text": {
-				"type": "dodo-md",
-				"content": "{roles} {name}#{activity} 来了！\n在频道中发送【教程】，机器人将私信你领取教程"
-			  }
-			},
-			{
-			  "type": "section",
-			  "text": {
-				"type": "dodo-md",
-				"content": "{content}"
-			  }
-			}
-		  ],
-		  "theme": "{color}",
-		  "title": "新活动发布啦！"
-		}
-	  }`
 	var message model.CardMessage
 
 	_roles := ""
-	if len(roles) == 1 && roles[0] == "all" {
-		_roles = "<@all>"
+	if len(roles) == 0 || roles[0] == "" {
+		_roles = "@所有人"
 	} else {
-		for _, v := range roles {
-			_roles += fmt.Sprintf("<@&%s>", v)
-		}
+		_roles = "@" + strings.Join(roles, " @")
 	}
 
+	card := pushTemplate
 	card = strings.Replace(card, "{roles}", _roles, -1)
 	card = strings.Replace(card, "{name}", name, -1)
 	card = strings.Replace(card, "{activity}", activityId, -1)

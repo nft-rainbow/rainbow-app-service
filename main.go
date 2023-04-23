@@ -12,6 +12,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/nft-rainbow/rainbow-app-service/logger"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/routers"
@@ -32,6 +33,7 @@ func initConfig() {
 
 func init() {
 	initConfig()
+	logger.Init()
 	middlewares.InitRainbowJwtMiddleware()
 	middlewares.InitDashboardJwtMiddleware()
 	services.InitConfluxChainClient()

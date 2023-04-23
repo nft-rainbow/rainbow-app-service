@@ -176,7 +176,7 @@ func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq P
 // send message to channel
 func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
 	var pushInfo models.PushInfo
-	if err := models.GetDB().Preload("Activity").Where("id=?", pushInfoId).Find(&pushInfo).Error; err != nil {
+	if err := models.GetDB().Debug().Where("id=?", pushInfoId).First(&pushInfo).Error; err != nil {
 		return err
 	}
 
