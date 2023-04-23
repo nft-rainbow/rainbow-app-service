@@ -45,7 +45,7 @@ func FindAndCountPOAPResult(poapId string, pagination Pagination) (*POAPResultQu
 		return nil, err
 	}
 
-	if err := db.Model(&POAPResult{}).Where(cond).Offset(pagination.Offset()).Limit(pagination.Limit).Find(&items).Error; err != nil {
+	if err := db.Model(&POAPResult{}).Where(cond).Order("id DESC").Offset(pagination.Offset()).Limit(pagination.Limit).Find(&items).Error; err != nil {
 		return nil, err
 	}
 
