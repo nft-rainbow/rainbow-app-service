@@ -22,14 +22,14 @@ func (p *PushInfo) GetActivity() (*Activity, error) {
 func FindPushInfoById(id uint) (*PushInfo, error) {
 	var pushInfo PushInfo
 	pushInfo.ID = id
-	if err := GetDB().Debug().Where(&pushInfo).First(&pushInfo).Error; err != nil {
+	if err := GetDB().Where(&pushInfo).First(&pushInfo).Error; err != nil {
 		return nil, err
 	}
 	return &pushInfo, nil
 }
 
 func FindPushInfo(cond PushInfo) (*PushInfo, error) {
-	if err := GetDB().Debug().Where(&cond).First(&cond).Error; err != nil {
+	if err := GetDB().Where(&cond).First(&cond).Error; err != nil {
 		return nil, err
 	}
 	return &cond, nil

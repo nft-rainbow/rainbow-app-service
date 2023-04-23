@@ -197,7 +197,7 @@ func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*Acti
 	cond.Name = _cond.Name
 	cond.ActivityCode = _cond.ActivityId
 
-	clause := db.Debug().Model(&Activity{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond)
+	clause := db.Model(&Activity{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond)
 
 	// _cond.ContractAddress 如果不为空，查找Contract, 拿到 contract_raw_id
 	if _cond.ContractAddress != nil {

@@ -106,7 +106,7 @@ func FindBotServers(rainbowUserId uint, socialTool *enums.SocialToolType, pagina
 
 	botServers, err := DoAndCompleteBotServers(func() ([]*BotServer, error) {
 		var result []*BotServer
-		err := GetDB().Debug().Where(&cond).Offset(pagination.Offset()).Limit(pagination.Limit).Find(&result).Error
+		err := GetDB().Where(&cond).Offset(pagination.Offset()).Limit(pagination.Limit).Find(&result).Error
 		if err != nil {
 			return nil, err
 		}
@@ -117,7 +117,7 @@ func FindBotServers(rainbowUserId uint, socialTool *enums.SocialToolType, pagina
 	}
 
 	var count int64
-	if err := GetDB().Debug().Where(&cond).Count(&count).Error; err != nil {
+	if err := GetDB().Model(&cond).Where(&cond).Count(&count).Error; err != nil {
 		return nil, err
 	}
 
@@ -150,7 +150,7 @@ func FindActivitiesOfUserBotServers(rainbowUserId uint, cond *FindBotServerActiv
 
 	var result FindBotServerActivitiesResult
 
-	if err := db.Debug().Raw(itemsSql).Scan(&result.Items).Error; err != nil {
+	if err := db.Raw(itemsSql).Scan(&result.Items).Error; err != nil {
 		return nil, err
 	}
 
