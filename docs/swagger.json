@@ -196,16 +196,6 @@
                 "operationId": "GetActivitiesOfUserBotServers",
                 "parameters": [
                     {
-                        "type": "string",
-                        "name": "activityName",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "contractAddress",
-                        "in": "query"
-                    },
-                    {
                         "type": "integer",
                         "default": 10,
                         "name": "limit",
@@ -223,20 +213,22 @@
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "enum": [
-                            "dodo",
-                            "discord"
-                        ],
-                        "type": "string",
                         "description": "social tool",
                         "name": "social_tool",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "contract address",
+                        "name": "contract_address",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -337,7 +329,8 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "name": "serverId",
+                        "description": "server id",
+                        "name": "server_id",
                         "in": "query",
                         "required": true
                     },
@@ -500,7 +493,8 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "name": "serverId",
+                        "description": "server id",
+                        "name": "server_id",
                         "in": "query",
                         "required": true
                     },
@@ -560,8 +554,8 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "get_bot_server_param",
-                        "name": "get_bot_server_param",
+                        "description": "server id",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -1912,7 +1906,8 @@
             "type": "object",
             "required": [
                 "auth_code",
-                "server_id"
+                "server_id",
+                "social_tool"
             ],
             "properties": {
                 "auth_code": {
@@ -1920,6 +1915,13 @@
                 },
                 "server_id": {
                     "type": "string"
+                },
+                "social_tool": {
+                    "type": "string",
+                    "enum": [
+                        "dodo",
+                        "discord"
+                    ]
                 }
             }
         },

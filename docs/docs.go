@@ -199,16 +199,6 @@ const docTemplate = `{
                 "operationId": "GetActivitiesOfUserBotServers",
                 "parameters": [
                     {
-                        "type": "string",
-                        "name": "activityName",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "contractAddress",
-                        "in": "query"
-                    },
-                    {
                         "type": "integer",
                         "default": 10,
                         "name": "limit",
@@ -226,20 +216,22 @@ const docTemplate = `{
                             "discord"
                         ],
                         "type": "string",
-                        "name": "socialTool",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "enum": [
-                            "dodo",
-                            "discord"
-                        ],
-                        "type": "string",
                         "description": "social tool",
                         "name": "social_tool",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "contract address",
+                        "name": "contract_address",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -340,7 +332,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "name": "serverId",
+                        "description": "server id",
+                        "name": "server_id",
                         "in": "query",
                         "required": true
                     },
@@ -503,7 +496,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "name": "serverId",
+                        "description": "server id",
+                        "name": "server_id",
                         "in": "query",
                         "required": true
                     },
@@ -563,8 +557,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "get_bot_server_param",
-                        "name": "get_bot_server_param",
+                        "description": "server id",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -1915,7 +1909,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "auth_code",
-                "server_id"
+                "server_id",
+                "social_tool"
             ],
             "properties": {
                 "auth_code": {
@@ -1923,6 +1918,13 @@ const docTemplate = `{
                 },
                 "server_id": {
                     "type": "string"
+                },
+                "social_tool": {
+                    "type": "string",
+                    "enum": [
+                        "dodo",
+                        "discord"
+                    ]
                 }
             }
         },

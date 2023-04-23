@@ -31,9 +31,9 @@ type BotServer struct {
 type (
 	FindBotServerActivitiesCond struct {
 		Pagination
-		SocialTool      string  `uri:"social_tool" form:"social_tool" binding:"required,oneof=dodo discord"`
-		ActivityName    *string `form:"activity_name"`
-		ContractAddress *string `form:"contract_address"`
+		SocialTool      string  `form:"social_tool" binding:"required,oneof=dodo discord" swaggerignore:"true"`
+		ActivityName    *string `form:"activity_name" swaggerignore:"true"`
+		ContractAddress *string `form:"contract_address" swaggerignore:"true"`
 	}
 
 	PlattenBotServerActivity struct {

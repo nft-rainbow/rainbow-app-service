@@ -19,12 +19,8 @@ type (
 		Id uint `uri:"id" form:"id" binding:"required"`
 	}
 
-	ServerIdReq struct {
-		ServerId string `uri:"server_id" form:"server_id" binding:"required"`
-	}
-
 	SocialAndServerIdReq struct {
-		ServerIdReq
+		ServerId string `uri:"server_id" form:"server_id" binding:"required" swaggerignore:"true"`
 		services.SocialToolQueryReq
 	}
 )
@@ -121,10 +117,10 @@ func (b *BotServerController) GetBotServers(c *gin.Context) {
 // @Description get bot server
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       get_bot_server_param path     uint true "get_bot_server_param"
-// @Success     200                  {object} models.BotServer
-// @Failure     400                  {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500                  {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       id  path     uint true "server id"
+// @Success     200 {object} models.BotServer
+// @Failure     400 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /bot/server/{id} [get]
 func (b *BotServerController) GetBotServer(c *gin.Context) {
 	userId := GetIdFromJwtClaim(c)
@@ -227,8 +223,10 @@ func (b *BotServerController) UpdatePushInfo(c *gin.Context) {
 // @Description get activites of user bot servers
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       find_bot_server_activities_req query    models.FindBotServerActivitiesCond true "find bot server activities params"
-// @Param       social_tool                    query    string                             true "social tool" Enums(dodo,discord)
+// @Param       find_bot_server_activities_req query    models.FindBotServerActivitiesCond true  "find bot server activities params"
+// @Param       social_tool                    query    string                             true  "social tool" Enums(dodo,discord)
+// @Param       activity_name                  query    string                             false "activity name"
+// @Param       contract_address               query    string                             false "contract address"
 // @Success     200                            {object} models.FindBotServerActivitiesResult
 // @Failure     400                            {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500                            {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
@@ -253,11 +251,11 @@ func (b *BotServerController) GetActivitiesOfUserBotServers(c *gin.Context) {
 // @Description get bot server channels
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       get_channels_options query    SocialAndServerIdReq true "get channels options"
-// @Param       social_tool          query    string               true "social tool" Enums(dodo,discord)
-// @Success     200                  {array}  services.Channel
-// @Failure     400                  {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500                  {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       server_id   query    string true "server id"
+// @Param       social_tool query    string true "social tool" Enums(dodo,discord)
+// @Success     200         {array}  services.Channel
+// @Failure     400         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /bot/server/channels [get]
 func (b *BotServerController) GetChannels(c *gin.Context) {
 	var req SocialAndServerIdReq
@@ -282,11 +280,11 @@ func (b *BotServerController) GetChannels(c *gin.Context) {
 // @Description get bot server roles
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       get_roles_options query    SocialAndServerIdReq true "get roles options"
-// @Param       social_tool       query    string               true "social tool" Enums(dodo,discord)
-// @Success     200               {array}  services.Role
-// @Failure     400               {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500               {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       server_id   query    string true "server id"
+// @Param       social_tool query    string true "social tool" Enums(dodo,discord)
+// @Success     200         {array}  services.Role
+// @Failure     400         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /bot/server/roles [get]
 func (b *BotServerController) GetRoles(c *gin.Context) {
 	var req SocialAndServerIdReq

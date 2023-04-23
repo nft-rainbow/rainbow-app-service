@@ -465,9 +465,15 @@ definitions:
         type: string
       server_id:
         type: string
+      social_tool:
+        enum:
+        - dodo
+        - discord
+        type: string
     required:
     - auth_code
     - server_id
+    - social_tool
     type: object
   services.MintReq:
     properties:
@@ -627,9 +633,9 @@ paths:
       description: get bot server
       operationId: GetBotServer
       parameters:
-      - description: get_bot_server_param
+      - description: server id
         in: path
-        name: get_bot_server_param
+        name: id
         required: true
         type: integer
       produces:
@@ -693,12 +699,6 @@ paths:
       description: get activites of user bot servers
       operationId: GetActivitiesOfUserBotServers
       parameters:
-      - in: query
-        name: activityName
-        type: string
-      - in: query
-        name: contractAddress
-        type: string
       - default: 10
         in: query
         name: limit
@@ -707,13 +707,6 @@ paths:
         in: query
         name: page
         type: integer
-      - enum:
-        - dodo
-        - discord
-        in: query
-        name: socialTool
-        required: true
-        type: string
       - description: social tool
         enum:
         - dodo
@@ -721,6 +714,14 @@ paths:
         in: query
         name: social_tool
         required: true
+        type: string
+      - description: activity name
+        in: query
+        name: activity_name
+        type: string
+      - description: contract address
+        in: query
+        name: contract_address
         type: string
       produces:
       - application/json
@@ -784,8 +785,9 @@ paths:
       description: get bot server channels
       operationId: GetBotServerChannels
       parameters:
-      - in: query
-        name: serverId
+      - description: server id
+        in: query
+        name: server_id
         required: true
         type: string
       - description: social tool
@@ -889,8 +891,9 @@ paths:
       description: get bot server roles
       operationId: GetBotServerRoles
       parameters:
-      - in: query
-        name: serverId
+      - description: server id
+        in: query
+        name: server_id
         required: true
         type: string
       - description: social tool
