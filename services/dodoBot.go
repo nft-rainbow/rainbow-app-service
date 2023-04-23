@@ -75,10 +75,14 @@ func (d *DodoBot) GetSocialToolType() enums.SocialToolType {
 	return enums.SOCIAL_TOOL_DODO
 }
 
-func (d *DodoBot) SendChannelMessage(ctx context.Context, channedId string, msg string) error {
+func (d *DodoBot) SendChannelMessage(ctx context.Context, channedId string, msg string, referMsgId ...string) error {
+	if len(referMsgId) == 0 {
+		referMsgId = append(referMsgId, "")
+	}
 	_, err := d.instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-		ChannelId:   channedId,
-		MessageBody: &model.TextMessage{Content: msg},
+		ChannelId:           channedId,
+		MessageBody:         &model.TextMessage{Content: msg},
+		ReferencedMessageId: referMsgId[0],
 	})
 	return err
 }
@@ -129,9 +133,9 @@ func (d *DodoBot) Push(channelId string, roles []string, name, activityId, conte
 
 	_roles := ""
 	if len(roles) == 0 || roles[0] == "" {
-		_roles = "@所有人"
+		_roles = "<@all>"
 	} else {
-		_roles = "@" + strings.Join(roles, " @")
+		_roles = "<@&" + strings.Join(roles, "><@&") + ">"
 	}
 
 	card := pushTemplate
@@ -175,8 +179,8 @@ func (d *DodoBot) GetInviteUrl() string {
 	return viper.GetString("dodoBot.inviteUrl")
 }
 
-func (d *DodoBot) RunCommand(channelId string, userDodoSourceId string, command string) error {
-	return d.commander.ExcuteCommand(channelId, userDodoSourceId, command)
+func (d *DodoBot) RunCommand(channelMsgSource ChannelMsgSource, command string) error {
+	return d.commander.ExcuteCommand(channelMsgSource, command)
 }
 
 func (d *DodoBot) ListenWebsocket() {
@@ -222,5 +226,10 @@ func (d *DodoBot) dodoChannelMsgHandler(event *websocket.WSEventMessage, data *w
 	}
 	logrus.WithField("command", messageBody.Content).Info("got command")
 
-	return d.RunCommand(data.ChannelId, data.DodoSourceId, messageBody.Content)
+	channelMsgSource := ChannelMsgSource{
+		channelId:        data.ChannelId,
+		userDodoSourceId: data.DodoSourceId,
+		messageId:        data.MessageId,
+	}
+	return d.RunCommand(channelMsgSource, messageBody.Content)
 }

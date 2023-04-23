@@ -22,15 +22,22 @@ type DodoBotCommander struct {
 }
 
 type CommandRequest struct {
-	channelId        string
-	userDodoSourceId string
-	args             []string
+	ChannelMsgSource
+	args []string
 }
+
+// func (c *CommandRequest) GetChannelMsgSource() *ChannelMsgSource {
+// 	return &ChannelMsgSource{
+// 		channelId:        c.channelId,
+// 		userDodoSourceId: c.userDodoSourceId,
+// 		messageId:        c.rawMsg.MessageId,
+// 	}
+// }
 
 const (
 	allCommandsZh = "\n" +
-		"/教程\t获取教程链接\n" +
 		"/帮助\t查所有指令\n" +
+		"/教程\t获取教程链接\n" +
 		"/铸造/活动ID/TokenID\t铸造nft\n" +
 		"/查口令/活动ID\t查活动口令\n" +
 		"/创建地址\t创建conflux地址并绑定到您的dodo账户\n" +
@@ -38,8 +45,8 @@ const (
 		"/绑定地址/conflux地址\t绑定指定conflux地址到您的dodo账户\n\n"
 
 	allCommandsEn = "\n" +
-		"/tutorial\t获取教程链接\n" +
 		"/help\t查所有指令\n" +
+		"/tutorial\t获取教程链接\n" +
 		"/mint/activity_id/token_id\t铸造nft\n" +
 		"/command/activity_id\t查活动口令\n" +
 		"/create_address\t创建conflux地址并绑定到您的dodo账户\n" +
@@ -52,36 +59,36 @@ func NewDodoBotCommander(_dodoBot *DodoBot) *DodoBotCommander {
 	router := make(map[string]func(req *CommandRequest) error)
 
 	router["帮助"] = func(req *CommandRequest) error {
-		return d.GetAllCommands(req.channelId, req.userDodoSourceId, "zh")
+		return d.GetAllCommands(req.ChannelMsgSource, "zh")
 	}
 
 	router["教程"] = func(req *CommandRequest) error {
-		return d.GetTutorial(req.channelId, req.userDodoSourceId)
+		return d.GetTutorial(req.ChannelMsgSource)
 	}
 
 	router["铸造"] = func(req *CommandRequest) error {
-		return d.Mint(req.channelId, req.userDodoSourceId, req.args[0], req.args[1])
+		return d.Mint(req.ChannelMsgSource, req.args[0], req.args[1])
 	}
 
 	router["查口令"] = func(req *CommandRequest) error {
-		return d.GetVerbalSecret(req.channelId, req.userDodoSourceId, req.args[0])
+		return d.GetVerbalSecret(req.ChannelMsgSource, req.args[0])
 	}
 
 	router["创建地址"] = func(req *CommandRequest) error {
-		return d.CreateAccount(req.channelId, req.userDodoSourceId)
+		return d.CreateAccount(req.ChannelMsgSource)
 	}
 
 	router["查地址"] = func(req *CommandRequest) error {
-		return d.GetAddress(req.channelId, req.userDodoSourceId)
+		return d.GetAddress(req.ChannelMsgSource)
 	}
 
 	router["绑定地址"] = func(req *CommandRequest) error {
-		return d.Bind(req.channelId, req.userDodoSourceId, req.args[0])
+		return d.Bind(req.ChannelMsgSource, req.args[0])
 	}
 
 	/*======================= en =======================*/
 	router["help"] = func(req *CommandRequest) error {
-		return d.GetAllCommands(req.channelId, req.userDodoSourceId, "en")
+		return d.GetAllCommands(req.ChannelMsgSource, "en")
 	}
 	router["tutorial"] = router["教程"]
 	router["mint"] = router["铸造"]
@@ -94,12 +101,13 @@ func NewDodoBotCommander(_dodoBot *DodoBot) *DodoBotCommander {
 	return d
 }
 
-func (d *DodoBotCommander) ExcuteCommand(channelId string, userDodoSourceId string, command string) error {
+func (d *DodoBotCommander) ExcuteCommand(msgSource ChannelMsgSource, command string) error {
 	defer func() {
 		if err := recover(); err != nil {
+			fmt.Printf("exception when run command\n%s", debug.Stack())
 			logrus.WithField("command", command).WithField("err", err).WithField("stack", string(debug.Stack())).Info("exception when run command")
-			msg := fmt.Sprintf("<@!%s> %s", userDodoSourceId, "发生内部错误")
-			d.dodoBot.SendChannelMessage(context.Background(), channelId, msg)
+			msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, "发生内部错误")
+			d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 		}
 	}()
 	methodAndArgs := strings.Split(command, "/")
@@ -112,26 +120,25 @@ func (d *DodoBotCommander) ExcuteCommand(channelId string, userDodoSourceId stri
 	logrus.WithField("method", method).WithField("args", args).Info("parse commands")
 
 	if d.router[method] == nil {
-		msg := fmt.Sprintf("<@!%s> %s", userDodoSourceId, fmt.Sprintf("不支持指令 %s", method))
-		return d.dodoBot.SendChannelMessage(context.Background(), channelId, msg)
+		msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, fmt.Sprintf("不支持指令 %s", method))
+		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	}
 
 	err := d.router[method](&CommandRequest{
-		channelId:        channelId,
-		userDodoSourceId: userDodoSourceId,
+		ChannelMsgSource: msgSource,
 		args:             args,
 	})
 	if err != nil {
 		logrus.WithField("method", method).WithField("args", args).WithField("error stack", fmt.Sprintf("%+v", errors.WithStack(err))).Info("failed run command")
 		fmt.Printf("failed run command\n%+v\n", errors.WithStack(err))
-		msg := fmt.Sprintf("<@!%s> %s", userDodoSourceId, err.Error())
-		return d.dodoBot.SendChannelMessage(context.Background(), channelId, msg)
+		msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, err.Error())
+		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	}
 	return nil
 }
 
-func (d *DodoBotCommander) Mint(channelId string, userDodoSourceId string, activityId string, verbalSecret string) error {
-	mainAddr, testAddr, err := GetBindAddress(userDodoSourceId, enums.SOCIAL_TOOL_DODO)
+func (d *DodoBotCommander) Mint(msgSource ChannelMsgSource, activityId string, verbalSecret string) error {
+	mainAddr, testAddr, err := GetBindAddress(msgSource.userDodoSourceId, enums.SOCIAL_TOOL_DODO)
 	if err != nil {
 		return err
 	}
@@ -141,12 +148,12 @@ func (d *DodoBotCommander) Mint(channelId string, userDodoSourceId string, activ
 		return err
 	}
 
-	if _, err = models.FindPushInfo(models.PushInfo{ActivityId: activity.ID, ChannelId: channelId}); err != nil {
+	if _, err = models.FindPushInfo(models.PushInfo{ActivityId: activity.ID, ChannelId: msgSource.channelId}); err != nil {
 		return customNotFoundError(err, "the activity not support on this channel")
 	}
 
-	msg := fmt.Sprintf("<@!%s> Start to mint NFT. Please wait patiently.", userDodoSourceId)
-	if err := d.dodoBot.SendChannelMessage(context.Background(), channelId, msg); err != nil {
+	msg := fmt.Sprintf("<@!%s> Start to mint NFT. Please wait patiently.", msgSource.userDodoSourceId)
+	if err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId); err != nil {
 		return err
 	}
 
@@ -171,60 +178,60 @@ func (d *DodoBotCommander) Mint(channelId string, userDodoSourceId string, activ
 			continue
 		}
 
-		msg = fmt.Sprintf("<@!%s> Mint NFT successfully. The correspending transaction hash is %v", userDodoSourceId, resp.Hash)
-		return d.dodoBot.SendChannelMessage(context.Background(), channelId, msg)
+		msg = fmt.Sprintf("<@!%s> Mint NFT successfully. The correspending transaction hash is %v", msgSource.userDodoSourceId, resp.Hash)
+		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	}
 }
 
-func (d *DodoBotCommander) Bind(channelId string, userDodoSourceId string, userAddress string) error {
-	mainAddr, testAddr, err := BindCfxAddress(userDodoSourceId, userAddress, enums.SOCIAL_TOOL_DODO)
+func (d *DodoBotCommander) Bind(msgSource ChannelMsgSource, userAddress string) error {
+	mainAddr, testAddr, err := BindCfxAddress(msgSource.userDodoSourceId, userAddress, enums.SOCIAL_TOOL_DODO)
 	if err != nil {
 		return err
 	}
 
-	msg := fmt.Sprintf("<@!%s> Success bind conflux address!\nTestnet\t%s\nMainnet\t%s\n", userDodoSourceId, mainAddr, testAddr)
-	return d.dodoBot.SendChannelMessage(context.Background(), channelId, msg)
+	msg := fmt.Sprintf("<@!%s> Success bind conflux address!\nTestnet\t%s\nMainnet\t%s\n", msgSource.userDodoSourceId, mainAddr, testAddr)
+	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 }
 
-func (d *DodoBotCommander) GetAddress(channelId string, userDodoSourceId string) error {
-	mainAddr, testAddr, err := GetBindAddress(userDodoSourceId, enums.SOCIAL_TOOL_DODO)
+func (d *DodoBotCommander) GetAddress(msgSource ChannelMsgSource) error {
+	mainAddr, testAddr, err := GetBindAddress(msgSource.userDodoSourceId, enums.SOCIAL_TOOL_DODO)
 	if err != nil {
 		return err
 	}
 
-	msg := fmt.Sprintf("<@!%s>\nTestnet\t%s\nMainnet\t%s\n", userDodoSourceId, mainAddr, testAddr)
-	return d.dodoBot.SendChannelMessage(context.Background(), channelId, msg)
+	msg := fmt.Sprintf("<@!%s>\nTestnet\t%s\nMainnet\t%s\n", msgSource.userDodoSourceId, mainAddr, testAddr)
+	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 }
 
-func (d *DodoBotCommander) GetTutorial(channelId string, userDodoSourceId string) error {
-	msg := fmt.Sprintf("<@!%s> %s", userDodoSourceId, guide)
-	return d.dodoBot.SendChannelMessage(context.Background(), channelId, msg)
+func (d *DodoBotCommander) GetTutorial(msgSource ChannelMsgSource) error {
+	msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, guide)
+	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 }
 
-func (d *DodoBotCommander) GetAllCommands(channelId string, userDodoSourceId string, language string) error {
+func (d *DodoBotCommander) GetAllCommands(msgSource ChannelMsgSource, language string) error {
 	_allCommand := allCommandsZh
 	if language == "en" {
 		_allCommand = allCommandsEn
 	}
-	msg := fmt.Sprintf("<@!%s> %s", userDodoSourceId, _allCommand)
-	return d.dodoBot.SendChannelMessage(context.Background(), channelId, msg)
+	msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, _allCommand)
+	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 }
 
-func (d *DodoBotCommander) CreateAccount(channelId string, userDodoSourceId string) error {
-	msg := fmt.Sprintf("<@!%s> %s", userDodoSourceId, anywebH5)
-	return d.dodoBot.SendChannelMessage(context.Background(), channelId, msg)
+func (d *DodoBotCommander) CreateAccount(msgSource ChannelMsgSource) error {
+	msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, anywebH5)
+	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 }
 
-func (d *DodoBotCommander) GetVerbalSecret(channelId string, userDodoSourceId string, activityId string) error {
+func (d *DodoBotCommander) GetVerbalSecret(msgSource ChannelMsgSource, activityId string) error {
 	config, err := models.FindActivityByCode(activityId)
 	if err != nil {
 		return err
 	}
 	if config.Command == "" {
-		msg := fmt.Sprintf("<@!%s> The command is not needed in this activity", userDodoSourceId)
-		return d.dodoBot.SendChannelMessage(context.Background(), channelId, msg)
+		msg := fmt.Sprintf("<@!%s> The command is not needed in this activity", msgSource.userDodoSourceId)
+		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	}
-	return d.dodoBot.SendChannelMessage(context.Background(), channelId, config.Command)
+	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, config.Command, msgSource.messageId)
 }
 
 func customNotFoundError(err error, msgOfNotFound string) error {
