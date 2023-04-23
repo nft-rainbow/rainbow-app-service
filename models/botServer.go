@@ -23,7 +23,7 @@ type BotServer struct {
 	BaseModel
 	RainbowUserId uint                 `gorm:"type:integer" json:"rainbow_user_id" binding:"required"`
 	SocialTool    enums.SocialToolType `json:"social_tool"`
-	RawServerId   string               `json:"raw_server_id" binding:"required"`
+	RawServerId   string               `gorm:"index" json:"raw_server_id" binding:"required"`
 	ServerName    string               `json:"server_name"`
 	OwnerSocialId string               `json:"owner_social_id" binding:"required"`
 	PushInfos     []PushInfo           `gorm:"-" json:"push_infos"`

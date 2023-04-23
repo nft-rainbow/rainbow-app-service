@@ -101,6 +101,7 @@ func (d *DodoBot) GetSeverInfo(ctx context.Context, serverId string) (*SeverInfo
 	}
 	return &SeverInfo{
 		OwnerId: info.OwnerDodoSourceId,
+		Name:    info.IslandName,
 	}, nil
 }
 
