@@ -173,10 +173,6 @@ func drawPoster(templatePath string, fontPath string,
 }
 
 func generateActivityPoster(config *models.UpdateActivityReq, activityId string) (string, error) {
-	// if err := config.CheckActivityValid(); err != nil {
-	// 	return "", err
-	// }
-
 	buf, err := drawPoster("./assets/images/activityPoster.png",
 		"./assets/fonts/PingFang.ttf",
 		activityId,

@@ -21,9 +21,9 @@ type (
 		SocialToolQueryReq
 	}
 	InsertBotServerReq struct {
-		SocialToolQueryReq
-		ServerId string `json:"server_id" binding:"required"`
-		AuthCode string `json:"auth_code" binding:"required"`
+		SocialTool string `json:"social_tool" binding:"required,oneof=dodo discord"`
+		ServerId   string `json:"server_id" binding:"required"`
+		AuthCode   string `json:"auth_code" binding:"required"`
 	}
 	GetBotServersReq struct {
 		SocialToolQueryReq
