@@ -121,6 +121,7 @@ func (d *BotServerService) InsertBotServer(userId uint, req InsertBotServerReq) 
 	p.RainbowUserId = userId
 	p.SocialTool = *socialTool
 	p.RawServerId = req.ServerId
+	p.ServerName = serverInfo.Name
 	p.OwnerSocialId = serverInfo.OwnerId
 
 	if err := models.GetDB().Save(&p).Error; err != nil {
