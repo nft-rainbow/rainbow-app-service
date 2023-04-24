@@ -31,7 +31,7 @@ type PushReq struct {
 var s *discordgo.Session
 
 var (
-	guide       = "guide 测试文本"
+	guide       = "教程还没出"
 	anywebH5    = "https://open.imdodo.com/dev/api/channel-text.html#%E5%8F%91%E9%80%81%E6%B6%88%E6%81%AF"
 	channelName = "nft-rainbow-ai"
 )

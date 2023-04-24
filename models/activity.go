@@ -175,11 +175,7 @@ func FindActivityByCode(activityCode string) (*Activity, error) {
 
 		var item Activity
 		item.ActivityCode = activityCode
-		err := db.Model(&Activity{}).Where(&item).Find(&item).Error
-		if err != nil {
-			return nil, err
-		}
-		err = db.Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Find(&item).Error
+		err := db.Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(&item).First(&item).Error
 		if err != nil {
 			return nil, err
 		}
@@ -213,8 +209,7 @@ func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*Acti
 		return nil, err
 	}
 
-	if err := clause.Order("id DESC").Offset(_cond.Offset()).Limit(_cond.Limit).
-		Find(&items).Error; err != nil {
+	if err := clause.Order("id DESC").Offset(_cond.Offset()).Limit(_cond.Limit).Find(&items).Error; err != nil {
 		return nil, err
 	}
 

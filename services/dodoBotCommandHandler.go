@@ -113,7 +113,7 @@ func (d *DodoBotCommander) ExcuteCommand(msgSource ChannelMsgSource, command str
 	logrus.WithField("method", method).WithField("args", args).Info("parse commands")
 
 	if d.router[method] == nil {
-		msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, fmt.Sprintf("不支持指令 %s", method))
+		msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, fmt.Sprintf("不支持的指令 %s", method))
 		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	}
 
@@ -145,7 +145,7 @@ func (d *DodoBotCommander) Mint(msgSource ChannelMsgSource, activityId string, v
 		return customNotFoundError(err, "the activity not support on this channel")
 	}
 
-	msg := fmt.Sprintf("<@!%s> Start to mint NFT. Please wait patiently.", msgSource.userDodoSourceId)
+	msg := fmt.Sprintf("<@!%s> 开始铸造, 大约需要30秒, 请耐心等待", msgSource.userDodoSourceId)
 	if err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId); err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func (d *DodoBotCommander) Mint(msgSource ChannelMsgSource, activityId string, v
 			continue
 		}
 
-		msg = fmt.Sprintf("<@!%s> Mint NFT successfully. The correspending transaction hash is %v", msgSource.userDodoSourceId, resp.Hash)
+		msg = fmt.Sprintf("<@!%s> 铸造成功。 交易hash为 %v", msgSource.userDodoSourceId, resp.Hash)
 		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	}
 }
@@ -182,7 +182,7 @@ func (d *DodoBotCommander) Bind(msgSource ChannelMsgSource, userAddress string) 
 		return err
 	}
 
-	msg := fmt.Sprintf("<@!%s> Success bind conflux address!\nTestnet\t%s\nMainnet\t%s\n", msgSource.userDodoSourceId, mainAddr, testAddr)
+	msg := fmt.Sprintf("<@!%s> 您已成功绑定 conflux 地址！\nTestnet\t%s\nMainnet\t%s\n", msgSource.userDodoSourceId, mainAddr, testAddr)
 	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 }
 
@@ -192,13 +192,13 @@ func (d *DodoBotCommander) GetAddress(msgSource ChannelMsgSource) error {
 		return err
 	}
 
-	msg := fmt.Sprintf("<@!%s>\nTestnet\t%s\nMainnet\t%s\n", msgSource.userDodoSourceId, mainAddr, testAddr)
+	msg := fmt.Sprintf("<@!%s> 您的地址:\nTestnet\t%s\nMainnet\t%s\n", msgSource.userDodoSourceId, mainAddr, testAddr)
 	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 }
 
 func (d *DodoBotCommander) GetTutorial(msgSource ChannelMsgSource) error {
-	msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, guide)
-	return d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, msg)
+	// msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, guide)
+	return d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, guide)
 }
 
 func (d *DodoBotCommander) GetAllCommands(msgSource ChannelMsgSource, language string) error {
@@ -215,16 +215,18 @@ func (d *DodoBotCommander) CreateAccount(msgSource ChannelMsgSource) error {
 	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 }
 
-func (d *DodoBotCommander) GetVerbalSecret(msgSource ChannelMsgSource, activityId string) error {
-	config, err := models.FindActivityByCode(activityId)
+func (d *DodoBotCommander) GetVerbalSecret(msgSource ChannelMsgSource, activityCode string) error {
+	config, err := models.FindActivityByCode(activityCode)
 	if err != nil {
 		return err
 	}
 	if config.Command == "" {
-		msg := fmt.Sprintf("<@!%s> The command is not needed in this activity", msgSource.userDodoSourceId)
+		msg := fmt.Sprintf("<@!%s> %s 不需要口令码", msgSource.userDodoSourceId, activityCode)
 		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	}
-	return d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, config.Command)
+
+	msg := fmt.Sprintf("活动 %s 的口令码是 %s", activityCode, config.Command)
+	return d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, msg)
 	// return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, config.Command, msgSource.messageId)
 }
 

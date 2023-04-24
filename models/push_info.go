@@ -1,5 +1,7 @@
 package models
 
+import "github.com/pkg/errors"
+
 type PushInfo struct {
 	BaseModel
 	BotServerID uint      `json:"bot_server_id"`
@@ -21,9 +23,10 @@ func (p *PushInfo) LoadActivity() error {
 	return nil
 }
 
-// func IsPushInfoExists(activityId uint, channelId string) (bool, err) {
-// 	FindPushInfos(PushInfo{})
-// }
+func IsPushInfoExists(activityId uint, channelId string) (bool, error) {
+	pushInfos, err := FindPushInfos(PushInfo{ActivityId: activityId, ChannelId: channelId})
+	return len(pushInfos) > 0, errors.WithStack(err)
+}
 
 func LoadPushInfosActivity(pushInfos ...*PushInfo) error {
 	for _, p := range pushInfos {

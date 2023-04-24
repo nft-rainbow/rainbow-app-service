@@ -147,14 +147,18 @@ func (d *BotServerService) GetBotServer(userId uint, serverId uint) (*models.Bot
 }
 
 func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq PushInfoReq) (*models.PushInfo, error) {
-	// check server belongs to user
 	botServer, err := VerifyServerBelongsToUser(userId, serverId)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(botServer.PushInfos) > 0 {
-		return nil, errors.New("already exist")
+	exists, err := models.IsPushInfoExists(pushInfoReq.ActivityID, pushInfoReq.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if exists {
+		return nil, errors.New("the channel has configured the activity")
 	}
 
 	var activity models.Activity
@@ -167,6 +171,7 @@ func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq P
 		return nil, err
 	}
 	pushInfo.BotServerID = botServer.ID
+	pushInfo.Activity = &activity
 
 	if err := models.GetDB().Save(pushInfo).Error; err != nil {
 		return nil, errors.WithStack(err)
