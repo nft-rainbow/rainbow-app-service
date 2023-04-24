@@ -149,10 +149,10 @@ func FindActivitiesOfUserBotServers(rainbowUserId uint, cond *FindBotServerActiv
 
 	filters := fmt.Sprintf("b.rainbow_user_id=%v and b.social_tool=%v and c.contract_address!=\"\"", rainbowUserId, uint(*socialTool))
 	if cond.ActivityName != nil {
-		filters += fmt.Sprintf(" and a.name=%s", *cond.ActivityName)
+		filters += fmt.Sprintf(" and a.name=\"%s\"", *cond.ActivityName)
 	}
 	if cond.ContractAddress != nil {
-		filters += fmt.Sprintf(" and c.contract_address=%s", *cond.ContractAddress)
+		filters += fmt.Sprintf(" and c.contract_address=\"%s\"", *cond.ContractAddress)
 	}
 
 	fields := "b.rainbow_user_id,b.social_tool,b.raw_server_id,b.server_name,b.owner_social_id," +
