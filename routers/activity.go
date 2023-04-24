@@ -50,7 +50,7 @@ import (
 // @Failure     500      {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /poap/h5 [post]
 func poapMintByH5(c *gin.Context) {
-	var poapRequest *services.MintReq
+	var poapRequest services.MintReq
 	if err := c.ShouldBind(&poapRequest); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
@@ -60,7 +60,7 @@ func poapMintByH5(c *gin.Context) {
 		return
 	}
 
-	resp, err := activityService.HandlePOAPH5Mint(poapRequest)
+	resp, err := activityService.HandlePOAPH5Mint(&poapRequest)
 	ginutils.RenderResp(c, resp, err)
 }
 

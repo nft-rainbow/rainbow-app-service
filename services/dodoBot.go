@@ -27,7 +27,7 @@ const (
 			  "type": "section",
 			  "text": {
 				"type": "dodo-md",
-				"content": "{roles} {name}#{activity} 来了！\n在频道中发送【教程】，机器人将私信你领取教程"
+				"content": "{roles} {name}#{activity} 来了！\n在频道中发送【/教程】，机器人将私信你领取教程"
 			  }
 			},
 			{
@@ -227,6 +227,7 @@ func (d *DodoBot) dodoChannelMsgHandler(event *websocket.WSEventMessage, data *w
 	logrus.WithField("command", messageBody.Content).Info("got command")
 
 	channelMsgSource := ChannelMsgSource{
+		serverId:         data.IslandSourceId,
 		channelId:        data.ChannelId,
 		userDodoSourceId: data.DodoSourceId,
 		messageId:        data.MessageId,

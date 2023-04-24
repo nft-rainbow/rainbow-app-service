@@ -60,7 +60,7 @@ type (
 		MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
 		WhiteListInfos         []WhiteListInfo `json:"white_list_infos"`
 		NFTConfigs             []NFTConfig     `json:"nft_configs"`
-		MetadataUri            string          `gorm:"type:string" json:"metadata_uri"`
+		MetadataUri            string          `gorm:"type:string" json:"metadata_uri"` //与contract base_uri 的区别：base_uri需拼接tokenid后缀；
 		ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
 		ContractRawID          *int32          `gorm:"type:string" json:"contract_id"`
 	}
@@ -81,57 +81,57 @@ type (
 	}
 )
 
-func (p *Activity) NeedCommand() bool {
-	return p.Command == ""
+func (a *Activity) NeedCommand() bool {
+	return a.Command == ""
 }
 
-func (p *Activity) LoadBindedContract() error {
-	if p.ContractRawID == nil {
+func (a *Activity) LoadBindedContract() error {
+	if a.ContractRawID == nil {
 		return nil
 	}
 
-	err := GetDB().Model(&Contract{}).Where("contract_raw_id=?", p.ContractRawID).First(&p.Contract).Error
+	err := GetDB().Model(&Contract{}).Where("contract_raw_id=?", a.ContractRawID).First(&a.Contract).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *Activity) IsContractBinded() bool {
-	return p.ContractRawID != nil
+func (a *Activity) IsContractBinded() bool {
+	return a.ContractRawID != nil
 }
 
 // check if mintable by user
-func (p *Activity) VerifyMintable() error {
-	if !p.IsContractBinded() {
+func (a *Activity) VerifyMintable() error {
+	if !a.IsContractBinded() {
 		return errors.New("not bind contract")
 	}
 	// FIXME: 设置了地址白名单后，只能空投，不能页面领; v2会变更逻辑
-	if len(p.WhiteListInfos) != 0 {
+	if len(a.WhiteListInfos) != 0 {
 		return errors.New("the activity has opened the white list, could not mint by user")
 	}
 
-	if p.StartedTime != -1 && time.Now().Unix() < p.StartedTime {
+	if a.StartedTime != -1 && time.Now().Unix() < a.StartedTime {
 		return errors.New("the activity has not been started")
 	}
 
-	if p.EndedTime != -1 && time.Now().Unix() > p.EndedTime {
+	if a.EndedTime != -1 && time.Now().Unix() > a.EndedTime {
 		return errors.New("the activity has been expired")
 	}
 
-	switch p.ActivityType {
+	switch a.ActivityType {
 	case utils.BLIND_BOX:
-		if len(p.NFTConfigs) == 0 {
+		if len(a.NFTConfigs) == 0 {
 			return errors.New("missing nft configs for blind box activity")
 		}
 	}
 
-	if p.Amount != -1 {
-		resp, err := CountPOAPResult(p.ActivityCode)
+	if a.Amount != -1 {
+		resp, err := CountPOAPResult(a.ActivityCode)
 		if err != nil {
 			return err
 		}
-		if int32(resp) >= p.Amount {
+		if int32(resp) >= a.Amount {
 			return errors.New("the mint amount has exceeded the limit")
 		}
 	}

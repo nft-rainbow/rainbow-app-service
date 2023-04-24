@@ -44,6 +44,7 @@ type (
 	}
 
 	ChannelMsgSource struct {
+		serverId         string
 		channelId        string
 		userDodoSourceId string
 		messageId        string

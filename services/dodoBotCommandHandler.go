@@ -26,14 +26,6 @@ type CommandRequest struct {
 	args []string
 }
 
-// func (c *CommandRequest) GetChannelMsgSource() *ChannelMsgSource {
-// 	return &ChannelMsgSource{
-// 		channelId:        c.channelId,
-// 		userDodoSourceId: c.userDodoSourceId,
-// 		messageId:        c.rawMsg.MessageId,
-// 	}
-// }
-
 const (
 	allCommandsZh = "\n" +
 		"/帮助\t查所有指令\n" +
@@ -110,6 +102,7 @@ func (d *DodoBotCommander) ExcuteCommand(msgSource ChannelMsgSource, command str
 			d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 		}
 	}()
+
 	methodAndArgs := strings.Split(command, "/")
 	if len(methodAndArgs) == 1 {
 		return nil
@@ -205,7 +198,7 @@ func (d *DodoBotCommander) GetAddress(msgSource ChannelMsgSource) error {
 
 func (d *DodoBotCommander) GetTutorial(msgSource ChannelMsgSource) error {
 	msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, guide)
-	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+	return d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, msg)
 }
 
 func (d *DodoBotCommander) GetAllCommands(msgSource ChannelMsgSource, language string) error {
@@ -231,7 +224,8 @@ func (d *DodoBotCommander) GetVerbalSecret(msgSource ChannelMsgSource, activityI
 		msg := fmt.Sprintf("<@!%s> The command is not needed in this activity", msgSource.userDodoSourceId)
 		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	}
-	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, config.Command, msgSource.messageId)
+	return d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, config.Command)
+	// return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, config.Command, msgSource.messageId)
 }
 
 func customNotFoundError(err error, msgOfNotFound string) error {

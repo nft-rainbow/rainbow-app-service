@@ -159,7 +159,7 @@ func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq P
 
 	var activity models.Activity
 	if err := models.GetDB().Model(&models.Activity{}).Where("id=?", pushInfoReq.ActivityID).First(&activity).Error; err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	pushInfo, err := pushInfoReq.ToModel(false)
@@ -169,15 +169,15 @@ func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq P
 	pushInfo.BotServerID = botServer.ID
 
 	if err := models.GetDB().Save(pushInfo).Error; err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	return pushInfo, nil
 }
 
 // send message to channel
 func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
-	var pushInfo models.PushInfo
-	if err := models.GetDB().Where("id=?", pushInfoId).First(&pushInfo).Error; err != nil {
+	pushInfo, err := models.FindPushInfoById(pushInfoId)
+	if err != nil {
 		return err
 	}
 
@@ -187,16 +187,11 @@ func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
 		return err
 	}
 
-	activity, err := pushInfo.GetActivity()
-	if err != nil {
-		return err
-	}
-
 	return d.mustGetBot(botServer.SocialTool).Push(
 		pushInfo.ChannelId,
 		strings.Split(pushInfo.Roles, ","),
-		activity.AppName,
-		activity.ActivityCode,
+		pushInfo.Activity.AppName,
+		pushInfo.Activity.ActivityCode,
 		pushInfo.Content,
 		pushInfo.ColorTheme)
 }
@@ -241,7 +236,7 @@ func (d *BotServerService) GetServerAuthCodeKey(socialTool enums.SocialToolType,
 func VerifyServerBelongsToUser(userId uint, serverId uint) (*models.BotServer, error) {
 	botServer, err := models.FindBotServerById(serverId)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	if botServer.RainbowUserId != userId {
 		return nil, errors.New("server not belongs to user")

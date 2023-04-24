@@ -26,7 +26,7 @@ type BotServer struct {
 	RawServerId   string               `gorm:"index" json:"raw_server_id" binding:"required"`
 	ServerName    string               `json:"server_name"`
 	OwnerSocialId string               `json:"owner_social_id" binding:"required"`
-	PushInfos     []PushInfo           `gorm:"-" json:"push_infos"`
+	PushInfos     []*PushInfo          `gorm:"-" json:"push_infos"`
 }
 
 type (
@@ -63,7 +63,13 @@ type (
 )
 
 func (b *BotServer) LoadPushInfos() error {
-	return GetDB().Model(&PushInfo{}).Where("bot_server_id=?", b.ID).Find(&b.PushInfos).Error
+	// return GetDB().Model(&PushInfo{}).Where("bot_server_id=?", b.ID).Find(&b.PushInfos).Error
+	pushInfos, err := FindPushInfos(PushInfo{BotServerID: b.ID})
+	if err != nil {
+		return err
+	}
+	b.PushInfos = pushInfos
+	return nil
 }
 
 func CompleteBotServers(bs ...*BotServer) error {

@@ -2,27 +2,45 @@ package models
 
 type PushInfo struct {
 	BaseModel
-	BotServerID uint   `json:"bot_server_id"`
-	ActivityId  uint   `gorm:"unique_index:idx_member" json:"activity_id"`
-	ChannelId   string `gorm:"unique_index:idx_member;type:varchar(255)" json:"channel_id"`
-	Roles       string `gorm:"type:string" json:"roles"`
-	Content     string `gorm:"type:string" json:"content"`
-	ColorTheme  string `gorm:"type:string" json:"color_theme"`
+	BotServerID uint      `json:"bot_server_id"`
+	ChannelId   string    `gorm:"unique_index:idx_member;type:varchar(255)" json:"channel_id"`
+	Roles       string    `gorm:"type:string" json:"roles"`
+	Content     string    `gorm:"type:string" json:"content"`
+	ColorTheme  string    `gorm:"type:string" json:"color_theme"`
+	ActivityId  uint      `gorm:"unique_index:idx_member" json:"activity_id"`
+	Activity    *Activity `gorm:"-" json:"activity"`
 }
 
-func (p *PushInfo) GetActivity() (*Activity, error) {
+func (p *PushInfo) LoadActivity() error {
 	var activity Activity
 	activity.ID = p.ActivityId
 	if err := GetDB().Where(&activity).First(&activity).Error; err != nil {
-		return nil, err
+		return err
 	}
-	return &activity, nil
+	p.Activity = &activity
+	return nil
+}
+
+// func IsPushInfoExists(activityId uint, channelId string) (bool, err) {
+// 	FindPushInfos(PushInfo{})
+// }
+
+func LoadPushInfosActivity(pushInfos ...*PushInfo) error {
+	for _, p := range pushInfos {
+		if err := p.LoadActivity(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func FindPushInfoById(id uint) (*PushInfo, error) {
 	var pushInfo PushInfo
 	pushInfo.ID = id
 	if err := GetDB().Where(&pushInfo).First(&pushInfo).Error; err != nil {
+		return nil, err
+	}
+	if err := pushInfo.LoadActivity(); err != nil {
 		return nil, err
 	}
 	return &pushInfo, nil
@@ -32,7 +50,23 @@ func FindPushInfo(cond PushInfo) (*PushInfo, error) {
 	if err := GetDB().Where(&cond).First(&cond).Error; err != nil {
 		return nil, err
 	}
+	if err := cond.LoadActivity(); err != nil {
+		return nil, err
+	}
 	return &cond, nil
+}
+
+func FindPushInfos(cond PushInfo) ([]*PushInfo, error) {
+	var result []*PushInfo
+	if err := GetDB().Where(&cond).Find(&result).Error; err != nil {
+		return nil, err
+	}
+
+	if err := LoadPushInfosActivity(result...); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // type PushInfo struct {
