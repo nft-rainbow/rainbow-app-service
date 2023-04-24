@@ -192,13 +192,18 @@ func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
 		return err
 	}
 
-	return d.mustGetBot(botServer.SocialTool).Push(
+	if err := d.mustGetBot(botServer.SocialTool).Push(
 		pushInfo.ChannelId,
 		strings.Split(pushInfo.Roles, ","),
 		pushInfo.Activity.AppName,
 		pushInfo.Activity.ActivityCode,
 		pushInfo.Content,
-		pushInfo.ColorTheme)
+		pushInfo.ColorTheme); err != nil {
+		return err
+	}
+
+	pushInfo.LastPushTime = time.Now().Unix()
+	return models.GetDB().Save(pushInfo).Error
 }
 
 func (d *BotServerService) UpdatePushInfo(userId uint, serverId uint, pushInfoReq PushInfoReq) (*models.PushInfo, error) {

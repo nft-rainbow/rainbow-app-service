@@ -23,17 +23,17 @@ const (
 	CONTRACT_TYPE_ERC1155
 )
 
-const (
-	BLIND_BOX = iota + 1
-	SINGLE
-	POAP
-	CHANGANDAO
-)
+// const (
+// 	BLIND_BOX = iota + 1
+// 	SINGLE
+// 	POAP
+// 	CHANGANDAO
+// )
 
-const (
-	Discord = iota + 1
-	DoDo
-)
+// const (
+// 	Discord = iota + 1
+// 	DoDo
+// )
 
 // contract type names
 const ERC721 = "erc721"

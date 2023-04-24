@@ -33,41 +33,26 @@ func init() {
 	}
 }
 
-// func (t SocialToolType) MarshalJSON() ([]byte, error) {
-// 	return json.Marshal(t.String())
-// }
-
-func (t SocialToolType) String() string {
-	v, ok := socialTypeValue2StrMap[t]
+func (s SocialToolType) String() string {
+	v, ok := socialTypeValue2StrMap[s]
 	if ok {
 		return v
 	}
 	return "unkown"
 }
 
-func (t *SocialToolType) UnmarshalText(data []byte) error {
+func (s SocialToolType) MarshalText() ([]byte, error) {
+	return []byte(s.String()), nil
+}
+
+func (s *SocialToolType) UnmarshalText(data []byte) error {
 	v, ok := socialTypeStr2ValueMap[string(data)]
 	if ok {
-		*t = v
+		*s = v
 		return nil
 	}
 	return fmt.Errorf("unknown social tool type %v", string(data))
 }
-
-// func (t *SocialToolType) UnmarshalJSON(data []byte) error {
-// 	var str string
-// 	if err := json.Unmarshal(data, &str); err != nil {
-// 		return err
-// 	}
-
-// 	val, ok := ParseSocialToolType(str)
-// 	if !ok {
-// 		return errors.New("unkown social_tool_type")
-// 	}
-// 	*t = *val
-
-// 	return nil
-// }
 
 func ParseSocialToolType(str string) (*SocialToolType, error) {
 	v, ok := socialTypeStr2ValueMap[str]

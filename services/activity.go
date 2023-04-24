@@ -14,6 +14,7 @@ import (
 	"github.com/mcuadros/go-defaults"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/pkg/errors"
@@ -269,20 +270,20 @@ func (a *ActivityService) HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, er
 	var nextTokenId uint64
 	var index int
 	if req.ActivityID == viper.GetString("changAnDao.activityId") {
-		config.ActivityType = uint(utils.CHANGANDAO)
+		config.ActivityType = enums.ACTIVITY_SINGLE_ID_ORDER
 	} // TMP code
 
 	switch config.ActivityType {
-	case utils.CHANGANDAO:
+	case enums.ACTIVITY_SINGLE_ID_ORDER:
 		nextTokenId = GetChangAnDaoNum() + 1
 		metaUri := utils.ChangAnDaoMetadataUriFromId(nextTokenId)
 		metadataURI = &metaUri
-	case utils.SINGLE:
+	case enums.ACTIVITY_SINGLE:
 		metadataURI, err = createMetadata(config, token, 0)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-	case utils.BLIND_BOX:
+	case enums.ACTIVITY_BLINDBOX:
 		probabilities := make([]float32, 0)
 		for i := 0; i < len(config.NFTConfigs); i++ {
 			probabilities = append(probabilities, config.NFTConfigs[i].Probability)

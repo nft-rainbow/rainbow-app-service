@@ -1,16 +1,19 @@
 package models
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 type PushInfo struct {
 	BaseModel
-	BotServerID uint      `json:"bot_server_id"`
-	ChannelId   string    `gorm:"unique_index:idx_member;type:varchar(255)" json:"channel_id"`
-	Roles       string    `gorm:"type:string" json:"roles"`
-	Content     string    `gorm:"type:string" json:"content"`
-	ColorTheme  string    `gorm:"type:string" json:"color_theme"`
-	ActivityId  uint      `gorm:"unique_index:idx_member" json:"activity_id"`
-	Activity    *Activity `gorm:"-" json:"activity"`
+	BotServerID  uint      `json:"bot_server_id"`
+	ChannelId    string    `gorm:"unique_index:idx_member;type:varchar(255)" json:"channel_id"`
+	Roles        string    `gorm:"type:string" json:"roles"`
+	Content      string    `gorm:"type:string" json:"content"`
+	ColorTheme   string    `gorm:"type:string" json:"color_theme"`
+	LastPushTime int64     `json:"last_push_time"`
+	ActivityId   uint      `gorm:"unique_index:idx_member" json:"activity_id"`
+	Activity     *Activity `gorm:"-" json:"activity"`
 }
 
 func (p *PushInfo) LoadActivity() error {

@@ -37,23 +37,29 @@ type (
 		ContractAddress *string `form:"contract_address" swaggerignore:"true"`
 	}
 
-	PlattenBotServerActivity struct {
-		RainbowUserId   uint                 `gorm:"type:integer" json:"rainbow_user_id"`
+	FlattenBotServerActivity struct {
+		RainbowUserId   uint                 `json:"rainbow_user_id"`
 		SocialTool      enums.SocialToolType `json:"social_tool"`
 		RawServerId     string               `json:"raw_server_id"`
+		ServerName      string               `json:"server_name"`
 		OwnerSocialId   string               `json:"owner_social_id"`
-		ActivityId      uint                 `gorm:"index:idx_member" json:"activity_id"`
-		ChannelId       string               `gorm:"index:idx_member" json:"channel_id"`
-		Name            string               `gorm:"type:string" json:"name" binding:"required"`
-		EndedTime       int64                `gorm:"type:integer" json:"end_time" default:"-1"`
-		StartedTime     int64                `gorm:"type:integer" json:"start_time" default:"-1"`
-		ContractRawID   *int32               `gorm:"type:string" json:"contract_id"`
-		ContractAddress string               `form:"contract_address"`
+		ActivityCode    string               `json:"activity_id"`
+		ActivityType    enums.ActivityType   `json:"activity_type"`
+		Name            string               `json:"name" binding:"required"`
+		EndedTime       int64                `json:"end_time" default:"-1"`
+		StartedTime     int64                `json:"start_time" default:"-1"`
+		ContractRawID   *int32               `json:"contract_id"`
+		ContractAddress string               `json:"contract_address"`
+		ChainId         uint                 `json:"chain_id"`
+		ChainType       int32                `json:"chain_type"`
+		PushInfoId      uint                 `json:"push_info_id"`
+		ChannelId       string               `json:"channel_id"`
+		LastPushTime    int64                `json:"last_push_time"`
 	}
 
 	FindBotServerActivitiesResult struct {
 		Count int64                       `json:"count"`
-		Items []*PlattenBotServerActivity `json:"items"`
+		Items []*FlattenBotServerActivity `json:"items"`
 	}
 
 	FindBotServersResult struct {
@@ -149,15 +155,23 @@ func FindActivitiesOfUserBotServers(rainbowUserId uint, cond *FindBotServerActiv
 		filters += fmt.Sprintf(" and c.contract_address=%s", *cond.ContractAddress)
 	}
 
-	fields := "b.rainbow_user_id,b.social_tool,b.raw_server_id,b.owner_social_id,p.activity_id,p.channel_id,a.name,a.ended_time,a.started_time,c.contract_raw_id,c.contract_address"
-	joins := "bot_servers as b left join push_infos as p on b.id=p.bot_server_id left join activities as a on p.activity_id=a.id left join contracts as c on a.contract_raw_id=c.contract_raw_id"
+	fields := "b.rainbow_user_id,b.social_tool,b.raw_server_id,b.server_name,b.owner_social_id," +
+		"a.activity_code,a.activity_type," +
+		"a.name,a.ended_time,a.started_time," +
+		"c.contract_raw_id,c.contract_address,c.chain_id,c.chain_type," +
+		"p.id as push_info_id,p.channel_id,p.last_push_time"
 
-	itemsSql := fmt.Sprintf("select %s from  %s  where %s order by p.id desc limit %v,%v", fields, joins, filters, (cond.Page-1)*cond.Limit, cond.Limit)
+	joins := "bot_servers as b " +
+		"left join push_infos as p on b.id=p.bot_server_id " +
+		"left join activities as a on p.activity_id=a.id " +
+		"left join contracts as c on a.contract_raw_id=c.contract_raw_id"
+
+	itemsSql := fmt.Sprintf("select %s from  %s  where %s order by p.id desc limit %v,%v", fields, joins, filters, cond.Offset(), cond.Limit)
 	countSql := fmt.Sprintf("select %s from  %s  where %s order by p.id desc", "count(*)", joins, filters)
 
 	var result FindBotServerActivitiesResult
 
-	if err := db.Raw(itemsSql).Scan(&result.Items).Error; err != nil {
+	if err := db.Debug().Raw(itemsSql).Scan(&result.Items).Error; err != nil {
 		return nil, err
 	}
 

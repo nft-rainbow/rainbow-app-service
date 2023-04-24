@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/mcuadros/go-defaults"
-	"github.com/nft-rainbow/rainbow-app-service/utils"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 )
 
 type (
@@ -66,9 +66,9 @@ type (
 	}
 	ActivityReq struct {
 		UpdateActivityReq
-		AppId        uint   `gorm:"index" json:"app_id" binding:"required"`
-		AppName      string `gorm:"string" json:"app_name"`
-		ActivityType uint   `gorm:"type:uint" json:"activity_type" binding:"required"`
+		AppId        uint               `gorm:"index" json:"app_id" binding:"required"`
+		AppName      string             `gorm:"string" json:"app_name"`
+		ActivityType enums.ActivityType `gorm:"type:uint" json:"activity_type" binding:"required"`
 	}
 
 	Activity struct {
@@ -120,7 +120,7 @@ func (a *Activity) VerifyMintable() error {
 	}
 
 	switch a.ActivityType {
-	case utils.BLIND_BOX:
+	case enums.ACTIVITY_BLINDBOX:
 		if len(a.NFTConfigs) == 0 {
 			return errors.New("missing nft configs for blind box activity")
 		}

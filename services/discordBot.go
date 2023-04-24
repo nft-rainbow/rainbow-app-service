@@ -8,7 +8,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
-	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -121,7 +120,7 @@ var (
 					Content: fmt.Sprintf("%v Start to mint using custom-mint model. Please wait patiently.", i.Interaction.Member.User.Mention()),
 				},
 			})
-			bind, err := models.FindSocialUserConfig(i.Interaction.Member.User.ID, utils.Discord)
+			bind, err := models.FindSocialUserConfig(i.Interaction.Member.User.ID, enums.SOCIAL_TOOL_DISCORD)
 			if err != nil {
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 					Embeds: failMessageEmbed(err.Error()),
