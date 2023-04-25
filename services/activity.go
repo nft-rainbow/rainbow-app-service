@@ -56,7 +56,7 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId
 		return nil, err
 	}
 
-	config := models.Activity{
+	activity := models.Activity{
 		ActivityReq:       *activityReq,
 		RainbowUserId:     userId,
 		ActivityCode:      activityId,
@@ -69,15 +69,15 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId
 		}
 	}
 
-	res := models.GetDB().Create(&config)
+	res := models.GetDB().Create(&activity)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 
-	if err := config.LoadBindedContract(); err != nil {
+	if err := activity.LoadBindedContract(); err != nil {
 		return nil, err
 	}
-	return &config, nil
+	return &activity, nil
 }
 
 func (a *ActivityService) POAPH5Config(config *models.H5Config) (*models.H5Config, error) {
@@ -116,139 +116,167 @@ func (a *ActivityService) UpdateOrCreateContract(userId uint, appId uint, contra
 }
 
 func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateActivityReq) (*models.Activity, error) {
-	oldConfig, err := models.FindActivityByCode(activityId)
+	activity, err := models.FindActivityByCode(activityId)
 	if err != nil {
 		return nil, err
 	}
 
 	if req.ContractRawID != nil {
-		if oldConfig.ContractRawID == nil || uint(*req.ContractRawID) != uint(*oldConfig.ContractRawID) {
-			if err := a.UpdateOrCreateContract(oldConfig.RainbowUserId, oldConfig.AppId, uint(*req.ContractRawID)); err != nil {
-				return nil, err
-			}
-			oldConfig.ContractRawID = req.ContractRawID
-		}
-	}
-
-	// Create a map of oldConfig.NFTConfigs for fast searching
-	oldNFTConfigsMap := make(map[uint]*models.NFTConfig)
-	newNFTConfigsMap := make(map[uint]*models.NFTConfig)
-
-	for i, nftConfig := range oldConfig.NFTConfigs {
-		oldNFTConfigsMap[nftConfig.ID] = &oldConfig.NFTConfigs[i]
-	}
-
-	for i, nftConfig := range req.NFTConfigs {
-		if nftConfig.ID != 0 {
-			newNFTConfigsMap[nftConfig.ID] = &req.NFTConfigs[i]
-		}
-	}
-
-	// Update NFTConfigs
-	for _, newNFTConfig := range req.NFTConfigs {
-		if oldNFTConfig, ok := oldNFTConfigsMap[newNFTConfig.ID]; ok {
-			// Update existing NFTConfig
-			oldNFTConfig.Probability = newNFTConfig.Probability
-			oldNFTConfig.Name = newNFTConfig.Name
-			oldNFTConfig.ImageURL = newNFTConfig.ImageURL
-
-			// Update MetadataAttributes
-			oldMetadataAttributesMap := make(map[uint]*models.MetadataAttribute)
-			newMetadataAttributesMap := make(map[uint]*models.MetadataAttribute)
-
-			for j, metadataAttribute := range oldNFTConfig.MetadataAttributes {
-				oldMetadataAttributesMap[metadataAttribute.ID] = oldNFTConfig.MetadataAttributes[j]
-			}
-			for j, metadataAttribute := range newNFTConfig.MetadataAttributes {
-				if metadataAttribute.ID != 0 {
-					newMetadataAttributesMap[metadataAttribute.ID] = newNFTConfig.MetadataAttributes[j]
-				}
-			}
-
-			if len(newNFTConfig.MetadataAttributes) > 0 {
-				for _, newMetadataAttribute := range newNFTConfig.MetadataAttributes {
-					if oldMetadataAttribute, ok := oldMetadataAttributesMap[newMetadataAttribute.ID]; ok {
-						// Update existing MetadataAttribute
-						oldMetadataAttribute.TraitType = newMetadataAttribute.TraitType
-						oldMetadataAttribute.Value = newMetadataAttribute.Value
-						oldMetadataAttribute.DisplayType = newMetadataAttribute.DisplayType
-						models.GetDB().Save(&oldMetadataAttribute)
-					} else {
-						// Create new MetadataAttribute
-						newMetadataAttribute.NFTConfigID = newNFTConfig.ID
-						oldNFTConfig.MetadataAttributes = append(oldNFTConfig.MetadataAttributes, newMetadataAttribute)
-					}
-				}
-				for j := len(oldNFTConfig.MetadataAttributes) - 1; j >= 0; j-- {
-					if oldNFTConfig.MetadataAttributes[j].ID == 0 {
-						models.GetDB().Save(&oldNFTConfig.MetadataAttributes[j])
-						continue
-					}
-					if _, ok := newMetadataAttributesMap[oldNFTConfig.MetadataAttributes[j].ID]; !ok {
-						// Delete MetadataAttribute
-						models.GetDB().Delete(&oldNFTConfig.MetadataAttributes[j])
-						oldNFTConfig.MetadataAttributes = append(oldNFTConfig.MetadataAttributes[:j], oldNFTConfig.MetadataAttributes[j+1:]...)
-					}
-				}
-			} else {
-				for j, attribute := range oldNFTConfig.MetadataAttributes {
-					models.GetDB().Delete(&attribute)
-					oldNFTConfig.MetadataAttributes = append(oldNFTConfig.MetadataAttributes[:j], oldNFTConfig.MetadataAttributes[j+1:]...)
-				}
-			}
-			models.GetDB().Save(&oldNFTConfig)
-		} else {
-			// Create new NFTConfig
-			newNFTConfig.ActivityID = oldConfig.ID
-			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs, newNFTConfig)
-		}
-	}
-
-	// Delete NFTConfigs
-	for i := len(oldConfig.NFTConfigs) - 1; i >= 0; i-- {
-		if oldConfig.NFTConfigs[i].ID == 0 {
-			models.GetDB().Save(&oldConfig.NFTConfigs[i])
-			continue
-		}
-		if _, ok := newNFTConfigsMap[oldConfig.NFTConfigs[i].ID]; !ok {
-			// Delete NFTConfig
-			models.GetDB().Delete(&oldConfig.NFTConfigs[i])
-			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs[:i], oldConfig.NFTConfigs[i+1:]...)
-		}
-	}
-
-	// oldConfig.AppName = req.AppName
-	oldConfig.MaxMintCount = req.MaxMintCount
-	oldConfig.Command = req.Command
-	oldConfig.StartedTime = req.StartedTime
-	oldConfig.EndedTime = req.EndedTime
-	oldConfig.Amount = req.Amount
-	oldConfig.Name = req.Name
-	oldConfig.Description = req.Description
-	if len(req.WhiteListInfos) != 0 {
-		models.GetDB().Delete(&oldConfig.WhiteListInfos)
-	}
-	oldConfig.WhiteListInfos = req.WhiteListInfos
-
-	if oldConfig.ActivityPictureURL != req.ActivityPictureURL {
-		oldConfig.ActivityPictureURL = req.ActivityPictureURL
-		posterUrl, err := generateActivityPoster(req, activityId)
-		if err != nil {
-			logrus.Errorf("Failed to generate poster for activity %v:%v \n", activityId, err.Error())
+		if err := a.UpdateOrCreateContract(activity.RainbowUserId, activity.AppId, uint(*req.ContractRawID)); err != nil {
 			return nil, err
 		}
-		oldConfig.ActivityPosterURL = posterUrl
+		activity.ContractRawID = req.ContractRawID
 	}
 
-	if err := models.GetDB().Save(&oldConfig).Error; err != nil {
+	for _, nftConfig := range req.NFTConfigs {
+		nftConfig.ActivityID = activity.ID
+	}
+
+	activity.UpdateActivityReq = *req
+	if err := models.GetDB().Session(&gorm.Session{FullSaveAssociations: true}).Updates(&activity).Error; err != nil {
 		return nil, err
 	}
 
-	if err := oldConfig.LoadBindedContract(); err != nil {
+	if err := activity.LoadBindedContract(); err != nil {
 		return nil, err
 	}
-	return oldConfig, nil
+	return activity, nil
 }
+
+// func (a *ActivityService) UpdateActivity2(activityId string, req *models.UpdateActivityReq) (*models.Activity, error) {
+// 	oldConfig, err := models.FindActivityByCode(activityId)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	if req.ContractRawID != nil {
+// 		if oldConfig.ContractRawID == nil || uint(*req.ContractRawID) != uint(*oldConfig.ContractRawID) {
+// 			if err := a.UpdateOrCreateContract(oldConfig.RainbowUserId, oldConfig.AppId, uint(*req.ContractRawID)); err != nil {
+// 				return nil, err
+// 			}
+// 			oldConfig.ContractRawID = req.ContractRawID
+// 		}
+// 	}
+
+// 	// Create a map of oldConfig.NFTConfigs for fast searching
+// 	oldNFTConfigsMap := make(map[uint]*models.NFTConfig)
+// 	newNFTConfigsMap := make(map[uint]*models.NFTConfig)
+
+// 	for i, nftConfig := range oldConfig.NFTConfigs {
+// 		oldNFTConfigsMap[nftConfig.ID] = &oldConfig.NFTConfigs[i]
+// 	}
+
+// 	for i, nftConfig := range req.NFTConfigs {
+// 		if nftConfig.ID != 0 {
+// 			newNFTConfigsMap[nftConfig.ID] = &req.NFTConfigs[i]
+// 		}
+// 	}
+
+// 	// Update NFTConfigs
+// 	for _, newNFTConfig := range req.NFTConfigs {
+// 		if oldNFTConfig, ok := oldNFTConfigsMap[newNFTConfig.ID]; ok {
+// 			// Update existing NFTConfig
+// 			oldNFTConfig.Probability = newNFTConfig.Probability
+// 			oldNFTConfig.Name = newNFTConfig.Name
+// 			oldNFTConfig.ImageURL = newNFTConfig.ImageURL
+
+// 			// Update MetadataAttributes
+// 			oldMetadataAttributesMap := make(map[uint]*models.MetadataAttribute)
+// 			newMetadataAttributesMap := make(map[uint]*models.MetadataAttribute)
+
+// 			for j, metadataAttribute := range oldNFTConfig.MetadataAttributes {
+// 				oldMetadataAttributesMap[metadataAttribute.ID] = oldNFTConfig.MetadataAttributes[j]
+// 			}
+// 			for j, metadataAttribute := range newNFTConfig.MetadataAttributes {
+// 				if metadataAttribute.ID != 0 {
+// 					newMetadataAttributesMap[metadataAttribute.ID] = newNFTConfig.MetadataAttributes[j]
+// 				}
+// 			}
+
+// 			if len(newNFTConfig.MetadataAttributes) > 0 {
+// 				for _, newMetadataAttribute := range newNFTConfig.MetadataAttributes {
+// 					if oldMetadataAttribute, ok := oldMetadataAttributesMap[newMetadataAttribute.ID]; ok {
+// 						// Update existing MetadataAttribute
+// 						oldMetadataAttribute.TraitType = newMetadataAttribute.TraitType
+// 						oldMetadataAttribute.Value = newMetadataAttribute.Value
+// 						oldMetadataAttribute.DisplayType = newMetadataAttribute.DisplayType
+// 						models.GetDB().Save(&oldMetadataAttribute)
+// 					} else {
+// 						// Create new MetadataAttribute
+// 						newMetadataAttribute.NFTConfigID = newNFTConfig.ID
+// 						oldNFTConfig.MetadataAttributes = append(oldNFTConfig.MetadataAttributes, newMetadataAttribute)
+// 					}
+// 				}
+// 				for j := len(oldNFTConfig.MetadataAttributes) - 1; j >= 0; j-- {
+// 					if oldNFTConfig.MetadataAttributes[j].ID == 0 {
+// 						models.GetDB().Save(&oldNFTConfig.MetadataAttributes[j])
+// 						continue
+// 					}
+// 					if _, ok := newMetadataAttributesMap[oldNFTConfig.MetadataAttributes[j].ID]; !ok {
+// 						// Delete MetadataAttribute
+// 						models.GetDB().Delete(&oldNFTConfig.MetadataAttributes[j])
+// 						oldNFTConfig.MetadataAttributes = append(oldNFTConfig.MetadataAttributes[:j], oldNFTConfig.MetadataAttributes[j+1:]...)
+// 					}
+// 				}
+// 			} else {
+// 				for j, attribute := range oldNFTConfig.MetadataAttributes {
+// 					models.GetDB().Delete(&attribute)
+// 					oldNFTConfig.MetadataAttributes = append(oldNFTConfig.MetadataAttributes[:j], oldNFTConfig.MetadataAttributes[j+1:]...)
+// 				}
+// 			}
+// 			models.GetDB().Save(&oldNFTConfig)
+// 		} else {
+// 			// Create new NFTConfig
+// 			newNFTConfig.ActivityID = oldConfig.ID
+// 			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs, newNFTConfig)
+// 		}
+// 	}
+
+// 	// Delete NFTConfigs
+// 	for i := len(oldConfig.NFTConfigs) - 1; i >= 0; i-- {
+// 		if oldConfig.NFTConfigs[i].ID == 0 {
+// 			models.GetDB().Save(&oldConfig.NFTConfigs[i])
+// 			continue
+// 		}
+// 		if _, ok := newNFTConfigsMap[oldConfig.NFTConfigs[i].ID]; !ok {
+// 			// Delete NFTConfig
+// 			models.GetDB().Delete(&oldConfig.NFTConfigs[i])
+// 			oldConfig.NFTConfigs = append(oldConfig.NFTConfigs[:i], oldConfig.NFTConfigs[i+1:]...)
+// 		}
+// 	}
+
+// 	// oldConfig.AppName = req.AppName
+// 	oldConfig.MaxMintCount = req.MaxMintCount
+// 	oldConfig.Command = req.Command
+// 	oldConfig.StartedTime = req.StartedTime
+// 	oldConfig.EndedTime = req.EndedTime
+// 	oldConfig.Amount = req.Amount
+// 	oldConfig.Name = req.Name
+// 	oldConfig.Description = req.Description
+// 	if len(req.WhiteListInfos) != 0 {
+// 		models.GetDB().Delete(&oldConfig.WhiteListInfos)
+// 	}
+// 	oldConfig.WhiteListInfos = req.WhiteListInfos
+
+// 	if oldConfig.ActivityPictureURL != req.ActivityPictureURL {
+// 		oldConfig.ActivityPictureURL = req.ActivityPictureURL
+// 		posterUrl, err := generateActivityPoster(req, activityId)
+// 		if err != nil {
+// 			logrus.Errorf("Failed to generate poster for activity %v:%v \n", activityId, err.Error())
+// 			return nil, err
+// 		}
+// 		oldConfig.ActivityPosterURL = posterUrl
+// 	}
+
+// 	if err := models.GetDB().Save(&oldConfig).Error; err != nil {
+// 		return nil, err
+// 	}
+
+// 	if err := oldConfig.LoadBindedContract(); err != nil {
+// 		return nil, err
+// 	}
+// 	return oldConfig, nil
+// }
 
 func (a *ActivityService) HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, error) {
 	config, err := models.FindActivityByCode(req.ActivityID)
