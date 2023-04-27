@@ -102,7 +102,7 @@ func newClient() *openapiclient.APIClient {
 	configuration.HTTPClient = http.DefaultClient
 	configuration.Servers = openapiclient.ServerConfigurations{
 		{
-			URL: viper.GetString("rainbowOpenApi") + "/v1",
+			URL: viper.GetString("rainbowOpenApi"),
 		},
 	}
 	apiClient := openapiclient.NewAPIClient(configuration)
