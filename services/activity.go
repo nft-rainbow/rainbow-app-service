@@ -303,7 +303,12 @@ func (a *ActivityService) HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, er
 
 	switch config.ActivityType {
 	case enums.ACTIVITY_SINGLE_ID_ORDER:
-		nextTokenId = GetChangAnDaoNum() + 1
+		// nextTokenId = GetChangAnDaoNum() + 1
+		profile, err := utils.GetContractProfile(config.Contract.ContractAddress, token)
+		if err != nil {
+			return nil, err
+		}
+		nextTokenId = uint64(*profile.MaxTokenId) + 1
 		metaUri := utils.ChangAnDaoMetadataUriFromId(nextTokenId)
 		metadataURI = &metaUri
 	case enums.ACTIVITY_SINGLE:

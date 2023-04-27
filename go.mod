@@ -120,3 +120,4 @@ require (
 )
 
 replace github.com/dodo-open/dodo-open-go v0.0.0-20220905103425-3e85ab616f11 => github.com/wangdayong228/dodo-open-go v0.0.0-20230403111334-1886ae4d6848
+replace github.com/nft-rainbow/rainbow-sdk-go v0.1.8 => ../rainbow-sdk-go

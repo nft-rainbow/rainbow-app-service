@@ -88,6 +88,15 @@ func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, err
 	return resp, nil
 }
 
+func GetContractProfile(address string, token string) (*openapiclient.ModelsContractRuntimeProfile, error) {
+	logrus.Info("Start to get contract profile")
+	resp, _, err := newClient().ContractApi.GetContractProfile(context.Background(), address).Authorization(token).Execute()
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func newClient() *openapiclient.APIClient {
 	configuration := openapiclient.NewConfiguration()
 	configuration.HTTPClient = http.DefaultClient
