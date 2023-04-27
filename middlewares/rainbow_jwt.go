@@ -218,45 +218,35 @@ func GenerateRainbowOpenJWT(userId, appId uint) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return tokenString, nil
+	return bearerToken(tokenString), nil
 }
 
-func PrefixToken(token string) string {
-	if strings.HasPrefix(token, "Bearer ") {
-		return token
-	}
-	return "Bearer " + token
-}
-
-func GenOpenJWTByRainbowUserId(rainbowUserId, appId uint) (string, error) {
-	kycType, err := getKycType(rainbowUserId)
-	if err != nil {
-		return "", err
-	}
-
-	data := &App{
-		Id:        uint(appId),
-		KycType:   kycType,
-		AppUserId: uint(rainbowUserId),
-	}
-
-	tokenString, _, err := OpenJwtAuthMiddleware.TokenGenerator(data)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
-func getKycType(userId uint) (uint, error) {
+func GenerateRainbowJWT(userId uint) (string, error) {
 	user := &User{
 		Id: uint(userId),
 	}
 
 	tokenString, _, err := JwtAuthMiddleware.TokenGenerator(user)
 	if err != nil {
+		return "", err
+	}
+	return bearerToken(tokenString), nil
+}
+
+func bearerToken(token string) string {
+	if strings.HasPrefix(token, "Bearer ") {
+		return token
+	}
+	return "Bearer " + token
+}
+
+func getKycType(userId uint) (uint, error) {
+	token, err := GenerateRainbowJWT(userId)
+	if err != nil {
 		return 0, err
 	}
-	kycType, err := queryKycType(tokenString)
+
+	kycType, err := queryKycType(token)
 	if err != nil {
 		return 0, err
 	}
@@ -269,7 +259,7 @@ func queryKycType(tokenString string) (float64, error) {
 		return 0, err
 	}
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", PrefixToken(tokenString))
+	req.Header.Add("Authorization", bearerToken(tokenString))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return 0, err

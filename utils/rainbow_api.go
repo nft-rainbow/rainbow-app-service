@@ -6,6 +6,7 @@ import (
 	"time"
 
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
+	"github.com/pkg/errors"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -80,7 +81,7 @@ func GetBurnInfo(id int32, token string) (int32, string, error) {
 }
 
 func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, error) {
-	logrus.Info("Start to get contract information")
+	// logrus.Info("Start to get contract information")
 	resp, _, err := newClient().ContractApi.GetContractInfo(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
 		return nil, err
@@ -89,10 +90,10 @@ func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, err
 }
 
 func GetContractProfile(address string, token string) (*openapiclient.ModelsContractRuntimeProfile, error) {
-	logrus.Info("Start to get contract profile")
+	// logrus.Info("Start to get contract profile")
 	resp, _, err := newClient().ContractApi.GetContractProfile(context.Background(), address).Authorization(token).Execute()
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessage(err, "failed to get contract profile")
 	}
 	return resp, nil
 }

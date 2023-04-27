@@ -296,7 +296,7 @@ func SyncPOAPResultStatus() {
 				logrus.Errorf("Failed to generate open JWT for %v:%v \n", v.ConfigID, err.Error())
 				continue
 			}
-			tokenId, hash, status, err := utils.GetMintDetail(v.TxID, middlewares.PrefixToken(jwtToken))
+			tokenId, hash, status, err := utils.GetMintDetail(v.TxID, jwtToken)
 			if status == models.STATUS_INIT || err != nil {
 				continue
 			}

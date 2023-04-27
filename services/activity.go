@@ -95,7 +95,7 @@ func (a *ActivityService) UpdateOrCreateContract(userId uint, appId uint, contra
 		return err
 	}
 
-	info, err := utils.GetContractInfo(int32(contractId), middlewares.PrefixToken(token))
+	info, err := utils.GetContractInfo(int32(contractId), token)
 	if err != nil {
 		return err
 	}
@@ -348,7 +348,7 @@ func (a *ActivityService) HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, er
 		IncreaseChangAnDaoNum()
 	}
 
-	resp, err := utils.SendCustomMintRequest(middlewares.PrefixToken(token), mintMeta)
+	resp, err := utils.SendCustomMintRequest(token, mintMeta)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -496,7 +496,7 @@ func createMetadata(config *models.Activity, token string, index int) (*string, 
 		DisplayType: &display,
 	})
 
-	resp, err := utils.SendCreateMetadataRequest(middlewares.PrefixToken(token), openapiclient.ServicesMetadataDto{
+	resp, err := utils.SendCreateMetadataRequest(token, openapiclient.ServicesMetadataDto{
 		Description: config.Description,
 		Image:       config.NFTConfigs[index].ImageURL,
 		Name:        config.NFTConfigs[index].Name,
