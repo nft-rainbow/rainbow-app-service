@@ -7,7 +7,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/nft-rainbow/rainbow-app-service/models"
-	"github.com/nft-rainbow/rainbow-app-service/utils"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -30,7 +30,7 @@ type PushReq struct {
 var s *discordgo.Session
 
 var (
-	guide       = "测试文本"
+	guide       = "教程还没出"
 	anywebH5    = "https://open.imdodo.com/dev/api/channel-text.html#%E5%8F%91%E9%80%81%E6%B6%88%E6%81%AF"
 	channelName = "nft-rainbow-ai"
 )
@@ -120,7 +120,7 @@ var (
 					Content: fmt.Sprintf("%v Start to mint using custom-mint model. Please wait patiently.", i.Interaction.Member.User.Mention()),
 				},
 			})
-			bind, err := models.FindBindingCFXAddressById(i.Interaction.Member.User.ID, utils.Discord)
+			bind, err := models.FindSocialUserConfig(i.Interaction.Member.User.ID, enums.SOCIAL_TOOL_DISCORD)
 			if err != nil {
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 					Embeds: failMessageEmbed(err.Error()),
@@ -128,19 +128,19 @@ var (
 				return
 			}
 
-			config, err := models.FindPOAPActivityConfigById(activityId.(string))
+			config, err := models.FindActivityByCode(activityId.(string))
 			if err != nil {
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 					Embeds: failMessageEmbed(err.Error()),
 				})
 				return
 			}
-			if err = config.CheckActivityValid(); err != nil {
-				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-					Embeds: failMessageEmbed(err.Error()),
-				})
-				return
-			}
+			// if err = config.CheckActivityValid(); err != nil {
+			// 	s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			// 		Embeds: failMessageEmbed(err.Error()),
+			// 	})
+			// 	return
+			// }
 
 			// err = checkSocialLimit(i.Interaction.GuildID, i.Interaction.Member.User.ID, config.ActivityID, utils.DoDo)
 			// if err != nil {
@@ -153,8 +153,8 @@ var (
 			if len(options) > 1 {
 				command = options[1].Value.(string)
 			}
-			res, err := HandlePOAPH5Mint(&POAPRequest{
-				ActivityID:  config.ActivityID,
+			res, err := GetActivityService().HandlePOAPH5Mint(&MintReq{
+				ActivityID:  config.ActivityCode,
 				UserAddress: bind.CFXAddress,
 				Command:     command,
 			})
@@ -166,7 +166,7 @@ var (
 			}
 
 			for {
-				resp, _ := models.FindPOAPResultById(config.ActivityID, int(res.ID))
+				resp, _ := models.FindPOAPResultById(config.ActivityCode, int(res.ID))
 				if resp.Hash == "" {
 					continue
 				}
@@ -193,7 +193,7 @@ var (
 						Content: startFlag,
 					},
 				})
-				err = HandleBindCfxAddress(i.Interaction.Member.User.ID, userAddress, "discord")
+				_, _, err = BindCfxAddress(i.Interaction.Member.User.ID, userAddress, enums.SOCIAL_TOOL_DISCORD)
 			}
 			if err != nil {
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
@@ -213,7 +213,7 @@ var (
 			options := i.ApplicationCommandData().Options
 			switch options[0].Name {
 			case "conflux":
-				resp, err := GetDiscordBindCFXAddress(i.Interaction.Member.User.ID)
+				resp, err := models.FindSocialUserConfig(i.Interaction.Member.User.ID, enums.SOCIAL_TOOL_DISCORD)
 				if err != nil {
 					s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 						Embeds: failMessageEmbed(err.Error()),
@@ -221,7 +221,7 @@ var (
 					return
 				}
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-					Content: resp,
+					Content: resp.CFXAddress,
 				})
 			}
 		},
@@ -231,7 +231,7 @@ var (
 			}
 			options := i.ApplicationCommandData().Options
 			activity := options[0].Value
-			config, err := models.FindPOAPActivityConfigById(activity.(string))
+			config, err := models.FindActivityByCode(activity.(string))
 			if err != nil {
 				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 					Embeds: failMessageEmbed(err.Error()),
@@ -359,7 +359,7 @@ func failMessageEmbed(message string) []*discordgo.MessageEmbed {
 }
 
 func DiscordPushActivity(req *PushReq) (*discordgo.Message, error) {
-	config, err := models.FindPOAPActivityConfigById(req.ActivityId)
+	config, err := models.FindActivityByCode(req.ActivityId)
 	if err != nil {
 		return nil, err
 	}
@@ -395,12 +395,12 @@ func DiscordPushActivity(req *PushReq) (*discordgo.Message, error) {
 	return msg, nil
 }
 
-func createPushEmbed(config *models.POAPActivityConfig, roles, content string, color int) []*discordgo.MessageEmbed {
+func createPushEmbed(config *models.Activity, roles, content string, color int) []*discordgo.MessageEmbed {
 	embeds := []*discordgo.MessageEmbed{
 		&discordgo.MessageEmbed{
 			Type:        discordgo.EmbedTypeRich,
 			Title:       "新活动发布",
-			Description: fmt.Sprintf("<@&%v> %v #%v 来了！\n在频道中调用【\\guide】，机器人将私信你领取教程", roles, config.Name, config.ActivityID),
+			Description: fmt.Sprintf("<@&%v> %v #%v 来了！\n在频道中调用【\\guide】，机器人将私信你领取教程", roles, config.Name, config.ActivityCode),
 			Color:       color,
 			Fields: []*discordgo.MessageEmbedField{
 				&discordgo.MessageEmbedField{

@@ -1,4 +1,4 @@
-package models
+package enums
 
 import "fmt"
 
@@ -34,19 +34,14 @@ func (t WalletType) String() string {
 	return "unknown"
 }
 
-// func (u *WalletType) UnmarshalJSON(data []byte) error {
-// 	v, ok := walletStr2ValueMap[string(data)]
-// 	if ok {
-// 		*u = v
-// 		return nil
-// 	}
-// 	return fmt.Errorf("unknown wallet type %v", string(data))
-// }
+func (t WalletType) MarshalText() ([]byte, error) {
+	return []byte(t.String()), nil
+}
 
-func (u *WalletType) UnmarshalText(data []byte) error {
+func (t *WalletType) UnmarshalText(data []byte) error {
 	v, ok := walletStr2ValueMap[string(data)]
 	if ok {
-		*u = v
+		*t = v
 		return nil
 	}
 	return fmt.Errorf("unknown wallet type %v", string(data))

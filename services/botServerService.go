@@ -9,30 +9,46 @@ import (
 	"time"
 
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils/rand"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
+type (
+	VerifyBotServerReq struct {
+		ServerId string `form:"server_id" json:"server_id" binding:"required"`
+		SocialToolQueryReq
+	}
+	InsertBotServerReq struct {
+		SocialTool string `json:"social_tool" binding:"required,oneof=dodo discord"`
+		ServerId   string `json:"server_id" binding:"required"`
+		AuthCode   string `json:"auth_code" binding:"required"`
+	}
+	GetBotServersReq struct {
+		SocialToolQueryReq
+		models.Pagination
+	}
+)
 type BotServerService struct {
 	authcodes sync.Map
-	bots      map[models.SocialToolType]Bot
+	bots      map[enums.SocialToolType]Bot
 	botsLock  sync.Mutex
 }
 
 func NewBotServerService() (*BotServerService, error) {
-	dodo, err := getSocialToolBot(models.SOCIAL_TOOL_DODO)
+	dodo, err := getSocialToolBot(enums.SOCIAL_TOOL_DODO)
 	if err != nil {
 		return nil, err
 	}
 	return &BotServerService{
-		bots: map[models.SocialToolType]Bot{
-			models.SOCIAL_TOOL_DODO: dodo,
+		bots: map[enums.SocialToolType]Bot{
+			enums.SOCIAL_TOOL_DODO: dodo,
 		},
 	}, nil
 }
 
-func (d *BotServerService) getBot(socialTool models.SocialToolType) (Bot, error) {
+func (d *BotServerService) getBot(socialTool enums.SocialToolType) (Bot, error) {
 	d.botsLock.Lock()
 	defer d.botsLock.Unlock()
 	if bot, ok := d.bots[socialTool]; !ok {
@@ -42,7 +58,7 @@ func (d *BotServerService) getBot(socialTool models.SocialToolType) (Bot, error)
 	}
 }
 
-func (d *BotServerService) mustGetBot(socialTool models.SocialToolType) Bot {
+func (d *BotServerService) mustGetBot(socialTool enums.SocialToolType) Bot {
 	b, err := d.getBot(socialTool)
 	if err != nil {
 		panic(err)
@@ -50,7 +66,7 @@ func (d *BotServerService) mustGetBot(socialTool models.SocialToolType) Bot {
 	return b
 }
 
-func (d *BotServerService) VerifyBotServer(socialTool models.SocialToolType, serverId string) error {
+func (d *BotServerService) GetAuthcode(socialTool enums.SocialToolType, serverId string) error {
 	authcodeKey := d.GetServerAuthCodeKey(socialTool, serverId)
 	v, loaded := d.authcodes.LoadOrStore(authcodeKey, rand.NumString(6))
 	if !loaded {
@@ -75,77 +91,98 @@ func (d *BotServerService) VerifyBotServer(socialTool models.SocialToolType, ser
 	return nil
 }
 
-func (d *BotServerService) InsertBotServer(userId uint, req InsertSocialServerReq) error {
-	code, ok := d.authcodes.Load(d.GetServerAuthCodeKey(req.SocialTool, req.ServerId))
-	if !ok || code.(string) != req.AuthCode {
-		return errors.New("auth code not match")
+func (d *BotServerService) InsertBotServer(userId uint, req InsertBotServerReq) (*models.BotServer, error) {
+
+	socialTool, err := enums.ParseSocialToolType(req.SocialTool)
+	if err != nil {
+		return nil, err
 	}
 
-	val, err := models.FindBotServerByRawID(req.ServerId, &req.SocialTool)
+	code, ok := d.authcodes.Load(d.GetServerAuthCodeKey(*socialTool, req.ServerId))
+	if !ok || code.(string) != req.AuthCode {
+		return nil, errors.New("auth code not match")
+	}
+
+	val, err := models.FindBotServerByRawID(req.ServerId, socialTool)
 	if val != nil {
-		return errors.New("already exists")
+		return nil, errors.New("already exists")
 	}
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return err
+		return nil, err
 	}
 
 	// get user social id
-	serverInfo, err := d.mustGetBot(req.SocialTool).GetSeverInfo(context.Background(), req.ServerId)
+	serverInfo, err := d.mustGetBot(*socialTool).GetSeverInfo(context.Background(), req.ServerId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var p models.BotServer
 	p.RainbowUserId = userId
-	p.SocialTool = req.SocialTool
+	p.SocialTool = *socialTool
 	p.RawServerId = req.ServerId
+	p.ServerName = serverInfo.Name
 	p.OwnerSocialId = serverInfo.OwnerId
 
 	if err := models.GetDB().Save(&p).Error; err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &p, nil
 }
 
-func (d *BotServerService) GetBotServers(userId uint, socialType *models.SocialToolType) ([]*models.BotServer, error) {
-	return models.FindBotServers(userId, socialType)
+func (d *BotServerService) GetBotServers(userId uint, queryParams *GetBotServersReq) (*models.FindBotServersResult, error) {
+	socialTool, err := enums.ParseSocialToolType(queryParams.SocialTool)
+	if err != nil {
+		return nil, err
+	}
+	return models.FindBotServers(userId, socialTool, queryParams.Pagination)
+}
+
+func (d *BotServerService) GetActivitiesOfBotServers(userId uint, cond *models.FindBotServerActivitiesCond) (*models.FindBotServerActivitiesResult, error) {
+	return models.FindActivitiesOfUserBotServers(userId, cond)
 }
 
 func (d *BotServerService) GetBotServer(userId uint, serverId uint) (*models.BotServer, error) {
 	return VerifyServerBelongsToUser(userId, serverId)
 }
 
-func (d *BotServerService) AddActivity(userId uint, serverId uint, pushInfo PushInfoReq) (*models.PushInfo, error) {
-	// check server belongs to user
+func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq PushInfoReq) (*models.PushInfo, error) {
 	botServer, err := VerifyServerBelongsToUser(userId, serverId)
 	if err != nil {
 		return nil, err
 	}
 
-	if botServer.PushInfo != nil {
-		return nil, errors.New("already exist")
-	}
-
-	var activity models.POAPActivityConfig
-	if err := models.GetDB().Model(&models.POAPActivityConfig{}).Where("id=?", pushInfo.ActivityID).First(&activity).Error; err != nil {
-		return nil, err
-	}
-
-	botServer.PushInfo, err = pushInfo.ToModel()
+	exists, err := models.IsPushInfoExists(pushInfoReq.ActivityID, pushInfoReq.ChannelId)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := models.GetDB().Save(botServer).Error; err != nil {
+	if exists {
+		return nil, errors.New("the channel has configured the activity")
+	}
+
+	var activity models.Activity
+	if err := models.GetDB().Model(&models.Activity{}).Where("id=?", pushInfoReq.ActivityID).First(&activity).Error; err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	pushInfo, err := pushInfoReq.ToModel(false)
+	if err != nil {
 		return nil, err
 	}
-	return botServer.PushInfo, nil
+	pushInfo.BotServerID = botServer.ID
+	pushInfo.Activity = &activity
+
+	if err := models.GetDB().Save(pushInfo).Error; err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return pushInfo, nil
 }
 
 // send message to channel
 func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
-	var pushInfo models.PushInfo
-	if err := models.GetDB().Preload("Activity").Where("id=?", pushInfoId).Find(&pushInfo).Error; err != nil {
+	pushInfo, err := models.FindPushInfoById(pushInfoId)
+	if err != nil {
 		return err
 	}
 
@@ -155,50 +192,80 @@ func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
 		return err
 	}
 
-	activity := pushInfo.Activity
-	return d.mustGetBot(botServer.SocialTool).Push(
+	if err := d.mustGetBot(botServer.SocialTool).Push(
 		pushInfo.ChannelId,
 		strings.Split(pushInfo.Roles, ","),
-		activity.AppName,
-		activity.ActivityID,
+		pushInfo.Activity.AppName,
+		pushInfo.Activity.ActivityCode,
 		pushInfo.Content,
-		pushInfo.ColorTheme)
+		pushInfo.ColorTheme); err != nil {
+		return err
+	}
+
+	pushInfo.LastPushTime = time.Now().Unix()
+	return models.GetDB().Save(pushInfo).Error
 }
 
-func (d *BotServerService) UpdateActivity(userId uint, serverId uint, pushInfo PushInfoReq) (*models.PushInfo, error) {
-	// check server belongs to user
+func (d *BotServerService) UpdatePushInfo(userId uint, serverId uint, pushInfoReq PushInfoReq) (*models.PushInfo, error) {
 	if _, err := VerifyServerBelongsToUser(userId, serverId); err != nil {
 		return nil, err
 	}
 
-	if err := models.GetDB().Save(&pushInfo).Error; err != nil {
+	if _, err := VerifyPushInfoBelongsToServer(serverId, pushInfoReq.ID); err != nil {
 		return nil, err
 	}
-	return nil, errors.New("not implemented")
+
+	pushInfo, err := pushInfoReq.ToModel(true)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := models.GetDB().Save(pushInfo).Error; err != nil {
+		return nil, err
+	}
+
+	return pushInfo, nil
 }
 
-func (d *BotServerService) GetChannels(socialTool models.SocialToolType, rawServerId string) ([]*Channel, error) {
+func (d *BotServerService) GetChannels(socialTool enums.SocialToolType, rawServerId string) ([]*Channel, error) {
 	return d.mustGetBot(socialTool).GetChannels(rawServerId)
 }
 
-func (d *BotServerService) GetRoles(socialTool models.SocialToolType, rawServerId string) ([]*Role, error) {
+func (d *BotServerService) GetRoles(socialTool enums.SocialToolType, rawServerId string) ([]*Role, error) {
 	return d.mustGetBot(socialTool).GetRoles(rawServerId)
 }
 
-func (d *BotServerService) GetServerAuthCodeKey(socialTool models.SocialToolType, serverId string) string {
+func (d *BotServerService) GetInviteUrl(socialTool enums.SocialToolType) string {
+	return d.mustGetBot(socialTool).GetInviteUrl()
+}
+
+func (d *BotServerService) GetServerAuthCodeKey(socialTool enums.SocialToolType, serverId string) string {
 	return fmt.Sprintf("%s%s", serverId, d.mustGetBot(socialTool).GetSocialToolType())
 }
 
 func VerifyServerBelongsToUser(userId uint, serverId uint) (*models.BotServer, error) {
-	s := models.BotServer{RainbowUserId: userId}
-	s.ID = serverId
-	if err := models.GetDB().Where(&s).First(&s).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, errors.New("server not belongs to user")
-		}
+	botServer, err := models.FindBotServerById(serverId)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	if botServer.RainbowUserId != userId {
+		return nil, errors.New("server not belongs to user")
+	}
+
+	return botServer, nil
+}
+
+func VerifyPushInfoBelongsToServer(serverId uint, pushInfoId uint) (*models.PushInfo, error) {
+	pushInfo, err := models.FindPushInfoById(pushInfoId)
+	if err != nil {
 		return nil, err
 	}
-	return &s, nil
+
+	if pushInfo.BotServerID != serverId {
+		return nil, errors.New("push info not belongs to server")
+	}
+
+	return pushInfo, nil
 }
 
 // func BindDiscordProjectConfig(config *models.SocialToolServer, id uint) error {

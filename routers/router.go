@@ -2,7 +2,6 @@ package routers
 
 import (
 	"net/http"
-	"strconv"
 
 	swaggerFiles "github.com/swaggo/files"
 	gs "github.com/swaggo/gin-swagger"
@@ -15,17 +14,19 @@ import (
 )
 
 var (
-	botServerHandler *BotServer
-	walletService    *services.WalletService
+	botServerController *BotServerController
+	activityService     *services.ActivityService
+	walletService       *services.WalletService
 )
 
 func Init() {
 	var err error
-	botServerHandler, err = NewBotServer()
+	botServerController, err = NewBotServerController()
 	if err != nil {
 		panic(err)
 	}
 	walletService = services.NewWalletService()
+	activityService = services.GetActivityService()
 }
 
 func SetupRoutes(router *gin.Engine) {
@@ -34,20 +35,25 @@ func SetupRoutes(router *gin.Engine) {
 	apps := router.Group("/apps")
 	apps.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
 
-	botServer := apps.Group("/botserver")
+	bot := apps.Group("/bot")
+	bot.GET("/invite_url", botServerController.GetInviteUrl)
+
+	botServer := bot.Group("/server")
 	botServer.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		botServer.GET("/channels", botServerHandler.GetChannels)
-		botServer.GET("/roles", botServerHandler.GetRoles)
+		botServer.GET("/channels", botServerController.GetChannels)
+		botServer.GET("/roles", botServerController.GetRoles)
 
-		botServer.POST("/authcode", botServerHandler.verifyBotServer)
-		botServer.POST("", botServerHandler.insertBotServer)
-		botServer.GET("", botServerHandler.GetBotServers)
+		botServer.GET("/authcode", botServerController.getAuthCode)
+		botServer.POST("", botServerController.insertBotServer)
+		botServer.GET("", botServerController.GetBotServers)
+		botServer.GET("/:id", botServerController.GetBotServer)
 
-		botServer.GET("/:id", botServerHandler.GetBotServer)
-		botServer.POST("/:id/activity", botServerHandler.AddActivity)
-		botServer.PUT("/:id/activity", botServerHandler.UpdateActivity)
-		botServer.POST("/push/:id", botServerHandler.Push)
+		botServer.POST("/:id/pushinfo", botServerController.AddPushInfo)
+		botServer.PUT("/pushinfo/:id", botServerController.UpdatePushInfo)
+		botServer.POST("/push/:id", botServerController.Push)
+
+		botServer.GET("/activities", botServerController.GetActivitiesOfUserBotServers)
 	}
 
 	// botActivity := bot.Group("/activity")
@@ -76,10 +82,10 @@ func SetupRoutes(router *gin.Engine) {
 
 	poap := apps.Group("/poap")
 	poap.POST("/h5", middlewares.IpLimitMiddleware(), poapMintByH5)
-	poap.GET("/activity/:activity_id", getPOAPActivity)
-	poap.GET("/activity/result/:activity_id", getPOAPResultList)
-	poap.GET("/activity/result/:activity_id/:id", getPOAPResultDetail)
-	poap.GET("/count/:address/:activity_id", getMintCount)
+	poap.GET("/activity/:activity_code", getActivity)
+	poap.GET("/activity/result/:activity_code", getMintResultList)
+	poap.GET("/activity/result/:activity_code/:id", getMintResultDetail)
+	poap.GET("/count/:address/:activity_code", getMintCount)
 	poap.POST("/wallet/user", addWalletUser)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
@@ -91,12 +97,12 @@ func SetupRoutes(router *gin.Engine) {
 		// poap.GET("/activity/channels/dodo/:island_id", getDoDoChannels)
 		// poap.GET("/activity/roles/discord/:guild_id", getDiscordRoles)
 		// poap.GET("/activity/roles/dodo/:island_id", getDoDoRoles)
+		// poap.POST("/csv", poapMintByCSV)
 
-		poap.POST("/csv", poapMintByCSV)
-		poap.POST("/activity", setPOAPActivityConfig)
-		poap.PUT("/activity/:activity_id", updatePOAPConfig)
-		poap.POST("/activity/h5", setPOAPH5Config)
-		poap.GET("/activity", getPOAPActivityList)
+		poap.POST("/activity", addActivity)
+		poap.PUT("/activity/:activity_code", updateActivity)
+		poap.POST("/activity/h5", setActivityH5Config)
+		poap.GET("/activity", getUserActivities)
 	}
 }
 
@@ -104,35 +110,35 @@ func indexEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, ginutils.DataResponse("Rainbow-App-Service"))
 }
 
-type Pagination struct {
-	Page  int `json:"page" form:"page"`
-	Limit int `json:"limit" form:"limit"`
-}
+// type Pagination struct {
+// 	Page  int `json:"page" form:"page" default:"1"`
+// 	Limit int `json:"limit" form:"limit" default:"10"`
+// }
 
-func (p Pagination) Offset() int {
-	return (p.Page - 1) * p.Limit
-}
+// func (p Pagination) Offset() int {
+// 	return (p.Page - 1) * p.Limit
+// }
 
-func GetPagination(c *gin.Context) (*Pagination, error) {
-	var pagination Pagination
-	var err error
-	pageStr := c.DefaultQuery("page", "1")
-	sizeStr := c.DefaultQuery("limit", "10")
-	if pagination.Page, err = strconv.Atoi(pageStr); err != nil {
-		return nil, err
-	}
-	if pagination.Page < 1 {
-		pagination.Page = 1
-	}
+// func GetPagination(c *gin.Context) (*Pagination, error) {
+// 	var pagination Pagination
+// 	var err error
+// 	pageStr := c.DefaultQuery("page", "1")
+// 	sizeStr := c.DefaultQuery("limit", "10")
+// 	if pagination.Page, err = strconv.Atoi(pageStr); err != nil {
+// 		return nil, err
+// 	}
+// 	if pagination.Page < 1 {
+// 		pagination.Page = 1
+// 	}
 
-	if pagination.Limit, err = strconv.Atoi(sizeStr); err != nil {
-		return nil, err
-	}
-	if pagination.Limit < 1 {
-		pagination.Limit = 10
-	}
-	return &pagination, nil
-}
+// 	if pagination.Limit, err = strconv.Atoi(sizeStr); err != nil {
+// 		return nil, err
+// 	}
+// 	if pagination.Limit < 1 {
+// 		pagination.Limit = 10
+// 	}
+// 	return &pagination, nil
+// }
 
 func GetIdFromJwtClaim(c *gin.Context) uint {
 	return c.GetUint(middlewares.JwtIdentityKey)

@@ -1,10 +1,12 @@
 package models
 
-type BindCFX struct {
+import "github.com/nft-rainbow/rainbow-app-service/models/enums"
+
+type SocialUserConfig struct {
 	BaseModel
-	UserId     string `gorm:"type:varchar(256)" json:"user_id" binding:"required"`
-	CFXAddress string `gorm:"type:varchar(256)" json:"cfx_address" binding:"required"`
-	Bot        uint   `gorm:"type:integer" json:"bot" binding:"required"`
+	UserId     string               `gorm:"type:varchar(256)" json:"user_id" binding:"required"`
+	CFXAddress string               `gorm:"type:varchar(256)" json:"cfx_address" binding:"required"`
+	SocialTool enums.SocialToolType `gorm:"type:integer" json:"social_tool" binding:"required"`
 }
 
 type CustomMintCount struct {
@@ -14,10 +16,12 @@ type CustomMintCount struct {
 	Count     uint   `gorm:"type:integer" json:"count" binding:"required"`
 }
 
-func FindBindingCFXAddressById(id string, bot uint) (*BindCFX, error) {
-	var item BindCFX
-	err := db.Where("user_id = ?", id).Where("bot = ?", bot).First(&item).Error
-	return &item, err
+func FindSocialUserConfig(userSocialId string, socialTool enums.SocialToolType) (*SocialUserConfig, error) {
+	result := SocialUserConfig{UserId: userSocialId, SocialTool: socialTool}
+	if err := db.Where(&result).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // func CheckDiscordCustomCount(id, channelId string, maxCount int32) (bool, error) {

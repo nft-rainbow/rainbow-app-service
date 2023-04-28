@@ -17,28 +17,32 @@
     "host": "console.nftrainbow.cn",
     "basePath": "/apps",
     "paths": {
-        "/custom/discord/activity/{id}": {
+        "/bot/invite_url": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get Discord custom Activity detail info",
+                "description": "get invite url",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CustomMint"
+                    "Bot"
                 ],
-                "summary": "Get Discord custom Activity detail",
-                "operationId": "GetDiscordCustomActivityDetail",
+                "summary": "get invite url",
+                "operationId": "GetInviteUrl",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
+                        "description": "social tool",
+                        "name": "social_tool",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -46,7 +50,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.DiscordCustomActivityConfig"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -64,48 +68,52 @@
                 }
             }
         },
-        "/custom/discord/projector/": {
+        "/bot/server": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get Discord custom project list",
+                "description": "get bot servers",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CustomMint"
+                    "Bot"
                 ],
-                "summary": "Get Discord custom project list",
-                "operationId": "GetDiscordCustomProjectList",
+                "summary": "get bot servers",
+                "operationId": "GetBotServers",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "type": "integer",
+                        "default": 10,
+                        "name": "limit",
+                        "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "page",
+                        "default": 1,
                         "name": "page",
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "limit",
-                        "name": "limit",
-                        "in": "query"
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
+                        "description": "social tool",
+                        "name": "social_tool",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.DiscordCustomProjectConfigQueryResult"
+                            "$ref": "#/definitions/models.FindBotServersResult"
                         }
                     },
                     "400": {
@@ -128,38 +136,31 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Set Discord custom project config",
+                "description": "insert bot server",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CustomMint"
+                    "Bot"
                 ],
-                "summary": "Set Discord custom project",
-                "operationId": "SetDiscordCustomProjectConfig",
+                "summary": "insert bot server",
+                "operationId": "InsertBotServer",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "discord_custom_project_dto",
-                        "name": "discord_custom_project_dto",
+                        "description": "insert_bot_server_request",
+                        "name": "insert_bot_server_request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.DiscordCustomProjectConfig"
+                            "$ref": "#/definitions/services.InsertBotServerReq"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "success",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.BotServer"
                         }
                     },
                     "400": {
@@ -177,40 +178,56 @@
                 }
             }
         },
-        "/custom/discord/projector/activity": {
+        "/bot/server/activities": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get Discord custom Activity list",
+                "description": "get activites of user bot servers",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CustomMint"
+                    "Bot"
                 ],
-                "summary": "Get Discord custom Activity list",
-                "operationId": "GetDiscordCustomActivityList",
+                "summary": "get activites of user bot servers",
+                "operationId": "GetActivitiesOfUserBotServers",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "type": "integer",
+                        "default": 10,
+                        "name": "limit",
+                        "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "page",
+                        "default": 1,
                         "name": "page",
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "limit",
-                        "name": "limit",
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
+                        "description": "social tool",
+                        "name": "social_tool",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "contract address",
+                        "name": "contract_address",
                         "in": "query"
                     }
                 ],
@@ -218,61 +235,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.DiscordActivityQueryResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Set Discord custom Activity config",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CustomMint"
-                ],
-                "summary": "Set Discord custom Activity",
-                "operationId": "SetDiscordCustomActivityConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "discord_custom_activity_dto",
-                        "name": "discord_custom_activity_dto",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.DiscordCustomActivityConfig"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.FindBotServerActivitiesResult"
                         }
                     },
                     "400": {
@@ -290,35 +253,38 @@
                 }
             }
         },
-        "/custom/discord/projector/{id}": {
+        "/bot/server/authcode": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get Discord custom project detail info",
+                "description": "get bot server roles",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CustomMint"
+                    "Bot"
                 ],
-                "summary": "Get Discord custom project detail",
-                "operationId": "GetDiscordCustomProjectDetail",
+                "summary": "get bot server roles",
+                "operationId": "GetAuthCode",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
+                        "name": "server_id",
+                        "in": "query",
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
+                        "description": "social tool",
+                        "name": "social_tool",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -326,7 +292,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.DiscordCustomProjectConfig"
+                            "$ref": "#/definitions/ginutils.CommonMessage"
                         }
                     },
                     "400": {
@@ -344,28 +310,39 @@
                 }
             }
         },
-        "/custom/discord/{guild_id}/channels": {
+        "/bot/server/channels": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get Discord Channel detail info",
+                "description": "get bot server channels",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CustomMint"
+                    "Bot"
                 ],
-                "summary": "Discord Channel detail",
-                "operationId": "GetDiscordChannelDetail",
+                "summary": "get bot server channels",
+                "operationId": "GetBotServerChannels",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "guild_id",
-                        "name": "guild_id",
-                        "in": "path",
+                        "type": "string",
+                        "description": "server id",
+                        "name": "server_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
+                        "description": "social tool",
+                        "name": "social_tool",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -375,10 +352,16 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/discordgo.Channel"
+                                "$ref": "#/definitions/services.Channel"
                             }
                         }
                     },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server error",
                         "schema": {
@@ -388,26 +371,26 @@
                 }
             }
         },
-        "/custom/dodo/activity/{id}": {
-            "get": {
+        "/bot/server/push/{id}": {
+            "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get DoDo custom Activity detail info",
+                "description": "push notification to social tool server",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CustomMint"
+                    "Bot"
                 ],
-                "summary": "Get DoDo custom Activity detail",
-                "operationId": "GetDoDoCustomActivityDetail",
+                "summary": "push notification to social tool server",
+                "operationId": "Push",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "id",
+                        "description": "push_info ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -417,7 +400,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.DoDoCustomActivityConfig"
+                            "$ref": "#/definitions/ginutils.CommonMessage"
                         }
                     },
                     "400": {
@@ -435,259 +418,35 @@
                 }
             }
         },
-        "/custom/dodo/projector/": {
-            "get": {
+        "/bot/server/pushinfo/{id}": {
+            "put": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get DoDo custom project list",
+                "description": "update push info",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CustomMint"
+                    "Bot"
                 ],
-                "summary": "Get DoDo custom project list",
-                "operationId": "GetDoDoCustomProjectList",
+                "summary": "update push info",
+                "operationId": "UpdatePushInfo",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "page",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "limit",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.DoDoCustomProjectConfigQueryResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Set DoDo custom project config",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CustomMint"
-                ],
-                "summary": "Set DoDo custom project",
-                "operationId": "SetDoDoCustomProjectConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "discord_custom_project_dto",
-                        "name": "discord_custom_project_dto",
+                        "description": "update push info request",
+                        "name": "push_info_req",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.DoDoCustomProjectConfig"
+                            "$ref": "#/definitions/services.PushInfoReq"
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/custom/dodo/projector/activity": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get DoDo custom Activity list",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CustomMint"
-                ],
-                "summary": "Get DoDo custom Activity list",
-                "operationId": "GetDoDoCustomActivityList",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "page",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "limit",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.DoDoActivityQueryResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Set DoDo custom Activity config",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CustomMint"
-                ],
-                "summary": "Set DoDo custom Activity",
-                "operationId": "SetDoDoCustomActivityConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "dodo_custom_activity_dto",
-                        "name": "dodo_custom_activity_dto",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.DoDoCustomActivityConfig"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/custom/dodo/projector/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get DoDo custom project detail info",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "CustomMint"
-                ],
-                "summary": "Get DoDo custom project detail",
-                "operationId": "GetDoDoCustomProjectDetail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "id",
+                        "description": "push_info ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -697,7 +456,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.DoDoCustomProjectConfig"
+                            "$ref": "#/definitions/models.PushInfo"
                         }
                     },
                     "400": {
@@ -715,28 +474,39 @@
                 }
             }
         },
-        "/custom/dodo/{island_id}/channels": {
+        "/bot/server/roles": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get DoDo Channel detail info",
+                "description": "get bot server roles",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "CustomMint"
+                    "Bot"
                 ],
-                "summary": "DoDo Channel detail",
-                "operationId": "GetDoDoChannelDetail",
+                "summary": "get bot server roles",
+                "operationId": "GetBotServerRoles",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "island_id",
-                        "name": "island_id",
-                        "in": "path",
+                        "type": "string",
+                        "description": "server id",
+                        "name": "server_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "dodo",
+                            "discord"
+                        ],
+                        "type": "string",
+                        "description": "social tool",
+                        "name": "social_tool",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -746,8 +516,117 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.ChannelElement"
+                                "$ref": "#/definitions/services.Role"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/bot/server/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "get bot server",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bot"
+                ],
+                "summary": "get bot server",
+                "operationId": "GetBotServer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "server id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BotServer"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/bot/server/{id}/pushinfo": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "add push info",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bot"
+                ],
+                "summary": "add push info",
+                "operationId": "AddPushInfo",
+                "parameters": [
+                    {
+                        "description": "add push info request",
+                        "name": "push_info_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.PushInfoReq"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "bot_server ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PushInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
                         }
                     },
                     "500": {
@@ -766,15 +645,15 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get POAP Activity list",
+                "description": "Get User Activity list",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "POAP"
                 ],
-                "summary": "Get POAP Activity list",
-                "operationId": "GetPOAPActivityList",
+                "summary": "Get User Activity list",
+                "operationId": "GetUserActivities",
                 "parameters": [
                     {
                         "type": "string",
@@ -797,20 +676,29 @@
                     },
                     {
                         "type": "string",
-                        "description": "contract_address",
-                        "name": "contract_address",
+                        "name": "activityId",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "activity_id",
-                        "name": "activity_id",
+                        "name": "contractAddress",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "name",
                         "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "name": "page",
                         "in": "query"
                     }
                 ],
@@ -818,7 +706,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.POAPActivityQueryResult"
+                            "$ref": "#/definitions/models.ActivityQueryResult"
                         }
                     },
                     "400": {
@@ -841,15 +729,15 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Set POAP Activity",
+                "description": "Add Activity",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "POAP"
                 ],
-                "summary": "Set POAP Activity",
-                "operationId": "SetPOAPActivity",
+                "summary": "Add Activity",
+                "operationId": "AddActivity",
                 "parameters": [
                     {
                         "type": "string",
@@ -859,12 +747,12 @@
                         "required": true
                     },
                     {
-                        "description": "poap_activity_config",
-                        "name": "poap_activity_config",
+                        "description": "activity config",
+                        "name": "activity_request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.POAPActivityConfig"
+                            "$ref": "#/definitions/models.ActivityReq"
                         }
                     }
                 ],
@@ -872,7 +760,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.POAPActivityConfig"
+                            "$ref": "#/definitions/models.Activity"
                         }
                     },
                     "400": {
@@ -905,7 +793,7 @@
                     "POAP"
                 ],
                 "summary": "Set H5 Config",
-                "operationId": "SetH5Config",
+                "operationId": "SetActivityH5Config",
                 "parameters": [
                     {
                         "type": "string",
@@ -946,113 +834,22 @@
                 }
             }
         },
-        "/poap/activity/push": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Push Activity Info",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Push Activity",
-                "operationId": "PushActivity",
-                "parameters": [
-                    {
-                        "description": "push_req",
-                        "name": "push_req",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/services.PushReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/poap/activity/push/{app_id}/{bot}": {
+        "/poap/activity/result/{activity_code}": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get Pushes List",
+                "description": "Get Mint Result list",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "POAP"
                 ],
-                "summary": "Get Pushes List",
-                "operationId": "GetPush",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "app_id",
-                        "name": "app_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "bot",
-                        "name": "bot",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.PushInfoQueryResult"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/poap/activity/result/{activity_id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get POAP Result list",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Get POAP Result list",
-                "operationId": "GetPOAPResultList",
+                "summary": "Get Mint Result list",
+                "operationId": "GetMintResultList",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1068,8 +865,8 @@
                     },
                     {
                         "type": "string",
-                        "description": "activity_id",
-                        "name": "activity_id",
+                        "description": "activity_code",
+                        "name": "activity_code",
                         "in": "path",
                         "required": true
                     }
@@ -1096,27 +893,27 @@
                 }
             }
         },
-        "/poap/activity/result/{activity_id}/{id}": {
+        "/poap/activity/result/{activity_code}/{id}": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get POAP Result",
+                "description": "Get Mint Result",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "POAP"
                 ],
-                "summary": "Get POAP Result",
-                "operationId": "GetPOAPResult",
+                "summary": "Get Mint Result",
+                "operationId": "GetMintResult",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "activity_id",
-                        "name": "activity_id",
+                        "description": "activity_code",
+                        "name": "activity_code",
                         "in": "path",
                         "required": true
                     },
@@ -1150,27 +947,27 @@
                 }
             }
         },
-        "/poap/activity/{activity_id}": {
+        "/poap/activity/{activity_code}": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get POAP Activity detail info",
+                "description": "Get Activity detail info",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "POAP"
                 ],
-                "summary": "Get POAP Activity detail",
-                "operationId": "GetPOAPActivityDetail",
+                "summary": "Get Activity detail",
+                "operationId": "GetActivityDetail",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "activity_id",
-                        "name": "activity_id",
+                        "description": "activity_code",
+                        "name": "activity_code",
                         "in": "path",
                         "required": true
                     }
@@ -1179,7 +976,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.POAPActivityConfig"
+                            "$ref": "#/definitions/models.Activity"
                         }
                     },
                     "400": {
@@ -1202,15 +999,15 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Update POAP Activity",
+                "description": "Update Activity",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "POAP"
                 ],
-                "summary": "Update POAP Activity",
-                "operationId": "UpdatePOAPActivity",
+                "summary": "Update Activity",
+                "operationId": "UpdateActivity",
                 "parameters": [
                     {
                         "type": "string",
@@ -1227,12 +1024,12 @@
                         "required": true
                     },
                     {
-                        "description": "poap_activity_config",
-                        "name": "poap_activity_config",
+                        "description": "update activity request",
+                        "name": "update_activity_request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.POAPActivityConfig"
+                            "$ref": "#/definitions/models.UpdateActivityReq"
                         }
                     }
                 ],
@@ -1240,7 +1037,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.POAPActivityConfig"
+                            "$ref": "#/definitions/models.Activity"
                         }
                     },
                     "400": {
@@ -1258,27 +1055,27 @@
                 }
             }
         },
-        "/poap/count/{address}/{activity_id}": {
+        "/poap/count/{address}/{activity_code}": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get Common Mint Count",
+                "description": "Get Mint Count",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "POAP"
                 ],
-                "summary": "Get Common Mint Count",
+                "summary": "Get Mint Count",
                 "operationId": "GetMintCount",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "activity_id",
-                        "name": "activity_id",
+                        "description": "activity_code",
+                        "name": "activity_code",
                         "in": "path",
                         "required": true
                     },
@@ -1312,30 +1109,30 @@
                 }
             }
         },
-        "/poap/csv": {
+        "/poap/h5": {
             "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "POAP Mint By CSV file",
+                "description": "Mint By H5",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "POAP"
                 ],
-                "summary": "POAP Mint By CSV",
-                "operationId": "POAPMintByCSV",
+                "summary": "Mint By H5",
+                "operationId": "MintByH5",
                 "parameters": [
                     {
-                        "description": "poap_csv_mint_dto",
-                        "name": "poap_csv_mint_dto",
+                        "description": "mint request",
+                        "name": "mint_req",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.POAPRequest"
+                            "$ref": "#/definitions/services.MintReq"
                         }
                     }
                 ],
@@ -1343,7 +1140,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rainbowsdk.ModelsMintTask"
+                            "$ref": "#/definitions/models.POAPResult"
                         }
                     },
                     "400": {
@@ -1361,38 +1158,49 @@
                 }
             }
         },
-        "/poap/h5": {
+        "/poap/wallet/user": {
             "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "POAP Mint By H5",
+                "description": "Add user wallet profile, so backend can get user phone from anyweb",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "POAP"
                 ],
-                "summary": "POAP Mint By H5",
-                "operationId": "POAPMintByH5",
+                "summary": "Add user wallet profile, so backend can get user phone from anyweb",
+                "operationId": "AddWalletUser",
                 "parameters": [
                     {
-                        "description": "poap_h5_mint_dto",
-                        "name": "poap_h5_mint_dto",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/services.POAPRequest"
-                        }
+                        "type": "string",
+                        "name": "address",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "phone",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "wallet",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.POAPResult"
+                            "$ref": "#/definitions/ginutils.CommonMessage"
                         }
                     },
                     "400": {
@@ -1423,329 +1231,13 @@
                 }
             }
         },
-        "discordgo.Channel": {
+        "ginutils.CommonMessage": {
             "type": "object",
             "properties": {
-                "application_id": {
-                    "description": "ApplicationID of the DM creator Zeroed if guild channel or not a bot user",
-                    "type": "string"
-                },
-                "bitrate": {
-                    "description": "The bitrate of the channel, if it is a voice channel.",
-                    "type": "integer"
-                },
-                "guild_id": {
-                    "description": "The ID of the guild to which the channel belongs, if it is in a guild.\nElse, this ID is empty (e.g. DM channels).",
-                    "type": "string"
-                },
-                "icon": {
-                    "description": "Icon of the group DM channel.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "The ID of the channel.",
-                    "type": "string"
-                },
-                "last_message_id": {
-                    "description": "The ID of the last message sent in the channel. This is not\nguaranteed to be an ID of a valid message.",
-                    "type": "string"
-                },
-                "last_pin_timestamp": {
-                    "description": "The timestamp of the last pinned message in the channel.\nnil if the channel has no pinned messages.",
-                    "type": "string"
-                },
-                "member_count": {
-                    "description": "An approximate count of users in a thread, stops counting at 50",
-                    "type": "integer"
-                },
-                "message_count": {
-                    "description": "An approximate count of messages in a thread, stops counting at 50",
-                    "type": "integer"
-                },
-                "name": {
-                    "description": "The name of the channel.",
-                    "type": "string"
-                },
-                "nsfw": {
-                    "description": "Whether the channel is marked as NSFW.",
-                    "type": "boolean"
-                },
-                "owner_id": {
-                    "description": "ID of the creator of the group DM or thread",
-                    "type": "string"
-                },
-                "parent_id": {
-                    "description": "The ID of the parent channel, if the channel is under a category. For threads - id of the channel thread was created in.",
-                    "type": "string"
-                },
-                "permission_overwrites": {
-                    "description": "A list of permission overwrites present for the channel.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/discordgo.PermissionOverwrite"
-                    }
-                },
-                "position": {
-                    "description": "The position of the channel, used for sorting in client.",
-                    "type": "integer"
-                },
-                "rate_limit_per_user": {
-                    "description": "Amount of seconds a user has to wait before sending another message or creating another thread (0-21600)\nbots, as well as users with the permission manage_messages or manage_channel, are unaffected",
-                    "type": "integer"
-                },
-                "recipients": {
-                    "description": "The recipients of the channel. This is only populated in DM channels.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/discordgo.User"
-                    }
-                },
-                "thread_member": {
-                    "description": "Thread member object for the current user, if they have joined the thread, only included on certain API endpoints",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/discordgo.ThreadMember"
-                        }
-                    ]
-                },
-                "thread_metadata": {
-                    "description": "Thread-specific fields not needed by other channels",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/discordgo.ThreadMetadata"
-                        }
-                    ]
-                },
-                "topic": {
-                    "description": "The topic of the channel.",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "The type of the channel.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/discordgo.ChannelType"
-                        }
-                    ]
-                },
-                "user_limit": {
-                    "description": "The user limit of the voice channel.",
-                    "type": "integer"
-                }
-            }
-        },
-        "discordgo.ChannelType": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                10,
-                11,
-                12,
-                13
-            ],
-            "x-enum-varnames": [
-                "ChannelTypeGuildText",
-                "ChannelTypeDM",
-                "ChannelTypeGuildVoice",
-                "ChannelTypeGroupDM",
-                "ChannelTypeGuildCategory",
-                "ChannelTypeGuildNews",
-                "ChannelTypeGuildStore",
-                "ChannelTypeGuildNewsThread",
-                "ChannelTypeGuildPublicThread",
-                "ChannelTypeGuildPrivateThread",
-                "ChannelTypeGuildStageVoice"
-            ]
-        },
-        "discordgo.PermissionOverwrite": {
-            "type": "object",
-            "properties": {
-                "allow": {
-                    "type": "string",
-                    "example": "0"
-                },
-                "deny": {
-                    "type": "string",
-                    "example": "0"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/discordgo.PermissionOverwriteType"
-                }
-            }
-        },
-        "discordgo.PermissionOverwriteType": {
-            "type": "integer",
-            "enum": [
-                0,
-                1
-            ],
-            "x-enum-varnames": [
-                "PermissionOverwriteTypeRole",
-                "PermissionOverwriteTypeMember"
-            ]
-        },
-        "discordgo.ThreadMember": {
-            "type": "object",
-            "properties": {
-                "flags": {
-                    "description": "Any user-thread settings, currently only used for notifications",
-                    "type": "integer"
-                },
-                "id": {
-                    "description": "The id of the thread",
-                    "type": "string"
-                },
-                "join_timestamp": {
-                    "description": "The time the current user last joined the thread",
-                    "type": "string"
-                },
-                "user_id": {
-                    "description": "The id of the user",
+                "message": {
                     "type": "string"
                 }
             }
-        },
-        "discordgo.ThreadMetadata": {
-            "type": "object",
-            "properties": {
-                "archive_timestamp": {
-                    "description": "Timestamp when the thread's archive status was last changed, used for calculating recent activity",
-                    "type": "string"
-                },
-                "archived": {
-                    "description": "Whether the thread is archived",
-                    "type": "boolean"
-                },
-                "auto_archive_duration": {
-                    "description": "Duration in minutes to automatically archive the thread after recent activity, can be set to: 60, 1440, 4320, 10080",
-                    "type": "integer"
-                },
-                "invitable": {
-                    "description": "Whether non-moderators can add other non-moderators to a thread; only available on private threads",
-                    "type": "boolean"
-                },
-                "locked": {
-                    "description": "Whether the thread is locked; when a thread is locked, only users with MANAGE_THREADS can unarchive it",
-                    "type": "boolean"
-                }
-            }
-        },
-        "discordgo.User": {
-            "type": "object",
-            "properties": {
-                "accent_color": {
-                    "description": "User's banner color, encoded as an integer representation of hexadecimal color code",
-                    "type": "integer"
-                },
-                "avatar": {
-                    "description": "The hash of the user's avatar. Use Session.UserAvatar\nto retrieve the avatar itself.",
-                    "type": "string"
-                },
-                "banner": {
-                    "description": "The hash of the user's banner image.",
-                    "type": "string"
-                },
-                "bot": {
-                    "description": "Whether the user is a bot.",
-                    "type": "boolean"
-                },
-                "discriminator": {
-                    "description": "The discriminator of the user (4 numbers after name).",
-                    "type": "string"
-                },
-                "email": {
-                    "description": "The email of the user. This is only present when\nthe application possesses the email scope for the user.",
-                    "type": "string"
-                },
-                "flags": {
-                    "description": "The flags on a user's account.\nOnly available when the request is authorized via a Bearer token.",
-                    "type": "integer"
-                },
-                "id": {
-                    "description": "The ID of the user.",
-                    "type": "string"
-                },
-                "locale": {
-                    "description": "The user's chosen language option.",
-                    "type": "string"
-                },
-                "mfa_enabled": {
-                    "description": "Whether the user has multi-factor authentication enabled.",
-                    "type": "boolean"
-                },
-                "premium_type": {
-                    "description": "The type of Nitro subscription on a user's account.\nOnly available when the request is authorized via a Bearer token.",
-                    "type": "integer"
-                },
-                "public_flags": {
-                    "description": "The public flags on a user's account.\nThis is a combination of bit masks; the presence of a certain flag can\nbe checked by performing a bitwise AND between this int and the flag.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/discordgo.UserFlags"
-                        }
-                    ]
-                },
-                "system": {
-                    "description": "Whether the user is an Official Discord System user (part of the urgent message system).",
-                    "type": "boolean"
-                },
-                "token": {
-                    "description": "The token of the user. This is only present for\nthe user represented by the current session.",
-                    "type": "string"
-                },
-                "username": {
-                    "description": "The user's username.",
-                    "type": "string"
-                },
-                "verified": {
-                    "description": "Whether the user's email is verified.",
-                    "type": "boolean"
-                }
-            }
-        },
-        "discordgo.UserFlags": {
-            "type": "integer",
-            "enum": [
-                1,
-                2,
-                4,
-                8,
-                64,
-                128,
-                256,
-                512,
-                1024,
-                4096,
-                16384,
-                65536,
-                131072,
-                262144
-            ],
-            "x-enum-varnames": [
-                "UserFlagDiscordEmployee",
-                "UserFlagDiscordPartner",
-                "UserFlagHypeSquadEvents",
-                "UserFlagBugHunterLevel1",
-                "UserFlagHouseBravery",
-                "UserFlagHouseBrilliance",
-                "UserFlagHouseBalance",
-                "UserFlagEarlySupporter",
-                "UserFlagTeamUser",
-                "UserFlagSystem",
-                "UserFlagBugHunterLevel2",
-                "UserFlagVerifiedBot",
-                "UserFlagVerifiedBotDeveloper",
-                "UserFlagDiscordCertifiedModerator"
-            ]
         },
         "gorm.DeletedAt": {
             "type": "object",
@@ -1759,57 +1251,101 @@
                 }
             }
         },
-        "model.ChannelElement": {
+        "models.Activity": {
             "type": "object",
+            "required": [
+                "activity_type",
+                "amount",
+                "app_id",
+                "description",
+                "max_mint_count",
+                "name"
+            ],
             "properties": {
-                "channelId": {
-                    "description": "频道号",
+                "activity_id": {
+                    "description": "TODO: 与前端统一调整为activity_code",
                     "type": "string"
                 },
-                "channelName": {
-                    "description": "频道名称",
+                "activity_picture_url": {
                     "type": "string"
                 },
-                "channelType": {
-                    "description": "频道类型，1：文字频道，2：语音频道，4：帖子频道，5：链接频道，6：资料频道",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.ChannelType"
-                        }
-                    ]
+                "activity_poster_url": {
+                    "type": "string"
                 },
-                "defaultFlag": {
-                    "description": "默认频道标识，0：否，1：是",
+                "activity_type": {
                     "type": "integer"
                 },
-                "groupId": {
-                    "description": "分组ID",
+                "amount": {
+                    "type": "integer"
+                },
+                "app_id": {
+                    "type": "integer"
+                },
+                "app_name": {
                     "type": "string"
                 },
-                "groupName": {
-                    "description": "分组名称",
+                "command": {
                     "type": "string"
+                },
+                "contract": {
+                    "$ref": "#/definitions/models.Contract"
+                },
+                "contract_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_phone_white_list_opened": {
+                    "type": "boolean"
+                },
+                "max_mint_count": {
+                    "type": "integer"
+                },
+                "metadata_uri": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nft_configs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.NFTConfig"
+                    }
+                },
+                "rainbow_user_id": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "white_list_infos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.WhiteListInfo"
+                    }
                 }
             }
         },
-        "model.ChannelType": {
-            "type": "integer",
-            "enum": [
-                1,
-                2,
-                4,
-                5,
-                6
-            ],
-            "x-enum-varnames": [
-                "TextChannel",
-                "VoiceChannel",
-                "ArticleChannel",
-                "LinkChannel",
-                "ResChannel"
-            ]
-        },
-        "models.DiscordActivityQueryResult": {
+        "models.ActivityQueryResult": {
             "type": "object",
             "properties": {
                 "count": {
@@ -1818,39 +1354,134 @@
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.DiscordCustomActivityConfig"
+                        "$ref": "#/definitions/models.Activity"
                     }
                 }
             }
         },
-        "models.DiscordCustomActivityConfig": {
+        "models.ActivityReq": {
             "type": "object",
             "required": [
+                "activity_type",
                 "amount",
-                "channel_id",
-                "contract_id",
+                "app_id",
                 "description",
-                "event",
                 "max_mint_count",
                 "name"
             ],
             "properties": {
+                "activity_picture_url": {
+                    "type": "string"
+                },
+                "activity_type": {
+                    "type": "integer"
+                },
                 "amount": {
                     "type": "integer"
                 },
                 "app_id": {
                     "type": "integer"
                 },
-                "chain_type": {
+                "app_name": {
+                    "type": "string"
+                },
+                "command": {
+                    "type": "string"
+                },
+                "contract_id": {
                     "type": "integer"
                 },
-                "channel_id": {
+                "description": {
                     "type": "string"
+                },
+                "end_time": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "is_phone_white_list_opened": {
+                    "type": "boolean"
+                },
+                "max_mint_count": {
+                    "type": "integer"
+                },
+                "metadata_uri": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nft_configs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.NFTConfig"
+                    }
+                },
+                "start_time": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "white_list_infos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.WhiteListInfo"
+                    }
+                }
+            }
+        },
+        "models.BotServer": {
+            "type": "object",
+            "required": [
+                "owner_social_id",
+                "rainbow_user_id",
+                "raw_server_id"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "owner_social_id": {
+                    "type": "string"
+                },
+                "push_infos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PushInfo"
+                    }
+                },
+                "rainbow_user_id": {
+                    "type": "integer"
+                },
+                "raw_server_id": {
+                    "type": "string"
+                },
+                "social_tool": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Contract": {
+            "type": "object",
+            "properties": {
+                "chain_id": {
+                    "type": "integer"
+                },
+                "chain_type": {
+                    "type": "integer"
                 },
                 "contract_address": {
                     "type": "string"
                 },
-                "contract_id": {
+                "contract_raw_id": {
+                    "description": "POAPActivityConfigID uint   `gorm:\"column:poap_activity_config_id\" json:\"poap_activity_config_id\"`",
                     "type": "integer"
                 },
                 "contract_type": {
@@ -1862,67 +1493,7 @@
                 "deleted_at": {
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
-                "description": {
-                    "type": "string"
-                },
-                "event": {
-                    "type": "string"
-                },
                 "id": {
-                    "type": "integer"
-                },
-                "max_mint_count": {
-                    "type": "integer"
-                },
-                "metadata_uri": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.DiscordCustomProjectConfig": {
-            "type": "object",
-            "required": [
-                "Project_name",
-                "app_id",
-                "chain_type",
-                "description",
-                "guild_id"
-            ],
-            "properties": {
-                "Project_name": {
-                    "type": "string"
-                },
-                "app_id": {
-                    "type": "integer"
-                },
-                "chain_type": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "guild_id": {
-                    "type": "string"
-                },
-                "guild_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "rainbow_user_id": {
                     "type": "integer"
                 },
                 "updated_at": {
@@ -1930,7 +1501,7 @@
                 }
             }
         },
-        "models.DiscordCustomProjectConfigQueryResult": {
+        "models.FindBotServerActivitiesResult": {
             "type": "object",
             "properties": {
                 "count": {
@@ -1939,12 +1510,12 @@
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.DiscordCustomProjectConfig"
+                        "$ref": "#/definitions/models.PlattenBotServerActivity"
                     }
                 }
             }
         },
-        "models.DoDoActivityQueryResult": {
+        "models.FindBotServersResult": {
             "type": "object",
             "properties": {
                 "count": {
@@ -1953,128 +1524,7 @@
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.DoDoCustomActivityConfig"
-                    }
-                }
-            }
-        },
-        "models.DoDoCustomActivityConfig": {
-            "type": "object",
-            "required": [
-                "amount",
-                "channel_id",
-                "contract_id",
-                "description",
-                "event",
-                "max_mint_count",
-                "name"
-            ],
-            "properties": {
-                "amount": {
-                    "type": "integer"
-                },
-                "app_id": {
-                    "type": "integer"
-                },
-                "chain_type": {
-                    "type": "integer"
-                },
-                "channel_id": {
-                    "type": "string"
-                },
-                "contract_address": {
-                    "type": "string"
-                },
-                "contract_id": {
-                    "type": "integer"
-                },
-                "contract_type": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "event": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "max_mint_count": {
-                    "type": "integer"
-                },
-                "metadata_uri": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.DoDoCustomProjectConfig": {
-            "type": "object",
-            "required": [
-                "Project_name",
-                "app_id",
-                "chain_type",
-                "description",
-                "island_id"
-            ],
-            "properties": {
-                "Project_name": {
-                    "type": "string"
-                },
-                "app_id": {
-                    "type": "integer"
-                },
-                "chain_type": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "island_id": {
-                    "type": "string"
-                },
-                "island_name": {
-                    "type": "string"
-                },
-                "rainbow_user_id": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.DoDoCustomProjectConfigQueryResult": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.DoDoCustomProjectConfig"
+                        "$ref": "#/definitions/models.BotServer"
                     }
                 }
             }
@@ -2141,9 +1591,6 @@
         "models.MetadataAttribute": {
             "type": "object",
             "properties": {
-                "attribute_name": {
-                    "type": "string"
-                },
                 "created_at": {
                     "type": "string"
                 },
@@ -2173,6 +1620,9 @@
         "models.NFTConfig": {
             "type": "object",
             "properties": {
+                "activityID": {
+                    "type": "integer"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -2194,122 +1644,11 @@
                 "name": {
                     "type": "string"
                 },
-                "poapactivityConfigID": {
-                    "type": "integer"
-                },
                 "probability": {
                     "type": "number"
                 },
                 "updated_at": {
                     "type": "string"
-                }
-            }
-        },
-        "models.POAPActivityConfig": {
-            "type": "object",
-            "required": [
-                "activity_type",
-                "amount",
-                "app_id",
-                "app_name",
-                "description",
-                "end_time",
-                "max_mint_count",
-                "name",
-                "start_time"
-            ],
-            "properties": {
-                "activity_id": {
-                    "type": "string"
-                },
-                "activity_picture_url": {
-                    "type": "string"
-                },
-                "activity_type": {
-                    "type": "integer"
-                },
-                "amount": {
-                    "type": "integer"
-                },
-                "app_id": {
-                    "type": "integer"
-                },
-                "app_name": {
-                    "type": "string"
-                },
-                "chain_id": {
-                    "type": "integer"
-                },
-                "chain_type": {
-                    "type": "integer"
-                },
-                "command": {
-                    "type": "string"
-                },
-                "contract_address": {
-                    "type": "string"
-                },
-                "contract_id": {
-                    "type": "integer"
-                },
-                "contract_type": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "end_time": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "max_mint_count": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "nft_configs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.NFTConfig"
-                    }
-                },
-                "rainbow_user_id": {
-                    "type": "integer"
-                },
-                "start_time": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "white_list_infos": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.WhiteListInfo"
-                    }
-                }
-            }
-        },
-        "models.POAPActivityQueryResult": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.POAPActivityConfig"
-                    }
                 }
             }
         },
@@ -2321,6 +1660,7 @@
             ],
             "properties": {
                 "activity_id": {
+                    "description": "TODO:  与前端一起更新为activity_code",
                     "type": "string"
                 },
                 "address": {
@@ -2387,32 +1727,66 @@
                 }
             }
         },
-        "models.PushInfo": {
+        "models.PlattenBotServerActivity": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
-                "account_limit": {
-                    "type": "integer"
-                },
                 "activity_id": {
+                    "type": "integer"
+                },
+                "channel_id": {
                     "type": "string"
                 },
-                "activity_name": {
-                    "type": "string"
-                },
-                "activity_type": {
-                    "type": "integer"
-                },
-                "app_id": {
-                    "type": "integer"
-                },
-                "bot": {
-                    "type": "integer"
-                },
-                "contract": {
+                "contractAddress": {
                     "type": "string"
                 },
                 "contract_id": {
                     "type": "integer"
+                },
+                "end_time": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner_social_id": {
+                    "type": "string"
+                },
+                "rainbow_user_id": {
+                    "type": "integer"
+                },
+                "raw_server_id": {
+                    "type": "string"
+                },
+                "social_tool": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "integer",
+                    "default": -1
+                }
+            }
+        },
+        "models.PushInfo": {
+            "type": "object",
+            "properties": {
+                "activity_id": {
+                    "type": "integer"
+                },
+                "bot_server_id": {
+                    "type": "integer"
+                },
+                "channel_id": {
+                    "type": "string"
+                },
+                "color_theme": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
                 },
                 "created_at": {
                     "type": "string"
@@ -2420,39 +1794,71 @@
                 "deleted_at": {
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
-                "end_time": {
-                    "type": "integer"
-                },
                 "id": {
                     "type": "integer"
                 },
-                "rainbow_user_id": {
-                    "type": "integer"
-                },
-                "server_id": {
+                "roles": {
                     "type": "string"
-                },
-                "server_name": {
-                    "type": "string"
-                },
-                "start_time": {
-                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "models.PushInfoQueryResult": {
+        "models.UpdateActivityReq": {
             "type": "object",
+            "required": [
+                "amount",
+                "description",
+                "max_mint_count",
+                "name"
+            ],
             "properties": {
-                "count": {
+                "activity_picture_url": {
+                    "type": "string"
+                },
+                "amount": {
                     "type": "integer"
                 },
-                "items": {
+                "command": {
+                    "type": "string"
+                },
+                "contract_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "is_phone_white_list_opened": {
+                    "type": "boolean"
+                },
+                "max_mint_count": {
+                    "type": "integer"
+                },
+                "metadata_uri": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nft_configs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.PushInfo"
+                        "$ref": "#/definitions/models.NFTConfig"
+                    }
+                },
+                "start_time": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "white_list_infos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.WhiteListInfo"
                     }
                 }
             }
@@ -2460,6 +1866,9 @@
         "models.WhiteListInfo": {
             "type": "object",
             "properties": {
+                "activityID": {
+                    "type": "integer"
+                },
                 "count": {
                     "type": "integer"
                 },
@@ -2470,9 +1879,6 @@
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "id": {
-                    "type": "integer"
-                },
-                "poapactivityConfigID": {
                     "type": "integer"
                 },
                 "updated_at": {
@@ -2483,87 +1889,43 @@
                 }
             }
         },
-        "rainbowsdk.GormDeletedAt": {
+        "services.Channel": {
             "type": "object",
             "properties": {
-                "additionalProperties": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "time": {
+                "channelId": {
+                    "description": "频道号",
                     "type": "string"
                 },
-                "valid": {
-                    "description": "Valid is true if Time is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
-        "rainbowsdk.ModelsMintTask": {
-            "type": "object",
-            "properties": {
-                "additionalProperties": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "amount": {
-                    "type": "integer"
-                },
-                "app_id": {
-                    "type": "integer"
-                },
-                "chain_id": {
-                    "type": "integer"
-                },
-                "chain_type": {
-                    "type": "integer"
-                },
-                "contract": {
-                    "type": "string"
-                },
-                "contract_type": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "$ref": "#/definitions/rainbowsdk.GormDeletedAt"
-                },
-                "error": {
-                    "type": "string"
-                },
-                "hash": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "mint_to": {
-                    "type": "string"
-                },
-                "mint_type": {
-                    "type": "integer"
-                },
-                "status": {
-                    "description": "0-pending, 1-success, 2-failed",
-                    "type": "integer"
-                },
-                "token_id": {
-                    "type": "string"
-                },
-                "token_uri": {
-                    "type": "string"
-                },
-                "tx_id": {
-                    "type": "integer"
-                },
-                "updated_at": {
+                "channelName": {
+                    "description": "频道名称",
                     "type": "string"
                 }
             }
         },
-        "services.POAPRequest": {
+        "services.InsertBotServerReq": {
+            "type": "object",
+            "required": [
+                "auth_code",
+                "server_id",
+                "social_tool"
+            ],
+            "properties": {
+                "auth_code": {
+                    "type": "string"
+                },
+                "server_id": {
+                    "type": "string"
+                },
+                "social_tool": {
+                    "type": "string",
+                    "enum": [
+                        "dodo",
+                        "discord"
+                    ]
+                }
+            }
+        },
+        "services.MintReq": {
             "type": "object",
             "required": [
                 "activity_id",
@@ -2581,40 +1943,22 @@
                 }
             }
         },
-        "services.PushReq": {
+        "services.PushInfoReq": {
             "type": "object",
-            "required": [
-                "activity_id",
-                "bot",
-                "channel_id",
-                "roles",
-                "server_id",
-                "server_name",
-                "user_id"
-            ],
             "properties": {
-                "account_limit": {
-                    "type": "integer"
-                },
                 "activity_id": {
-                    "type": "string"
-                },
-                "app_id": {
-                    "type": "integer"
-                },
-                "bot": {
                     "type": "integer"
                 },
                 "channel_id": {
                     "type": "string"
                 },
-                "color": {
+                "color_theme": {
                     "type": "string"
                 },
                 "content": {
                     "type": "string"
                 },
-                "rainbow_user_id": {
+                "id": {
                     "type": "integer"
                 },
                 "roles": {
@@ -2622,15 +1966,19 @@
                     "items": {
                         "type": "string"
                     }
-                },
-                "server_id": {
+                }
+            }
+        },
+        "services.Role": {
+            "type": "object",
+            "properties": {
+                "roleId": {
+                    "description": "身份组ID",
                     "type": "string"
                 },
-                "server_name": {
+                "roleName": {
+                    "description": "身份组名称",
                     "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
                 }
             }
         }

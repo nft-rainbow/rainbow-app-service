@@ -1,41 +1,39 @@
 package services
 
-import "github.com/nft-rainbow/rainbow-app-service/models"
+import (
+	"strings"
 
-var (
-	Success = map[string]string{"msg": "success"}
+	"github.com/nft-rainbow/rainbow-app-service/models"
 )
 
-type VerifySocialServerReq struct {
-	ServerId   string                `json:"server_id" binding:"required"`
-	SocialTool models.SocialToolType `json:"social_tool" binding:"required"`
+type SocialToolQueryReq struct {
+	SocialTool string `uri:"social_tool" form:"social_tool" swaggerignore:"true" query:"social_tool" binding:"required,oneof=dodo discord"`
 }
-type InsertSocialServerReq struct {
-	SocialTool models.SocialToolType `json:"social_tool" binding:"required"`
-	ServerId   string                `json:"server_id" binding:"required"`
-	AuthCode   string                `json:"auth_code" binding:"required"`
-}
-
 type PushInfoReq struct {
-	ChannelId  string `gorm:"type:string" json:"channel_id"`
-	Roles      string `gorm:"type:string" json:"roles"`
-	Content    string `gorm:"type:string" json:"content"`
-	ColorTheme string `gorm:"type:string" json:"color_theme"`
-	ActivityID uint   `json:"activity_id"`
+	ID         uint     `json:"id"`
+	ChannelId  string   `json:"channel_id"`
+	Roles      []string `json:"roles"`
+	Content    string   `json:"content"`
+	ColorTheme string   `json:"color_theme"`
+	ActivityID uint     `json:"activity_id"`
 }
 
-func (p *PushInfoReq) ToModel() (*models.PushInfo, error) {
-	var activity models.POAPActivityConfig
-	if err := models.GetDB().Model(&models.POAPActivityConfig{}).Where("id=?", p.ActivityID).First(&activity).Error; err != nil {
-		return nil, err
+func (p *PushInfoReq) ToModel(fillByRaw bool) (*models.PushInfo, error) {
+	var result models.PushInfo
+	if fillByRaw {
+		raw, err := models.FindPushInfoById(p.ID)
+		if err != nil {
+			return nil, err
+		}
+		result = *raw
 	}
-	result := models.PushInfo{
-		ChannelId:  p.ChannelId,
-		Roles:      p.Roles,
-		Content:    p.Content,
-		ColorTheme: p.ColorTheme,
-		Activity:   activity,
-	}
+	result.ChannelId = p.ChannelId
+	result.Roles = strings.Join(p.Roles, ",")
+	result.Content = p.Content
+	result.ColorTheme = p.ColorTheme
+	result.ActivityId = p.ActivityID
+	result.ID = p.ID
+
 	return &result, nil
 
 }

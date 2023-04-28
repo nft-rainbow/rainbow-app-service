@@ -1,23 +1,16 @@
 package routers
 
-import (
-	"github.com/gin-gonic/gin"
-	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
-	"github.com/nft-rainbow/rainbow-app-service/models"
-	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
-)
-
 // @Tags        CustomMint
 // @ID          SetDiscordCustomProjectConfig
 // @Summary     Set Discord custom project
 // @Description Set Discord custom project config
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
-// @Param       discord_custom_project_dto body     models.DiscordCustomProjectConfig true "discord_custom_project_dto"
-// @Success     200           {object} string "success"
-// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       Authorization              header   string                                             true "Bearer JWT"
+// @Param       discord_custom_project_dto body     models.DiscordCustomProjectConfig                  true "discord_custom_project_dto"
+// @Success     200                        {object} string                                             "success"
+// @Failure     400                        {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500                        {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/projector/ [post]
 // func setDiscordCustomProjectConfig(c *gin.Context) {
 // 	var adminConfig *models.SocialToolServer
@@ -36,11 +29,11 @@ import (
 // @Description Set DoDo custom project config
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
-// @Param       discord_custom_project_dto body     models.DoDoCustomProjectConfig true "discord_custom_project_dto"
-// @Success     200           {object} string "success"
-// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       Authorization              header   string                                             true "Bearer JWT"
+// @Param       discord_custom_project_dto body     models.DoDoCustomProjectConfig                     true "discord_custom_project_dto"
+// @Success     200                        {object} string                                             "success"
+// @Failure     400                        {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500                        {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/projector/ [post]
 // func insertProjector(c *gin.Context) {
 // 	var adminConfig *models.SocialToolProjecter
@@ -59,11 +52,11 @@ import (
 // @Description Set Discord custom Activity config
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
-// @Param       discord_custom_activity_dto body     models.DiscordCustomActivityConfig true "discord_custom_activity_dto"
-// @Success     200           {object} string "success"
-// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       Authorization               header   string                                             true "Bearer JWT"
+// @Param       discord_custom_activity_dto body     models.DiscordCustomActivityConfig                 true "discord_custom_activity_dto"
+// @Success     200                         {object} string                                             "success"
+// @Failure     400                         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500                         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/projector/activity [post]
 // func setDiscordCustomActivityConfig(c *gin.Context) {
 // 	var config *models.CustomActivityConfig
@@ -82,11 +75,11 @@ import (
 // @Description Set DoDo custom Activity config
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
-// @Param       dodo_custom_activity_dto body     models.DoDoCustomActivityConfig true "dodo_custom_activity_dto"
-// @Success     200           {object} string "success"
-// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       Authorization            header   string                                             true "Bearer JWT"
+// @Param       dodo_custom_activity_dto body     models.DoDoCustomActivityConfig                    true "dodo_custom_activity_dto"
+// @Success     200                      {object} string                                             "success"
+// @Failure     400                      {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500                      {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/projector/activity [post]
 // func setDoDoCustomActivityConfig(c *gin.Context) {
 // 	var config *models.CustomActivityConfig
@@ -105,7 +98,7 @@ import (
 // @Description Get Discord custom Activity list
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
+// @Param       Authorization header   string  true  "Bearer JWT"
 // @Param       page          query    integer false "page"
 // @Param       limit         query    integer false "limit"
 // @Success     200           {object} models.DiscordActivityQueryResult
@@ -128,7 +121,7 @@ import (
 // @Description Get DoDo custom Activity list
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
+// @Param       Authorization header   string  true  "Bearer JWT"
 // @Param       page          query    integer false "page"
 // @Param       limit         query    integer false "limit"
 // @Success     200           {object} models.DoDoActivityQueryResult
@@ -151,10 +144,10 @@ import (
 // @Description Get Discord custom Activity detail info
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       id            path     int    true "id"
-// @Success     200           {object} models.DiscordCustomActivityConfig
-// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       id  path     int true "id"
+// @Success     200 {object} models.DiscordCustomActivityConfig
+// @Failure     400 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/activity/{id} [get]
 // func getDiscordCustomActivity(c *gin.Context) {
 // 	activityId, err := strconv.Atoi(c.Param("id"))
@@ -172,10 +165,10 @@ import (
 // @Description Get DoDo custom Activity detail info
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       id            path     int    true "id"
-// @Success     200           {object} models.DoDoCustomActivityConfig
-// @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
-// @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
+// @Param       id  path     int true "id"
+// @Success     200 {object} models.DoDoCustomActivityConfig
+// @Failure     400 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
+// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/activity/{id} [get]
 // func getDoDoCustomActivity(c *gin.Context) {
 // 	activityId, err := strconv.Atoi(c.Param("id"))
@@ -193,22 +186,22 @@ import (
 // @Description Get Discord custom project list
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
+// @Param       Authorization header   string  true  "Bearer JWT"
 // @Param       page          query    integer false "page"
 // @Param       limit         query    integer false "limit"
 // @Success     200           {object} models.DiscordCustomProjectConfigQueryResult
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/discord/projector/ [get]
-func getDiscordCustomProjectList(c *gin.Context) {
-	pagination, err := GetPagination(c)
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
-		return
-	}
-	mints, err := models.FindAndCountDiscordCustomProjectConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
-	ginutils.RenderResp(c, mints, err)
-}
+// func getDiscordCustomProjectList(c *gin.Context) {
+// 	pagination, err := GetPagination(c)
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
+// 		return
+// 	}
+// 	mints, err := models.FindAndCountDiscordCustomProjectConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
+// 	ginutils.RenderResp(c, mints, err)
+// }
 
 // @Tags        CustomMint
 // @ID          GetDoDoCustomProjectList
@@ -216,22 +209,22 @@ func getDiscordCustomProjectList(c *gin.Context) {
 // @Description Get DoDo custom project list
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       Authorization header   string true "Bearer JWT"
+// @Param       Authorization header   string  true  "Bearer JWT"
 // @Param       page          query    integer false "page"
 // @Param       limit         query    integer false "limit"
 // @Success     200           {object} models.DoDoCustomProjectConfigQueryResult
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
 // @Router      /custom/dodo/projector/ [get]
-func getDoDoCustomProjectList(c *gin.Context) {
-	pagination, err := GetPagination(c)
-	if err != nil {
-		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
-		return
-	}
-	mints, err := models.FindAndCountDoDoCustomProjectConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
-	ginutils.RenderResp(c, mints, err)
-}
+// func getDoDoCustomProjectList(c *gin.Context) {
+// 	pagination, err := GetPagination(c)
+// 	if err != nil {
+// 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
+// 		return
+// 	}
+// 	mints, err := models.FindAndCountDoDoCustomProjectConfig(GetIdFromJwtClaim(c), pagination.Offset(), pagination.Limit)
+// 	ginutils.RenderResp(c, mints, err)
+// }
 
 // @Tags        CustomMint
 // @ID          GetDiscordCustomProjectDetail

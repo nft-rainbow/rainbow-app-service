@@ -5,18 +5,25 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"github.com/spf13/viper"
 )
 
 type (
 	Bot interface {
-		SendChannelMessage(ctx context.Context, channedId string, msg string) error
+		SendChannelMessage(ctx context.Context, channedId string, msg string, referMsgId ...string) error
 		SendDirectMessage(ctx context.Context, serverId string, userId string, msg string) error
 		GetSeverInfo(ctx context.Context, serverId string) (*SeverInfo, error)
-		GetSocialToolType() models.SocialToolType
+		GetSocialToolType() enums.SocialToolType
 		GetChannels(serverId string) ([]*Channel, error)
 		GetRoles(serverId string) ([]*Role, error)
+		GetInviteUrl() string
 		Push(channelId string, roles []string, name, activityId, content, color string) error
+	}
+
+	BotCommander interface {
+		Mint() error
+		Bind() error
 	}
 )
 
@@ -35,6 +42,13 @@ type (
 		RoleId   string `json:"roleId"`   // 身份组ID
 		RoleName string `json:"roleName"` // 身份组名称
 	}
+
+	ChannelMsgSource struct {
+		serverId         string
+		channelId        string
+		userDodoSourceId string
+		messageId        string
+	}
 )
 
 var (
@@ -42,14 +56,17 @@ var (
 	dodoBotCreateOnce sync.Once
 )
 
-func getSocialToolBot(socialToolType models.SocialToolType) (Bot, error) {
+func getSocialToolBot(socialToolType enums.SocialToolType) (Bot, error) {
 	switch socialToolType {
-	case models.SOCIAL_TOOL_DODO:
+	case enums.SOCIAL_TOOL_DODO:
+		var err error
 		dodoBotCreateOnce.Do(func() {
-			dodoBot = NewDodoBot()
+			clientId := viper.GetString("dodoBot.clientId")
+			tokenId := viper.GetString("dodoBot.tokenId")
+			dodoBot, err = NewDodoBot(clientId, tokenId)
 		})
-		return dodoBot, nil
+		return dodoBot, err
 	}
-	go dodoBot.ListenWebsocket()
+
 	return nil, errors.New("unsupported social tool")
 }

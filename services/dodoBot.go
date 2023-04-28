@@ -2,172 +2,192 @@ package services
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"strings"
 	"time"
 
 	dodo "github.com/dodo-open/dodo-open-go"
-	"github.com/dodo-open/dodo-open-go/client"
 	dodoClient "github.com/dodo-open/dodo-open-go/client"
 	"github.com/dodo-open/dodo-open-go/model"
 	"github.com/dodo-open/dodo-open-go/tools"
 	"github.com/dodo-open/dodo-open-go/websocket"
-	"github.com/nft-rainbow/rainbow-app-service/models"
-	"github.com/nft-rainbow/rainbow-app-service/utils"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
-var instance dodoClient.Client
+const (
+	pushTemplate = `{
+		"content": "",
+		"card": {
+		  "type": "card",
+		  "components": [
+			{
+			  "type": "section",
+			  "text": {
+				"type": "dodo-md",
+				"content": "{roles} {name}#{activity} 来了！\n在频道中发送【/教程】，机器人将私信你领取教程"
+			  }
+			},
+			{
+			  "type": "section",
+			  "text": {
+				"type": "dodo-md",
+				"content": "{content}"
+			  }
+			}
+		  ],
+		  "theme": "{color}",
+		  "title": "新活动发布啦！"
+		}
+	  }`
+)
 
-func InitDodoInstance() (websocket.Client, dodoClient.Client) {
-	var err error
-	instance, err = dodo.NewInstance(viper.GetString("dodoBot.clientId"), viper.GetString("dodoBot.tokenId"), client.WithTimeout(time.Second*3))
+type DodoBot struct {
+	instance        dodoClient.Client
+	instanceBotInfo *model.GetBotInfoRsp
+	commander       *DodoBotCommander
+}
+
+func NewDodoBot(clientId, tokenId string) (*DodoBot, error) {
+	_instance, err := dodo.NewInstance(clientId, tokenId, dodoClient.WithTimeout(time.Second*3))
 	if err != nil {
-		panic(err)
-	}
-	bot, _ := instance.GetBotInfo(context.Background())
-	handlers := &websocket.MessageHandlers{
-		ChannelMessage: func(event *websocket.WSEventMessage, data *websocket.ChannelMessageEventBody) error {
-			push, _ := models.FindBotServerByChannel(data.IslandSourceId)
-			if push.PushInfo.ChannelId != data.ChannelId {
-				return nil
-			}
-			switch data.MessageType {
-			case model.TextMsg:
-				messageBody := &model.TextMessage{}
-				if err := tools.JSON.Unmarshal(data.MessageBody, &messageBody); err != nil {
-					return err
-				}
-				if !strings.HasPrefix(messageBody.Content, fmt.Sprintf("<@!%v>", bot.DodoSourceId)) {
-					return nil
-				}
-				commands := strings.Split(messageBody.Content, " ")
-
-				if strings.HasPrefix(commands[1], "铸造") {
-					contents := strings.Split(commands[1], "/")
-					var activityId, command string
-					if len(contents) == 3 {
-						command = contents[2]
-					}
-					activityId = contents[1]
-					bind, err := models.FindBindingCFXAddressById(data.DodoSourceId, utils.DoDo)
-					if err != nil {
-						processErrorMessage(&instance, data, err.Error())
-						return nil
-					}
-
-					config, err := models.FindPOAPActivityConfigById(activityId)
-					if err != nil {
-						processErrorMessage(&instance, data, err.Error())
-						return nil
-					}
-
-					if err := config.CheckActivityValid(); err != nil {
-						processErrorMessage(&instance, data, err.Error())
-						return nil
-					}
-
-					// err = checkSocialLimit(data.IslandSourceId, data.DodoSourceId, config.ActivityID, utils.DoDo)
-					// if err != nil {
-					// 	processErrorMessage(&instance, data, err.Error())
-					// 	return nil
-					// }
-					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-						ChannelId:   data.ChannelId,
-						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> Start to mint NFT. Please wait patiently.", data.DodoSourceId)},
-					})
-
-					res, err := HandlePOAPH5Mint(&POAPRequest{
-						ActivityID:  config.ActivityID,
-						UserAddress: bind.CFXAddress,
-						Command:     command,
-					})
-					if err != nil {
-						processErrorMessage(&instance, data, err.Error())
-						return nil
-					}
-
-					for {
-						resp, _ := models.FindPOAPResultById(config.ActivityID, int(res.ID))
-						if resp.Hash == "" {
-							time.Sleep(time.Second)
-							continue
-						}
-						_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-							ChannelId:   data.ChannelId,
-							MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> Mint NFT successfully. The correspding transaction hash is %v", data.DodoSourceId, resp.Hash)},
-						})
-						break
-					}
-					return nil
-				} else if strings.HasPrefix(commands[1], "绑定") {
-					contents := strings.Split(commands[1], "/")
-					if len(contents) > 3 {
-						_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-							ChannelId:   data.ChannelId,
-							MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoSourceId, "The input is wrong")},
-						})
-						return nil
-					}
-
-					userAddress := contents[1]
-
-					err := HandleBindCfxAddress(data.DodoSourceId, userAddress, "dodo")
-					if err != nil {
-						processErrorMessage(&instance, data, err.Error())
-						return nil
-					}
-
-					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-						ChannelId:   data.ChannelId,
-						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> success!", data.DodoSourceId)},
-					})
-					return nil
-
-				} else if strings.HasPrefix(commands[1], "查地址") {
-					resp, err := GetDoDoBindCFXAddress(data.DodoSourceId)
-					if err != nil {
-						processErrorMessage(&instance, data, err.Error())
-						return nil
-					}
-					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-						ChannelId:   data.ChannelId,
-						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoSourceId, resp)},
-					})
-					return nil
-				} else if strings.HasPrefix(commands[1], "教程") {
-					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-						ChannelId:   data.ChannelId,
-						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoSourceId, guide)},
-					})
-				} else if strings.HasPrefix(commands[1], "创建") {
-					_, _ = instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-						ChannelId:   data.ChannelId,
-						MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoSourceId, anywebH5)},
-					})
-				} else if strings.HasPrefix(commands[1], "查口令") {
-					contents := strings.Split(commands[1], "/")
-					activity := contents[1]
-					config, err := models.FindPOAPActivityConfigById(activity)
-					if err != nil {
-						processErrorMessage(&instance, data, err.Error())
-						return nil
-					}
-					if config.Command == "" {
-						processErrorMessage(&instance, data, fmt.Sprintf("<@!%s> The command is not needed in this activity", data.DodoSourceId))
-						return nil
-					}
-					instance.SendDirectMessage(context.Background(), &model.SendDirectMessageReq{
-						DodoSourceId: data.DodoSourceId,
-						MessageBody:  &model.TextMessage{Content: config.Command},
-					})
-				}
-			}
-			return nil
-		},
+		return nil, err
 	}
 
-	ws, err := websocket.New(instance,
+	botInfo, err := _instance.GetBotInfo(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	b := &DodoBot{
+		instance:        _instance,
+		instanceBotInfo: botInfo,
+	}
+	b.commander = NewDodoBotCommander(b)
+
+	go b.ListenWebsocket()
+	return b, nil
+}
+
+func (d *DodoBot) GetSocialToolType() enums.SocialToolType {
+	return enums.SOCIAL_TOOL_DODO
+}
+
+func (d *DodoBot) SendChannelMessage(ctx context.Context, channedId string, msg string, referMsgId ...string) error {
+	if len(referMsgId) == 0 {
+		referMsgId = append(referMsgId, "")
+	}
+	_, err := d.instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
+		ChannelId:           channedId,
+		MessageBody:         &model.TextMessage{Content: msg},
+		ReferencedMessageId: referMsgId[0],
+	})
+	return err
+}
+
+func (d *DodoBot) SendDirectMessage(ctx context.Context, serverId string, userId string, msg string) error {
+	_, err := d.instance.SendDirectMessage(ctx, &model.SendDirectMessageReq{
+		IslandSourceId: serverId,
+		DodoSourceId:   userId,
+		MessageBody:    &model.TextMessage{Content: msg},
+	})
+	return err
+}
+
+func (d *DodoBot) GetSeverInfo(ctx context.Context, serverId string) (*SeverInfo, error) {
+	info, err := d.instance.GetIslandInfo(ctx, &model.GetIslandInfoReq{
+		IslandSourceId: serverId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &SeverInfo{
+		OwnerId: info.OwnerDodoSourceId,
+		Name:    info.IslandName,
+	}, nil
+}
+
+func (d *DodoBot) GetChannels(serverId string) ([]*Channel, error) {
+	_channels, err := d.instance.GetChannelList(context.Background(), &model.GetChannelListReq{
+		IslandSourceId: serverId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	channels := []*Channel{}
+	for _, v := range _channels {
+		channels = append(channels, &Channel{
+			ChannelId:   v.ChannelId,
+			ChannelName: v.ChannelName,
+		})
+	}
+
+	return channels, nil
+}
+
+func (d *DodoBot) Push(channelId string, roles []string, name, activityId, content, color string) error {
+	var message model.CardMessage
+
+	_roles := ""
+	if len(roles) == 0 || roles[0] == "" {
+		_roles = "<@all>"
+	} else {
+		_roles = "<@&" + strings.Join(roles, "><@&") + ">"
+	}
+
+	card := pushTemplate
+	card = strings.Replace(card, "{roles}", _roles, -1)
+	card = strings.Replace(card, "{name}", name, -1)
+	card = strings.Replace(card, "{activity}", activityId, -1)
+	card = strings.Replace(card, "{content}", content, -1)
+	card = strings.Replace(card, "{color}", color, -1)
+	err := json.Unmarshal([]byte(card), &message)
+	if err != nil {
+		return err
+	}
+
+	_, err = d.instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
+		ChannelId:   channelId,
+		MessageBody: &message,
+	})
+	return err
+}
+
+func (d *DodoBot) GetRoles(serverId string) ([]*Role, error) {
+	_roles, err := d.instance.GetRoleList(context.Background(), &model.GetRoleListReq{
+		IslandSourceId: serverId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	roles := []*Role{}
+	for _, v := range _roles {
+		roles = append(roles, &Role{
+			RoleId:   v.RoleId,
+			RoleName: v.RoleName,
+		})
+	}
+
+	return roles, nil
+}
+
+func (d *DodoBot) GetInviteUrl() string {
+	return viper.GetString("dodoBot.inviteUrl")
+}
+
+func (d *DodoBot) RunCommand(channelMsgSource ChannelMsgSource, command string) error {
+	return d.commander.ExcuteCommand(channelMsgSource, command)
+}
+
+func (d *DodoBot) ListenWebsocket() {
+	logrus.Info("Start to connect dodo websocket")
+	handlers := &websocket.MessageHandlers{ChannelMessage: d.dodoChannelMsgHandler}
+
+	ws, err := websocket.New(d.instance,
 		websocket.WithMessageQueueSize(128),
 		websocket.WithMessageHandlers(handlers),
 	)
@@ -175,139 +195,42 @@ func InitDodoInstance() (websocket.Client, dodoClient.Client) {
 		panic(err)
 	}
 
-	return ws, instance
-}
+	if err = ws.Connect(); err != nil {
+		panic(err)
+	}
+	logrus.Info("Start to listen dodo websocket")
 
-// func DoDoPushActivity(req *PushReq) (*model.SendChannelMessageRsp, error) {
-// 	config, err := models.FindPOAPActivityConfigById(req.ActivityId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	if err := config.CheckActivityValid(); err != nil {
-// 		return nil, err
-// 	}
-
-// 	var message model.CardMessage
-
-// 	roles := ""
-// 	if len(req.Roles) == 1 && req.Roles[0] == "all" {
-// 		roles = "<@all>"
-// 	} else {
-// 		for _, v := range req.Roles {
-// 			roles += fmt.Sprintf("<@&%s>", v)
-// 		}
-// 	}
-
-// 	card = strings.Replace(card, "{roles}", roles, -1)
-// 	card = strings.Replace(card, "{name}", config.Name, -1)
-// 	card = strings.Replace(card, "{activity}", config.ActivityID, -1)
-// 	card = strings.Replace(card, "{content}", req.Content, -1)
-// 	card = strings.Replace(card, "{color}", req.Color, -1)
-// 	err = json.Unmarshal([]byte(card), &message)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	msg, err := instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-// 		ChannelId:   req.ChannelId,
-// 		MessageBody: &message,
-// 	})
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	models.GetDB().Create(&models.PushInfo{
-// 		// ServerId:     req.ServerId,
-// 		// ServerName:   req.ServerName,
-// 		// ContractID:   config.ContractID,
-// 		// ActivityId:   req.ActivityId,
-// 		// ActivityName: config.Name,
-// 		// StartedTime:  config.StartedTime,
-// 		// EndedTime:    config.EndedTime,
-// 		// Contract:     config.ContractAddress,
-// 		// AccountLimit: req.AccountLimit,
-// 		ChannelId: req.ChannelId,
-// 		// Bot:           utils.DoDo,
-// 		// RainbowUserId: req.RainbowUserId,
-// 	})
-
-// 	return msg, nil
-// }
-
-func processErrorMessage(instance *client.Client, data *websocket.ChannelMessageEventBody, message string) {
-	_, _ = (*instance).SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
-		ChannelId:   data.ChannelId,
-		MessageBody: &model.TextMessage{Content: fmt.Sprintf("<@!%s> %s", data.DodoSourceId, message)},
-	})
-}
-
-// func checkSocialLimit(serverId, userId, activity string, socialType int) error {
-// 	push, err := models.FindServerByChannel(serverId, activity)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if push.AccountLimit == -1 {
-// 		return nil
-// 	}
-
-// 	count, err := models.CountPOAPResultBySocial(userId, activity, uint(socialType))
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if int(count) >= push.AccountLimit {
-// 		return fmt.Errorf("The userId has exceeded the account limit")
-// 	}
-// 	return nil
-// }
-
-func CheckIslandIsActive(instance *client.Client, islandId string) bool {
-	_, err := (*instance).GetChannelList(context.Background(), &model.GetChannelListReq{
-		IslandSourceId: islandId,
-	})
+	err = ws.Listen()
 	if err != nil {
-		return false
+		panic(err)
 	}
-
-	return true
 }
 
-// func GetDoDoChannels(instance *client.Client, islandId string) ([]*model.ChannelElement, error) {
-// 	channels, err := (*instance).GetChannelList(context.Background(), &model.GetChannelListReq{
-// 		IslandSourceId: islandId,
-// 	})
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return channels, nil
-// }
+func (d *DodoBot) dodoChannelMsgHandler(event *websocket.WSEventMessage, data *websocket.ChannelMessageEventBody) error {
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	j, _ := json.Marshal(data)
+	logrus.WithField("msg", string(j)).Info("got message")
 
-// func GetDoDoRoles(instance *client.Client, islandId string) ([]*model.RoleElement, error) {
-// 	channels, err := (*instance).GetRoleList(context.Background(), &model.GetRoleListReq{
-// 		IslandSourceId: islandId,
-// 	})
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return channels, nil
-// }
-
-func checkDoDoChannels(instance *client.Client, islandId string) bool {
-	channels, err := (*instance).GetChannelList(context.Background(), &model.GetChannelListReq{
-		IslandSourceId: islandId,
-	})
-	if err != nil {
-		return false
+	if data.MessageType != model.TextMsg {
+		return nil
 	}
 
-	for _, v := range channels {
-		if v.ChannelName == channelName {
-			return true
-		}
+	messageBody := &model.TextMessage{}
+	if err := tools.JSON.Unmarshal(data.MessageBody, &messageBody); err != nil {
+		return err
 	}
-	return false
-}
 
-func GetInstance() *dodoClient.Client {
-	return &instance
+	isCommand := len(messageBody.Content) > 0 && messageBody.Content[0] == byte('/')
+	if !isCommand {
+		return nil
+	}
+	logrus.WithField("command", messageBody.Content).Info("got command")
+
+	channelMsgSource := ChannelMsgSource{
+		serverId:         data.IslandSourceId,
+		channelId:        data.ChannelId,
+		userDodoSourceId: data.DodoSourceId,
+		messageId:        data.MessageId,
+	}
+	return d.RunCommand(channelMsgSource, messageBody.Content)
 }

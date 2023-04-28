@@ -2,9 +2,10 @@ package middlewares
 
 import (
 	"errors"
-	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 	"runtime/debug"
 	"time"
+
+	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
