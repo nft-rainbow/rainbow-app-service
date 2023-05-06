@@ -16,7 +16,7 @@ func TestUploadFileToOss(t *testing.T) {
 
 	activityCode := "3eb6e93b"
 	_path := path.Join(viper.GetString("posterDir.activity"), activityCode+".png")
-	err = bucket.PutObjectFromFile(_path, "/Users/dayong/Downloads/ecbebabb.png")
+	err = bucket.PutObjectFromFile(_path, "/Users/dayong/Downloads/286208cf.png")
 	assert.NoError(t, err)
 }
 

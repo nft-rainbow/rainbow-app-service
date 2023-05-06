@@ -868,6 +868,11 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "name": "address",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "activity_code",
                         "name": "activity_code",
                         "in": "path",
@@ -1319,6 +1324,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "metadata_uri": {
+                    "description": "与contract base_uri 的区别：base_uri需拼接tokenid后缀；",
                     "type": "string"
                 },
                 "name": {
@@ -1408,6 +1414,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "metadata_uri": {
+                    "description": "与contract base_uri 的区别：base_uri需拼接tokenid后缀；",
                     "type": "string"
                 },
                 "name": {
@@ -1463,6 +1470,9 @@ const docTemplate = `{
                 "raw_server_id": {
                     "type": "string"
                 },
+                "server_name": {
+                    "type": "string"
+                },
                 "social_tool": {
                     "type": "integer"
                 },
@@ -1513,7 +1523,7 @@ const docTemplate = `{
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.PlattenBotServerActivity"
+                        "$ref": "#/definitions/models.FlattenBotServerActivity"
                     }
                 }
             }
@@ -1529,6 +1539,67 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.BotServer"
                     }
+                }
+            }
+        },
+        "models.FlattenBotServerActivity": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "activity_id": {
+                    "type": "string"
+                },
+                "activity_type": {
+                    "type": "integer"
+                },
+                "chain_id": {
+                    "type": "integer"
+                },
+                "chain_type": {
+                    "type": "integer"
+                },
+                "channel_id": {
+                    "type": "string"
+                },
+                "contract_address": {
+                    "type": "string"
+                },
+                "contract_id": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "last_push_time": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner_social_id": {
+                    "type": "string"
+                },
+                "push_info_id": {
+                    "type": "integer"
+                },
+                "rainbow_user_id": {
+                    "type": "integer"
+                },
+                "raw_server_id": {
+                    "type": "string"
+                },
+                "server_name": {
+                    "type": "string"
+                },
+                "social_tool": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "integer",
+                    "default": -1
                 }
             }
         },
@@ -1730,52 +1801,12 @@ const docTemplate = `{
                 }
             }
         },
-        "models.PlattenBotServerActivity": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "activity_id": {
-                    "type": "integer"
-                },
-                "channel_id": {
-                    "type": "string"
-                },
-                "contractAddress": {
-                    "type": "string"
-                },
-                "contract_id": {
-                    "type": "integer"
-                },
-                "end_time": {
-                    "type": "integer",
-                    "default": -1
-                },
-                "name": {
-                    "type": "string"
-                },
-                "owner_social_id": {
-                    "type": "string"
-                },
-                "rainbow_user_id": {
-                    "type": "integer"
-                },
-                "raw_server_id": {
-                    "type": "string"
-                },
-                "social_tool": {
-                    "type": "integer"
-                },
-                "start_time": {
-                    "type": "integer",
-                    "default": -1
-                }
-            }
-        },
         "models.PushInfo": {
             "type": "object",
             "properties": {
+                "activity": {
+                    "$ref": "#/definitions/models.Activity"
+                },
                 "activity_id": {
                     "type": "integer"
                 },
@@ -1798,6 +1829,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "id": {
+                    "type": "integer"
+                },
+                "last_push_time": {
                     "type": "integer"
                 },
                 "roles": {
@@ -1843,6 +1877,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "metadata_uri": {
+                    "description": "与contract base_uri 的区别：base_uri需拼接tokenid后缀；",
                     "type": "string"
                 },
                 "name": {
