@@ -127,7 +127,7 @@ func (a *Activity) VerifyMintable() error {
 	}
 
 	if a.Amount != -1 {
-		resp, err := CountPOAPResult(a.ActivityCode)
+		resp, err := CountPOAPResult(a.ActivityCode, nil)
 		if err != nil {
 			return err
 		}

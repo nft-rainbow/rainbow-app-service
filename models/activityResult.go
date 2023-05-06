@@ -27,20 +27,24 @@ type POAPResult struct {
 	SocialType    uint   `gorm:"type:integer" json:"social_type"`
 }
 
+type POAPResultFilter struct {
+	Address string `form:"address" json:"address"`
+}
 type POAPResultQueryResult struct {
 	Count int64         `json:"count"`
 	Items []*POAPResult `json:"items"`
 }
 
-func FindAndCountPOAPResult(poapId string, pagination Pagination) (*POAPResultQueryResult, error) {
+func FindAndCountPOAPResult(poapId string, filter POAPResultFilter, pagination Pagination) (*POAPResultQueryResult, error) {
 	defaults.SetDefaults(&pagination)
 
 	var items []*POAPResult
 	cond := &POAPResult{}
 	cond.ActivityCode = poapId
+	cond.Address = filter.Address
 
 	var count int64
-	count, err := CountPOAPResult(poapId)
+	count, err := CountPOAPResult(poapId, &filter)
 	if err != nil {
 		return nil, err
 	}
@@ -52,16 +56,23 @@ func FindAndCountPOAPResult(poapId string, pagination Pagination) (*POAPResultQu
 	return &POAPResultQueryResult{count, items}, nil
 }
 
-func CountPOAPResult(poapId string) (int64, error) {
+func CountPOAPResult(poapId string, filter *POAPResultFilter) (int64, error) {
 	cond := &POAPResult{}
 	cond.ActivityCode = poapId
 
-	cache, err := InitCache(poapId)
-	if err != nil {
-		return 0, err
+	if filter == nil {
+		cache, err := InitCache(poapId)
+		if err != nil {
+			return 0, err
+		}
+		return cache.GetCount(), nil
 	}
 
-	return cache.Count, nil
+	cond.Address = filter.Address
+
+	var count int64
+	err := db.Model(&POAPResult{}).Where(cond).Order("id DESC").Count(&count).Error
+	return count, err
 }
 
 func CountPOAPResultBySocial(socialId, poapId string, socialType uint) (int64, error) {
@@ -122,8 +133,19 @@ type POAPResultCountCache struct {
 	Count int64 `json:"count"`
 }
 
+func (p *POAPResultCountCache) GetCount() int64 {
+	p.RLock()
+	defer p.RUnlock()
+	return p.Count
+}
+
+func (p *POAPResultCountCache) SetCount(count int64) {
+	p.Lock()
+	defer p.Unlock()
+	p.Count = count
+}
+
 func InitCache(ActivityID string) (*POAPResultCountCache, error) {
-	var count int64
 	countCache, ok := Cache[ActivityID]
 	if !ok {
 		countCache = &POAPResultCountCache{}
@@ -131,16 +153,11 @@ func InitCache(ActivityID string) (*POAPResultCountCache, error) {
 	}
 
 	if countCache.Count == 0 {
+		var count int64
 		if err := db.Model(&POAPResult{}).Where(&POAPResult{ActivityCode: ActivityID}).Count(&count).Error; err != nil {
 			return nil, err
 		}
-		countCache.Lock()
-		Cache[ActivityID].Count = count
-		countCache.Unlock()
-	} else {
-		countCache.RLock()
-		count = countCache.Count
-		countCache.RUnlock()
+		countCache.SetCount(count)
 	}
 	return countCache, nil
 }

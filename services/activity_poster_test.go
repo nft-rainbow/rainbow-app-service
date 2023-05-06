@@ -10,13 +10,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func _TestUploadFileToOss(t *testing.T) {
+func TestUploadFileToOss(t *testing.T) {
 	bucket, err := getOSSBucket(viper.GetString("oss.bucketName"))
 	assert.NoError(t, err)
 
 	activityCode := "3eb6e93b"
 	_path := path.Join(viper.GetString("posterDir.activity"), activityCode+".png")
-	err = bucket.PutObjectFromFile(_path, "/Users/dayong/Downloads/0fcccd86.png")
+	err = bucket.PutObjectFromFile(_path, "/Users/dayong/Downloads/ecbebabb.png")
 	assert.NoError(t, err)
 }
 

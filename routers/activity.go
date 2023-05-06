@@ -207,12 +207,19 @@ func getMintResultList(c *gin.Context) {
 		return
 	}
 
+	var filter models.POAPResultFilter
+	if err := c.ShouldBindQuery(&filter); err != nil {
+		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_PAGINATION)
+		return
+	}
+
 	poapId := c.Param(ACTIVITY_CODE_KEY)
 	if poapId == "" {
 		ginutils.RenderRespError(c, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
 	}
-	mints, err := models.FindAndCountPOAPResult(poapId, pagination)
+
+	mints, err := models.FindAndCountPOAPResult(poapId, filter, pagination)
 	ginutils.RenderResp(c, mints, err)
 }
 
