@@ -193,9 +193,10 @@ func updateActivity(c *gin.Context) {
 // @Description Get Mint Result list
 // @security    ApiKeyAuth
 // @Produce     json
-// @Param       page          query    integer false "page"
-// @Param       limit         query    integer false "limit"
-// @Param       activity_code path     string  true  "activity_code"
+// @Param       page          query    integer                 false "page"
+// @Param       limit         query    integer                 false "limit"
+// @Param       filter        query    models.POAPResultFilter false "filter"
+// @Param       activity_code path     string                  true  "activity_code"
 // @Success     200           {object} models.POAPResultQueryResult
 // @Failure     400           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Invalid request"
 // @Failure     500           {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"

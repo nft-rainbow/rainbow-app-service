@@ -59,6 +59,7 @@ definitions:
       max_mint_count:
         type: integer
       metadata_uri:
+        description: 与contract base_uri 的区别：base_uri需拼接tokenid后缀；
         type: string
       name:
         type: string
@@ -120,6 +121,7 @@ definitions:
       max_mint_count:
         type: integer
       metadata_uri:
+        description: 与contract base_uri 的区别：base_uri需拼接tokenid后缀；
         type: string
       name:
         type: string
@@ -160,6 +162,8 @@ definitions:
         type: integer
       raw_server_id:
         type: string
+      server_name:
+        type: string
       social_tool:
         type: integer
       updated_at:
@@ -198,7 +202,7 @@ definitions:
         type: integer
       items:
         items:
-          $ref: '#/definitions/models.PlattenBotServerActivity'
+          $ref: '#/definitions/models.FlattenBotServerActivity'
         type: array
     type: object
   models.FindBotServersResult:
@@ -209,6 +213,47 @@ definitions:
         items:
           $ref: '#/definitions/models.BotServer'
         type: array
+    type: object
+  models.FlattenBotServerActivity:
+    properties:
+      activity_id:
+        type: string
+      activity_type:
+        type: integer
+      chain_id:
+        type: integer
+      chain_type:
+        type: integer
+      channel_id:
+        type: string
+      contract_address:
+        type: string
+      contract_id:
+        type: integer
+      end_time:
+        default: -1
+        type: integer
+      last_push_time:
+        type: integer
+      name:
+        type: string
+      owner_social_id:
+        type: string
+      push_info_id:
+        type: integer
+      rainbow_user_id:
+        type: integer
+      raw_server_id:
+        type: string
+      server_name:
+        type: string
+      social_tool:
+        type: integer
+      start_time:
+        default: -1
+        type: integer
+    required:
+    - name
     type: object
   models.H5Config:
     properties:
@@ -341,37 +386,10 @@ definitions:
           $ref: '#/definitions/models.POAPResult'
         type: array
     type: object
-  models.PlattenBotServerActivity:
-    properties:
-      activity_id:
-        type: integer
-      channel_id:
-        type: string
-      contract_id:
-        type: integer
-      contractAddress:
-        type: string
-      end_time:
-        default: -1
-        type: integer
-      name:
-        type: string
-      owner_social_id:
-        type: string
-      rainbow_user_id:
-        type: integer
-      raw_server_id:
-        type: string
-      social_tool:
-        type: integer
-      start_time:
-        default: -1
-        type: integer
-    required:
-    - name
-    type: object
   models.PushInfo:
     properties:
+      activity:
+        $ref: '#/definitions/models.Activity'
       activity_id:
         type: integer
       bot_server_id:
@@ -387,6 +405,8 @@ definitions:
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
       id:
+        type: integer
+      last_push_time:
         type: integer
       roles:
         type: string
@@ -413,6 +433,7 @@ definitions:
       max_mint_count:
         type: integer
       metadata_uri:
+        description: 与contract base_uri 的区别：base_uri需拼接tokenid后缀；
         type: string
       name:
         type: string
@@ -1135,6 +1156,9 @@ paths:
         in: query
         name: limit
         type: integer
+      - in: query
+        name: address
+        type: string
       - description: activity_code
         in: path
         name: activity_code
