@@ -16,18 +16,19 @@ type WalletUser struct {
 
 func FindWalletUserByAddress(address string) ([]*WalletUser, error) {
 	var users []*WalletUser
-	err := GetDB().Where("address = ?", address).First(&users).Error
+	err := GetDB().Where("address = ?", address).Find(&users).Error
 	if err != nil {
 		return nil, err
 	}
 	return users, nil
 }
 
-func FindWalletUser(wallet enums.WalletType, address string) (*WalletUser, error) {
-	var user WalletUser
-	err := GetDB().Where("wallet=? and address=?", wallet, address).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
+func FindWalletUser(wallet enums.WalletType, address string) (walletUser *WalletUser, err error) {
+	err = GetDB().Where("wallet=? and address=?", wallet, address).First(&walletUser).Error
+	return
+}
+
+func FindAllUserAddrsOfPhone(phone string) (addrs []string, err error) {
+	err = GetDB().Where("phone=?", phone).Distinct("address").Find(&addrs).Error
+	return
 }

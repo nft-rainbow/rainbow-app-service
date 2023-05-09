@@ -376,9 +376,7 @@ func (a *ActivityService) HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, er
 	}
 	res := models.GetDB().Create(&item)
 
-	cache.Lock()
-	cache.Count += 1
-	cache.Unlock()
+	cache.Increase()
 
 	return item, errors.WithStack(res.Error)
 }
@@ -409,7 +407,7 @@ func (a *ActivityService) GetMintCount(activityID, address string) (*int32, erro
 		}
 	}
 
-	mintedCount, err := models.CountPOAPResultByAddress(address, activityID)
+	mintedCount, err := models.GetMintSumByAddresses(activityID, address)
 	if err != nil {
 		return nil, err
 	}
@@ -446,6 +444,7 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 		return errors.WithStack(err)
 	}
 
+	addrsOfPhone := []string{req.UserAddress}
 	if config.IsPhoneWhiteListOpened {
 		users, err := models.FindWalletUserByAddress(req.UserAddress)
 		if err == nil && len(users) > 0 {
@@ -456,16 +455,22 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 					break
 				}
 			}
-			if !isInWhiteList { // phone not in whitelist
+
+			if !isInWhiteList {
 				return errors.New("无领取资格")
+			} else {
+				for _, u := range users {
+					addrsOfPhone = append(addrsOfPhone, u.Address)
+				}
 			}
 
 		} else if errors.Is(err, gorm.ErrRecordNotFound) { // not found phone info
 			return errors.New("无领取资格")
 		}
+
 	}
 
-	if err := checkUserMintQuota(config.ActivityCode, req.UserAddress, config.MaxMintCount); err != nil {
+	if err := checkUserMintQuota(config.ActivityCode, addrsOfPhone, config.MaxMintCount); err != nil {
 		return err
 	}
 
@@ -528,12 +533,12 @@ func weightedRandomIndex(weights []float32) int {
 	return len(weights) - 1
 }
 
-func checkUserMintQuota(activityId, user string, max int32) error {
+func checkUserMintQuota(activityId string, userAddrs []string, max int32) error {
 	if max == -1 {
 		return nil
 	}
 
-	count, err := models.CountPOAPResultByAddress(user, activityId)
+	count, err := models.GetMintSumByAddresses(activityId, userAddrs...)
 	if err != nil {
 		return err
 	}

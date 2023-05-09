@@ -86,13 +86,13 @@ func CountPOAPResultBySocial(socialId, poapId string, socialType uint) (int64, e
 	return count, err
 }
 
-func CountPOAPResultByAddress(address, poapId string) (int64, error) {
+func GetMintSumByAddresses(poapId string, addresses ...string) (int64, error) {
 	cond := &POAPResult{}
 	cond.ActivityCode = poapId
-	cond.Address = address
+	// cond.Address = address
 
 	var count int64
-	if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
+	if err := db.Model(&POAPResult{}).Where(cond).Where("address in ?", addresses).Count(&count).Error; err != nil {
 		return 0, err
 	}
 
@@ -143,6 +143,12 @@ func (p *POAPResultCountCache) SetCount(count int64) {
 	p.Lock()
 	defer p.Unlock()
 	p.Count = count
+}
+
+func (p *POAPResultCountCache) Increase() {
+	p.Lock()
+	defer p.Unlock()
+	p.Count += 1
 }
 
 func InitCache(ActivityID string) (*POAPResultCountCache, error) {
