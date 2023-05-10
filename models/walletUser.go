@@ -29,6 +29,6 @@ func FindWalletUser(wallet enums.WalletType, address string) (walletUser *Wallet
 }
 
 func FindAllUserAddrsOfPhone(phone string) (addrs []string, err error) {
-	err = GetDB().Where("phone=?", phone).Distinct("address").Find(&addrs).Error
+	err = GetDB().Debug().Model(&WalletUser{}).Select("address").Distinct().Where("phone=?", phone).Distinct("address").Find(&addrs).Error
 	return
 }

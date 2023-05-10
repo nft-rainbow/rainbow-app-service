@@ -391,7 +391,7 @@ func (a *ActivityService) GetMintCount(activityID, address string) (*int32, erro
 	// phone white list logic: if whiteList config opened and user not in whiteList then the mint count is 0
 	if config.IsPhoneWhiteListOpened {
 		users, err := models.FindWalletUserByAddress(address)
-		if err == nil && len(users) > 0 { // TODO check the phone not found case
+		if err == nil { // TODO check the phone not found case
 			var isInWhiteList bool
 			for _, u := range users {
 				isInWhiteList = models.IsPhoneInWhiteList(activityID, u.Phone)
@@ -418,6 +418,7 @@ func (a *ActivityService) GetMintCount(activityID, address string) (*int32, erro
 	} else {
 		remainedMinted = int32(int64(config.MaxMintCount) - mintedCount)
 	}
+	logrus.WithField("remain", remainedMinted).Info("get remain mint count")
 
 	if config.Amount == -1 {
 		count = remainedMinted
@@ -447,27 +448,32 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 	addrsOfPhone := []string{req.UserAddress}
 	if config.IsPhoneWhiteListOpened {
 		users, err := models.FindWalletUserByAddress(req.UserAddress)
-		if err == nil && len(users) > 0 {
-			var isInWhiteList bool
-			for _, u := range users {
-				isInWhiteList = models.IsPhoneInWhiteList(req.ActivityID, u.Phone)
-				if isInWhiteList {
-					break
-				}
-			}
 
-			if !isInWhiteList {
-				return errors.New("无领取资格")
-			} else {
-				for _, u := range users {
-					addrsOfPhone = append(addrsOfPhone, u.Address)
-				}
-			}
+		if err != nil {
+			return err
+		}
 
-		} else if errors.Is(err, gorm.ErrRecordNotFound) { // not found phone info
+		if len(users) == 0 {
 			return errors.New("无领取资格")
 		}
 
+		var isInWhiteList bool
+		for _, u := range users {
+			isInWhiteList = models.IsPhoneInWhiteList(req.ActivityID, u.Phone)
+			if isInWhiteList {
+				break
+			}
+		}
+
+		if !isInWhiteList {
+			return errors.New("无领取资格")
+		}
+
+		addrs, err := models.FindAllUserAddrsOfPhone(users[0].Phone)
+		if err != nil {
+			return err
+		}
+		addrsOfPhone = append(addrsOfPhone, addrs...)
 	}
 
 	if err := checkUserMintQuota(config.ActivityCode, addrsOfPhone, config.MaxMintCount); err != nil {
