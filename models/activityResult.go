@@ -61,7 +61,7 @@ func CountPOAPResult(poapId string, filter *POAPResultFilter) (int64, error) {
 	cond.ActivityCode = poapId
 
 	if filter == nil {
-		cache, err := InitCache(poapId)
+		cache, err := GetMintCountCache(poapId)
 		if err != nil {
 			return 0, err
 		}
@@ -151,7 +151,7 @@ func (p *POAPResultCountCache) Increase() {
 	p.Count += 1
 }
 
-func InitCache(ActivityID string) (*POAPResultCountCache, error) {
+func GetMintCountCache(ActivityID string) (*POAPResultCountCache, error) {
 	countCache, ok := Cache[ActivityID]
 	if !ok {
 		countCache = &POAPResultCountCache{}

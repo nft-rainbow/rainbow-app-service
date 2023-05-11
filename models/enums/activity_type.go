@@ -10,7 +10,7 @@ type ActivityType uint
 const (
 	ACTIVITY_BLINDBOX ActivityType = iota + 1
 	ACTIVITY_SINGLE
-	ACTIVITY_SINGLE_ID_ORDER
+	// ACTIVITY_SINGLE_ID_ORDER
 	ACTIVITY_POAP
 )
 
@@ -25,10 +25,10 @@ var (
 
 func init() {
 	activityTypeValue2StrMap = map[ActivityType]string{
-		ACTIVITY_BLINDBOX:        "blind_box",
-		ACTIVITY_SINGLE:          "single",
-		ACTIVITY_SINGLE_ID_ORDER: "single_id_order",
-		ACTIVITY_POAP:            "poap",
+		ACTIVITY_BLINDBOX: "blind_box",
+		ACTIVITY_SINGLE:   "single",
+		// ACTIVITY_SINGLE_ID_ORDER: "single_id_order",
+		ACTIVITY_POAP: "poap",
 	}
 
 	activityTypeStr2ValueMap = make(map[string]ActivityType)

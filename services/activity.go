@@ -19,7 +19,6 @@ import (
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
@@ -279,106 +278,160 @@ func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateAc
 // }
 
 func (a *ActivityService) HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, error) {
-	config, err := models.FindActivityByCode(req.ActivityID)
+	activity, err := models.FindActivityByCode(req.ActivityID)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	err = a.CheckMintable(config, req)
+	err = a.CheckMintable(activity, req)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	token, err := middlewares.GenerateRainbowOpenJWT(config.RainbowUserId, config.AppId)
+	token, err := middlewares.GenerateRainbowOpenJWT(activity.RainbowUserId, activity.AppId)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	var metadataURI *string
-	var nextTokenId uint64
-	var index int
-	if req.ActivityID == viper.GetString("changAnDao.activityId") {
-		config.ActivityType = enums.ACTIVITY_SINGLE_ID_ORDER
-	} // TMP code
+	genMetadataUri := func() (string, *models.NFTConfig, error) {
 
-	switch config.ActivityType {
-	case enums.ACTIVITY_SINGLE_ID_ORDER:
-		// nextTokenId = GetChangAnDaoNum() + 1
-		profile, err := utils.GetContractProfile(config.Contract.ContractAddress, token)
-		if err != nil {
-			return nil, err
+		// var metadataURI *string
+		var index int
+		// if req.ActivityID == viper.GetString("changAnDao.activityId") {
+		// 	config.ActivityType = enums.ACTIVITY_SINGLE_ID_ORDER
+		// } // TMP code
+
+		switch activity.ActivityType {
+		// case enums.ACTIVITY_SINGLE_ID_ORDER:
+		// 	profile, err := utils.GetContractProfile(config.Contract.ContractAddress, token)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// 	nextTokenId = uint64(*profile.MaxTokenId) + 1
+		// 	// metaUri := utils.ChangAnDaoMetadataUriFromId(nextTokenId)
+		// 	metadataURI, err = createMetadata(config, token, 0)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// 	metaUri := strings.Replace(*metadataURI, "{id}", fmt.Sprintf("%d", nextTokenId), 0)
+		// 	metadataURI = &metaUri
+
+		case enums.ACTIVITY_SINGLE:
+			index = 0
+			// metadataURI, err = createMetadata(config, token, 0)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// if nextTokenId != 0 {
+			// 	metaUri := strings.Replace(*metadataURI, "{id}", fmt.Sprintf("%d", nextTokenId), -1)
+			// }
+			// metadataURI = &metaUri
+			// return metadataURI, nil
+
+		case enums.ACTIVITY_BLINDBOX:
+			probabilities := make([]float32, 0)
+			for i := 0; i < len(activity.NFTConfigs); i++ {
+				probabilities = append(probabilities, activity.NFTConfigs[i].Probability)
+			}
+
+			index = weightedRandomIndex(probabilities)
+			// metadataURI, err = createMetadata(config, token, index)
+			// if err != nil {
+			// 	return nil, errors.WithStack(err)
+			// }
+			// default:
+			// 	metadataURI = &config.MetadataUri
 		}
-		nextTokenId = uint64(*profile.MaxTokenId) + 1
-		metaUri := utils.ChangAnDaoMetadataUriFromId(nextTokenId)
-		metadataURI = &metaUri
-	case enums.ACTIVITY_SINGLE:
-		metadataURI, err = createMetadata(config, token, 0)
+
+		nftConfig := activity.NFTConfigs[index]
+		metadataUri := activity.MetadataUri
+
+		if metadataUri == "" {
+			metadataUri, err = createMetadata(activity, token, index)
+			if err != nil {
+				return "", nil, errors.WithStack(err)
+			}
+		}
+
+		return metadataUri, &nftConfig, nil
+	}
+
+	metadataURI, nftConfig, err := genMetadataUri()
+	if err != nil {
+		return nil, err
+	}
+
+	mint := func() (*openapiclient.ModelsMintTask, error) {
+		chain, err := utils.ChainById(uint(activity.Contract.ChainId))
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-	case enums.ACTIVITY_BLINDBOX:
-		probabilities := make([]float32, 0)
-		for i := 0; i < len(config.NFTConfigs); i++ {
-			probabilities = append(probabilities, config.NFTConfigs[i].Probability)
+
+		// create mint meta
+		mintMeta := openapiclient.ServicesCustomMintDto{
+			Chain:           chain,
+			ContractAddress: activity.Contract.ContractAddress,
+			MintToAddress:   req.UserAddress,
+			MetadataUri:     &metadataURI,
 		}
 
-		index = weightedRandomIndex(probabilities)
-		metadataURI, err = createMetadata(config, token, index)
+		if activity.IsTokenIdOrdered != nil && *activity.IsTokenIdOrdered {
+			profile, err := utils.GetContractProfile(activity.Contract.ContractAddress, token)
+			if err != nil {
+				return nil, err
+			}
+			nextTokenId := uint64(*profile.MaxTokenId) + 1
+			tokenIdStr := strconv.Itoa(int(nextTokenId))
+			mintMeta.TokenId = &tokenIdStr
+			// metaUri := utils.ChangAnDaoMetadataUriFromId(nextTokenId)
+		}
+
+		resp, err := utils.SendCustomMintRequest(token, mintMeta)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-	default:
-		metadataURI = &config.MetadataUri
+
+		return resp, nil
+	}
+	resp, err := mint()
+	if err != nil {
+		return nil, err
 	}
 
-	chain, err := utils.ChainById(uint(config.Contract.ChainId))
+	saveResult := func() (*models.POAPResult, error) {
+		// create mint result
+		// compatible with old activity
+		// fileUrl := ""
+		// if len(activity.NFTConfigs) > index {
+		// 	fileUrl = activity.NFTConfigs[index].ImageURL
+		// }
+
+		item := &models.POAPResult{
+			ConfigID:      int32(activity.ID),
+			Address:       req.UserAddress,
+			ContractRawID: *activity.ContractRawID,
+			TxID:          *resp.Id,
+			ActivityCode:  activity.ActivityCode,
+			FileURL:       nftConfig.ImageURL,
+			ProjectorId:   activity.RainbowUserId,
+			AppId:         activity.AppId,
+		}
+		err := models.GetDB().Create(&item).Error
+		return item, err
+	}
+
+	result, err := saveResult()
+	if err != nil {
+		return nil, err
+	}
+
+	cache, err := models.GetMintCountCache(req.ActivityID)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	mintMeta := openapiclient.ServicesCustomMintDto{
-		Chain:           chain,
-		ContractAddress: config.Contract.ContractAddress,
-		MintToAddress:   req.UserAddress,
-		MetadataUri:     metadataURI,
-	}
-
-	if req.ActivityID == viper.GetString("changAnDao.activityId") { // TMP code
-		tokenIdStr := strconv.Itoa(int(nextTokenId))
-		mintMeta.TokenId = &tokenIdStr
-		IncreaseChangAnDaoNum()
-	}
-
-	resp, err := utils.SendCustomMintRequest(token, mintMeta)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	cache, err := models.InitCache(req.ActivityID)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	// compatible with old activity
-	fileUrl := ""
-	if len(config.NFTConfigs) > index {
-		fileUrl = config.NFTConfigs[index].ImageURL
-	}
-
-	item := &models.POAPResult{
-		ConfigID:      int32(config.ID),
-		Address:       req.UserAddress,
-		ContractRawID: *config.ContractRawID,
-		TxID:          *resp.Id,
-		ActivityCode:  config.ActivityCode,
-		FileURL:       fileUrl,
-		ProjectorId:   config.RainbowUserId,
-		AppId:         config.AppId,
-	}
-	res := models.GetDB().Create(&item)
-
 	cache.Increase()
 
-	return item, errors.WithStack(res.Error)
+	return result, nil
 }
 
 func (a *ActivityService) GetMintCount(activityID, address string) (*int32, error) {
@@ -424,7 +477,7 @@ func (a *ActivityService) GetMintCount(activityID, address string) (*int32, erro
 		count = remainedMinted
 	} else {
 		if remainedMinted == -1 {
-			cache, err := models.InitCache(activityID)
+			cache, err := models.GetMintCountCache(activityID)
 			if err != nil {
 				return nil, err
 			}
@@ -487,7 +540,12 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 	return nil
 }
 
-func createMetadata(config *models.Activity, token string, index int) (*string, error) {
+func createMetadata(config *models.Activity, token string, index int) (string, error) {
+	// metadataUri := config.NFTConfigs[index].MetataUri
+	// if metadataUri != "" {
+	// 	return &metadataUri, nil
+	// }
+
 	attributes := make([]openapiclient.ModelsExposedMetadataAttribute, 0)
 	for _, v := range config.NFTConfigs[index].MetadataAttributes {
 		attributes = append(attributes, openapiclient.ModelsExposedMetadataAttribute{
@@ -514,10 +572,10 @@ func createMetadata(config *models.Activity, token string, index int) (*string, 
 		Attributes:  attributes,
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return resp.Uri, nil
+	return *resp.Uri, nil
 }
 
 func weightedRandomIndex(weights []float32) int {

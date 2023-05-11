@@ -66,9 +66,10 @@ type (
 	}
 	ActivityReq struct {
 		UpdateActivityReq
-		AppId        uint               `gorm:"index" json:"app_id" binding:"required"`
-		AppName      string             `gorm:"string" json:"app_name"`
-		ActivityType enums.ActivityType `gorm:"type:uint" json:"activity_type" binding:"required"`
+		AppId            uint               `gorm:"index" json:"app_id" binding:"required"`
+		AppName          string             `gorm:"string" json:"app_name"`
+		ActivityType     enums.ActivityType `gorm:"type:uint" json:"activity_type" binding:"required"`
+		IsTokenIdOrdered *bool              `gorm:"type:bool" json:"is_token_id_ordered" default:"true"`
 	}
 
 	Activity struct {
