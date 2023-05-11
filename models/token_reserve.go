@@ -2,9 +2,9 @@ package models
 
 type TokenReserve struct {
 	BaseModel
-	TokenIdStart int64 `gorm:"index"`
-	TokenIdEnd   int64 `gorm:"index"`
-	ActivityId   uint  `gorm:"index"`
+	TokenIdStart uint `gorm:"index"`
+	TokenIdEnd   uint `gorm:"index"`
+	ActivityId   uint `gorm:"index"`
 }
 
 func IsTokenReserved(activityId uint, tokenId string) (bool, error) {
@@ -13,5 +13,13 @@ func IsTokenReserved(activityId uint, tokenId string) (bool, error) {
 	return count > 0, err
 }
 
-func GetActivityReserveAmount(activityId uint) {
+func GetActivityResrverTokenIds(activityId uint) ([][2]uint, error) {
+	var items []TokenReserve
+	err := GetDB().Where("activity_id=?", activityId).Find(&items).Error
+
+	var result [][2]uint
+	for _, item := range items {
+		result = append(result, [2]uint{item.TokenIdStart, item.TokenIdEnd})
+	}
+	return result, err
 }

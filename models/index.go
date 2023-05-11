@@ -54,6 +54,7 @@ func ConnectDB() {
 		&BotServer{},
 		&WalletUser{},
 		&PhoneWhiteList{},
+		&TokenReserve{},
 	); err != nil {
 		panic(err)
 	}

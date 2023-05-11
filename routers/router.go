@@ -81,7 +81,7 @@ func SetupRoutes(router *gin.Engine) {
 	// }
 
 	poap := apps.Group("/poap")
-	poap.POST("/h5", middlewares.IpLimitMiddleware(), poapMintByH5)
+	poap.POST("/h5", middlewares.IpLimitMiddleware(), mintByH5)
 	poap.GET("/activity/:activity_code", getActivity)
 	poap.GET("/activity/result/:activity_code", getMintResultList)
 	poap.GET("/activity/result/:activity_code/:id", getMintResultDetail)

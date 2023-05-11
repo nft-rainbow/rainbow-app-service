@@ -1,6 +1,7 @@
 package services
 
 import (
+	"sort"
 	"sync"
 
 	"fmt"
@@ -277,7 +278,7 @@ func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateAc
 // 	return oldConfig, nil
 // }
 
-func (a *ActivityService) HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, error) {
+func (a *ActivityService) HandleH5Mint(req *MintReq) (*models.POAPResult, error) {
 	activity, err := models.FindActivityByCode(req.ActivityID)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -524,11 +525,17 @@ func mint(activity *models.Activity, nftConfig *models.NFTConfig, to string, tok
 	}
 
 	if activity.IsTokenIdOrdered != nil && *activity.IsTokenIdOrdered {
-		profile, err := utils.GetContractProfile(activity.Contract.ContractAddress, token)
+		ignoreTokenIds, err := models.GetActivityResrverTokenIds(activity.ID)
 		if err != nil {
 			return nil, err
 		}
-		nextTokenId := uint64(*profile.MaxTokenId) + 1
+		profile, err := utils.GetContractProfile(activity.Contract.ContractAddress, ignoreTokenIds, token)
+		if err != nil {
+			return nil, err
+		}
+		// 11, [12,15], [17,19]
+		nextTokenId := calcNextTokenId(uint(*profile.MaxTokenId), ignoreTokenIds)
+
 		tokenIdStr := strconv.Itoa(int(nextTokenId))
 		mintMeta.TokenId = &tokenIdStr
 	}
@@ -541,12 +548,33 @@ func mint(activity *models.Activity, nftConfig *models.NFTConfig, to string, tok
 	return resp, nil
 }
 
+func calcNextTokenId(currentMax uint, ignoreTokenIds [][2]uint) uint {
+	orderIgnoreTokenIds(ignoreTokenIds)
+	nextTokenId := uint(currentMax + 1)
+
+	fmt.Println(ignoreTokenIds)
+
+	for _, r := range ignoreTokenIds {
+		if nextTokenId >= r[0] && nextTokenId <= r[1] {
+			nextTokenId = r[1] + 1
+		}
+	}
+	return nextTokenId
+}
+
+func orderIgnoreTokenIds(ignoreTokenIds [][2]uint) {
+	sort.SliceStable(ignoreTokenIds, func(i, j int) bool {
+		return (ignoreTokenIds[i][0] <= ignoreTokenIds[j][0]) && (ignoreTokenIds[i][1] <= ignoreTokenIds[j][1])
+	})
+}
+
 func saveMintResult(activity *models.Activity, nftConfig *models.NFTConfig, resp *openapiclient.ModelsMintTask) (*models.POAPResult, error) {
 	item := &models.POAPResult{
 		ConfigID:      int32(activity.ID),
 		Address:       *resp.MintTo,
 		ContractRawID: *activity.ContractRawID,
 		TxID:          *resp.Id,
+		TokenID:       *resp.TokenId,
 		ActivityCode:  activity.ActivityCode,
 		FileURL:       nftConfig.ImageURL,
 		ProjectorId:   activity.RainbowUserId,
