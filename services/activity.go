@@ -293,143 +293,22 @@ func (a *ActivityService) HandlePOAPH5Mint(req *MintReq) (*models.POAPResult, er
 		return nil, errors.WithStack(err)
 	}
 
-	genMetadataUri := func() (string, *models.NFTConfig, error) {
-
-		// var metadataURI *string
-		var index int
-		// if req.ActivityID == viper.GetString("changAnDao.activityId") {
-		// 	config.ActivityType = enums.ACTIVITY_SINGLE_ID_ORDER
-		// } // TMP code
-
-		switch activity.ActivityType {
-		// case enums.ACTIVITY_SINGLE_ID_ORDER:
-		// 	profile, err := utils.GetContractProfile(config.Contract.ContractAddress, token)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// 	nextTokenId = uint64(*profile.MaxTokenId) + 1
-		// 	// metaUri := utils.ChangAnDaoMetadataUriFromId(nextTokenId)
-		// 	metadataURI, err = createMetadata(config, token, 0)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// 	metaUri := strings.Replace(*metadataURI, "{id}", fmt.Sprintf("%d", nextTokenId), 0)
-		// 	metadataURI = &metaUri
-
-		case enums.ACTIVITY_SINGLE:
-			index = 0
-			// metadataURI, err = createMetadata(config, token, 0)
-			// if err != nil {
-			// 	return nil, err
-			// }
-			// if nextTokenId != 0 {
-			// 	metaUri := strings.Replace(*metadataURI, "{id}", fmt.Sprintf("%d", nextTokenId), -1)
-			// }
-			// metadataURI = &metaUri
-			// return metadataURI, nil
-
-		case enums.ACTIVITY_BLINDBOX:
-			probabilities := make([]float32, 0)
-			for i := 0; i < len(activity.NFTConfigs); i++ {
-				probabilities = append(probabilities, activity.NFTConfigs[i].Probability)
-			}
-
-			index = weightedRandomIndex(probabilities)
-			// metadataURI, err = createMetadata(config, token, index)
-			// if err != nil {
-			// 	return nil, errors.WithStack(err)
-			// }
-			// default:
-			// 	metadataURI = &config.MetadataUri
-		}
-
-		nftConfig := activity.NFTConfigs[index]
-		metadataUri := activity.MetadataUri
-
-		if metadataUri == "" {
-			metadataUri, err = createMetadata(activity, token, index)
-			if err != nil {
-				return "", nil, errors.WithStack(err)
-			}
-		}
-
-		return metadataUri, &nftConfig, nil
-	}
-
-	metadataURI, nftConfig, err := genMetadataUri()
+	nftConfig, err := calcNftConfig(activity)
 	if err != nil {
 		return nil, err
 	}
 
-	mint := func() (*openapiclient.ModelsMintTask, error) {
-		chain, err := utils.ChainById(uint(activity.Contract.ChainId))
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-
-		// create mint meta
-		mintMeta := openapiclient.ServicesCustomMintDto{
-			Chain:           chain,
-			ContractAddress: activity.Contract.ContractAddress,
-			MintToAddress:   req.UserAddress,
-			MetadataUri:     &metadataURI,
-		}
-
-		if activity.IsTokenIdOrdered != nil && *activity.IsTokenIdOrdered {
-			profile, err := utils.GetContractProfile(activity.Contract.ContractAddress, token)
-			if err != nil {
-				return nil, err
-			}
-			nextTokenId := uint64(*profile.MaxTokenId) + 1
-			tokenIdStr := strconv.Itoa(int(nextTokenId))
-			mintMeta.TokenId = &tokenIdStr
-			// metaUri := utils.ChangAnDaoMetadataUriFromId(nextTokenId)
-		}
-
-		resp, err := utils.SendCustomMintRequest(token, mintMeta)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-
-		return resp, nil
-	}
-	resp, err := mint()
+	resp, err := mint(activity, nftConfig, req.UserAddress, token)
 	if err != nil {
 		return nil, err
 	}
 
-	saveResult := func() (*models.POAPResult, error) {
-		// create mint result
-		// compatible with old activity
-		// fileUrl := ""
-		// if len(activity.NFTConfigs) > index {
-		// 	fileUrl = activity.NFTConfigs[index].ImageURL
-		// }
+	models.GetMintCountCache(req.ActivityID).Increase()
 
-		item := &models.POAPResult{
-			ConfigID:      int32(activity.ID),
-			Address:       req.UserAddress,
-			ContractRawID: *activity.ContractRawID,
-			TxID:          *resp.Id,
-			ActivityCode:  activity.ActivityCode,
-			FileURL:       nftConfig.ImageURL,
-			ProjectorId:   activity.RainbowUserId,
-			AppId:         activity.AppId,
-		}
-		err := models.GetDB().Create(&item).Error
-		return item, err
-	}
-
-	result, err := saveResult()
+	result, err := saveMintResult(activity, nftConfig, resp)
 	if err != nil {
 		return nil, err
 	}
-
-	cache, err := models.GetMintCountCache(req.ActivityID)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	cache.Increase()
 
 	return result, nil
 }
@@ -477,11 +356,7 @@ func (a *ActivityService) GetMintCount(activityID, address string) (*int32, erro
 		count = remainedMinted
 	} else {
 		if remainedMinted == -1 {
-			cache, err := models.GetMintCountCache(activityID)
-			if err != nil {
-				return nil, err
-			}
-			count = config.Amount - int32(cache.Count) // Amount - total minted count
+			count = config.Amount - int32(models.GetMintCountCache(activityID).GetCount()) // Amount - total minted count
 		} else {
 			if config.Amount-int32(mintedCount) < remainedMinted {
 				count = config.Amount - int32(mintedCount)
@@ -504,10 +379,6 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 
 		if err != nil {
 			return err
-		}
-
-		if len(users) == 0 {
-			return errors.New("无领取资格")
 		}
 
 		var isInWhiteList bool
@@ -540,14 +411,35 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 	return nil
 }
 
-func createMetadata(config *models.Activity, token string, index int) (string, error) {
-	// metadataUri := config.NFTConfigs[index].MetataUri
-	// if metadataUri != "" {
-	// 	return &metadataUri, nil
-	// }
+func calcNftConfig(activity *models.Activity) (*models.NFTConfig, error) {
+	var nftConfigIndex int
+	switch activity.ActivityType {
+	case enums.ACTIVITY_SINGLE:
+	case enums.ACTIVITY_BLINDBOX:
+		probabilities := make([]float32, 0)
+		for i := 0; i < len(activity.NFTConfigs); i++ {
+			probabilities = append(probabilities, activity.NFTConfigs[i].Probability)
+		}
 
+		nftConfigIndex = weightedRandomIndex(probabilities)
+	}
+
+	nftConfig := activity.NFTConfigs[nftConfigIndex]
+	return &nftConfig, nil
+}
+
+func crateMetadata(activity *models.Activity, nftConfig *models.NFTConfig, token string) (string, error) {
+	metadataUri := activity.MetadataUri
+	if metadataUri != "" {
+		return metadataUri, nil
+	}
+
+	return createMetadataByNftConfig(nftConfig, activity.Description, token)
+}
+
+func createMetadataByNftConfig(nftConfig *models.NFTConfig, description string, token string) (string, error) {
 	attributes := make([]openapiclient.ModelsExposedMetadataAttribute, 0)
-	for _, v := range config.NFTConfigs[index].MetadataAttributes {
+	for _, v := range nftConfig.MetadataAttributes {
 		attributes = append(attributes, openapiclient.ModelsExposedMetadataAttribute{
 			TraitType:   &v.TraitType,
 			Value:       &v.Value,
@@ -566,15 +458,14 @@ func createMetadata(config *models.Activity, token string, index int) (string, e
 	})
 
 	resp, err := utils.SendCreateMetadataRequest(token, openapiclient.ServicesMetadataDto{
-		Description: config.Description,
-		Image:       config.NFTConfigs[index].ImageURL,
-		Name:        config.NFTConfigs[index].Name,
+		Description: description,
+		Image:       nftConfig.ImageURL,
+		Name:        nftConfig.Name,
 		Attributes:  attributes,
 	})
 	if err != nil {
 		return "", err
 	}
-
 	return *resp.Uri, nil
 }
 
@@ -611,6 +502,58 @@ func checkUserMintQuota(activityId string, userAddrs []string, max int32) error 
 		return fmt.Errorf("the mint amount has exceeded the personal limit")
 	}
 	return nil
+}
+
+func mint(activity *models.Activity, nftConfig *models.NFTConfig, to string, token string) (*openapiclient.ModelsMintTask, error) {
+	metadataURI, err := crateMetadata(activity, nftConfig, token)
+	if err != nil {
+		return nil, err
+	}
+
+	chain, err := utils.ChainById(uint(activity.Contract.ChainId))
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	// create mint meta
+	mintMeta := openapiclient.ServicesCustomMintDto{
+		Chain:           chain,
+		ContractAddress: activity.Contract.ContractAddress,
+		MintToAddress:   to,
+		MetadataUri:     &metadataURI,
+	}
+
+	if activity.IsTokenIdOrdered != nil && *activity.IsTokenIdOrdered {
+		profile, err := utils.GetContractProfile(activity.Contract.ContractAddress, token)
+		if err != nil {
+			return nil, err
+		}
+		nextTokenId := uint64(*profile.MaxTokenId) + 1
+		tokenIdStr := strconv.Itoa(int(nextTokenId))
+		mintMeta.TokenId = &tokenIdStr
+	}
+
+	resp, err := utils.SendCustomMintRequest(token, mintMeta)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return resp, nil
+}
+
+func saveMintResult(activity *models.Activity, nftConfig *models.NFTConfig, resp *openapiclient.ModelsMintTask) (*models.POAPResult, error) {
+	item := &models.POAPResult{
+		ConfigID:      int32(activity.ID),
+		Address:       *resp.MintTo,
+		ContractRawID: *activity.ContractRawID,
+		TxID:          *resp.Id,
+		ActivityCode:  activity.ActivityCode,
+		FileURL:       nftConfig.ImageURL,
+		ProjectorId:   activity.RainbowUserId,
+		AppId:         activity.AppId,
+	}
+	err := models.GetDB().Create(&item).Error
+	return item, err
 }
 
 // func getPOAPId(address string, name string) (string, error) {
