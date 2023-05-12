@@ -46,8 +46,7 @@ func GetActivityService() *ActivityService {
 }
 
 func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.Activity, error) {
-	activityReq.SetDefaults()
-	if err := activityReq.Verify(); err != nil {
+	if err := activityReq.SetDefaults(); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +54,7 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId
 	posterUrl, err := generateActivityPoster(&activityReq.UpdateActivityReq, activityId)
 	if err != nil {
 		logrus.Errorf("Failed to generate poster for activity %v:%v \n", activityId, err.Error())
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	activity := models.Activity{
@@ -67,7 +66,7 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId
 
 	if activityReq.ContractRawID != nil {
 		if err := a.UpdateOrCreateContract(userId, activityReq.AppId, uint(*activityReq.ContractRawID)); err != nil {
-			return nil, err
+			return nil, errors.WithStack(err)
 		}
 	}
 
@@ -77,7 +76,7 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId
 	}
 
 	if err := activity.LoadBindedContract(); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	return &activity, nil
 }

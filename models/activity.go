@@ -65,20 +65,30 @@ type UpdateActivityReq struct {
 	MetadataUri            string          `gorm:"type:string" json:"metadata_uri"` //与contract base_uri 的区别：base_uri需拼接tokenid后缀；
 	ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
 	ContractRawID          *int32          `gorm:"type:string" json:"contract_id"`
-	SupportWallets         datatypes.JSON  `json:"support_wallets" swaggertype:"array,string"` //default value: ["anyweb","cellar"]
+	SupportWallets         datatypes.JSON  `json:"support_wallets,omitempty" swaggertype:"array,string"` //default value: ["anyweb","cellar"]
 }
 
-func (u *UpdateActivityReq) Verify() error {
+func (u *UpdateActivityReq) SetDefaults() error {
+
 	var wallets []enums.WalletType
-	return json.Unmarshal(u.SupportWallets, &wallets)
-}
+	if len(u.SupportWallets) > 0 {
+		if err := json.Unmarshal(u.SupportWallets, &wallets); err != nil {
+			return err
+		}
+	}
 
-func (u *UpdateActivityReq) SetDefaults() {
-	defaults.SetDefaults(u)
-	if u.SupportWallets == nil {
+	if len(wallets) == 0 {
 		j, _ := json.Marshal([]enums.WalletType{enums.WALLET_ANYWEB, enums.WALLET_CELLAR})
 		u.SupportWallets = j
 	}
+
+	if u.IsTokenIdOrdered == nil {
+		t := true
+		u.IsTokenIdOrdered = &t
+	}
+
+	defaults.SetDefaults(u)
+	return nil
 }
 
 type (
