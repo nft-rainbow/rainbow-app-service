@@ -1472,7 +1472,7 @@ const docTemplate = `{
                     "default": -1
                 },
                 "support_wallets": {
-                    "description": "default:\"[\\\"anyweb\\\",\\\"cellar\\\"]\"  default value: [\"anyweb\",\"cellar\"]",
+                    "description": "default value: [\"anyweb\",\"cellar\"]",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1570,7 +1570,7 @@ const docTemplate = `{
                     "default": -1
                 },
                 "support_wallets": {
-                    "description": "default:\"[\\\"anyweb\\\",\\\"cellar\\\"]\"  default value: [\"anyweb\",\"cellar\"]",
+                    "description": "default value: [\"anyweb\",\"cellar\"]",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -2075,7 +2075,7 @@ const docTemplate = `{
                     "default": -1
                 },
                 "support_wallets": {
-                    "description": "default:\"[\\\"anyweb\\\",\\\"cellar\\\"]\"  default value: [\"anyweb\",\"cellar\"]",
+                    "description": "default value: [\"anyweb\",\"cellar\"]",
                     "type": "array",
                     "items": {
                         "type": "string"

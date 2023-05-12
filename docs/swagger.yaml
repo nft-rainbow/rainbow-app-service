@@ -100,7 +100,7 @@ definitions:
         default: -1
         type: integer
       support_wallets:
-        description: 'default:"[\"anyweb\",\"cellar\"]"  default value: ["anyweb","cellar"]'
+        description: 'default value: ["anyweb","cellar"]'
         items:
           type: string
         type: array
@@ -168,7 +168,7 @@ definitions:
         default: -1
         type: integer
       support_wallets:
-        description: 'default:"[\"anyweb\",\"cellar\"]"  default value: ["anyweb","cellar"]'
+        description: 'default value: ["anyweb","cellar"]'
         items:
           type: string
         type: array
@@ -509,7 +509,7 @@ definitions:
         default: -1
         type: integer
       support_wallets:
-        description: 'default:"[\"anyweb\",\"cellar\"]"  default value: ["anyweb","cellar"]'
+        description: 'default value: ["anyweb","cellar"]'
         items:
           type: string
         type: array
