@@ -48,6 +48,9 @@ func GetActivityService() *ActivityService {
 
 func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.Activity, error) {
 	defaults.SetDefaults(activityReq)
+	if err := activityReq.Verify(); err != nil {
+		return nil, err
+	}
 
 	activityId := utils.GenerateIDByTimeHash("", 8)
 	posterUrl, err := generateActivityPoster(&activityReq.UpdateActivityReq, activityId)

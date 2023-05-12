@@ -1,11 +1,13 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
 	"github.com/mcuadros/go-defaults"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"gorm.io/datatypes"
 )
 
 type (
@@ -48,28 +50,35 @@ type (
 	}
 )
 
+type UpdateActivityReq struct {
+	Amount                 int32           `gorm:"type:integer" json:"amount" binding:"required"`
+	Name                   string          `gorm:"type:string" json:"name" binding:"required"`
+	Description            string          `gorm:"type:string" json:"description" binding:"required"`
+	Command                string          `gorm:"type:string" json:"command,omitempty"`
+	IsPhoneWhiteListOpened bool            `gorm:"type:bool;default:false" json:"is_phone_white_list_opened"`
+	IsTokenIdOrdered       *bool           `gorm:"type:bool" json:"is_token_id_ordered" default:"true"`
+	EndedTime              int64           `gorm:"type:integer" json:"end_time" default:"-1"`
+	StartedTime            int64           `gorm:"type:integer" json:"start_time" default:"-1"`
+	MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
+	WhiteListInfos         []WhiteListInfo `json:"white_list_infos"`
+	NFTConfigs             []NFTConfig     `json:"nft_configs"`
+	MetadataUri            string          `gorm:"type:string" json:"metadata_uri"` //与contract base_uri 的区别：base_uri需拼接tokenid后缀；
+	ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
+	ContractRawID          *int32          `gorm:"type:string" json:"contract_id"`
+	SupportWallets         datatypes.JSON  `json:"support_wallets" default:"[\"anyweb\",\"cellar\"]"`
+}
+
+func (u *UpdateActivityReq) Verify() error {
+	var wallets []enums.WalletType
+	return json.Unmarshal(u.SupportWallets, &wallets)
+}
+
 type (
-	UpdateActivityReq struct {
-		Amount                 int32           `gorm:"type:integer" json:"amount" binding:"required"`
-		Name                   string          `gorm:"type:string" json:"name" binding:"required"`
-		Description            string          `gorm:"type:string" json:"description" binding:"required"`
-		Command                string          `gorm:"type:string" json:"command,omitempty"`
-		IsPhoneWhiteListOpened bool            `gorm:"type:bool;default:false" json:"is_phone_white_list_opened"`
-		EndedTime              int64           `gorm:"type:integer" json:"end_time" default:"-1"`
-		StartedTime            int64           `gorm:"type:integer" json:"start_time" default:"-1"`
-		MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
-		WhiteListInfos         []WhiteListInfo `json:"white_list_infos"`
-		NFTConfigs             []NFTConfig     `json:"nft_configs"`
-		MetadataUri            string          `gorm:"type:string" json:"metadata_uri"` //与contract base_uri 的区别：base_uri需拼接tokenid后缀；
-		ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
-		ContractRawID          *int32          `gorm:"type:string" json:"contract_id"`
-	}
 	ActivityReq struct {
 		UpdateActivityReq
-		AppId            uint               `gorm:"index" json:"app_id" binding:"required"`
-		AppName          string             `gorm:"string" json:"app_name"`
-		ActivityType     enums.ActivityType `gorm:"type:uint" json:"activity_type" binding:"required"`
-		IsTokenIdOrdered *bool              `gorm:"type:bool" json:"is_token_id_ordered" default:"true"`
+		AppId        uint               `gorm:"index" json:"app_id" binding:"required"`
+		AppName      string             `gorm:"string" json:"app_name"`
+		ActivityType enums.ActivityType `gorm:"type:uint" json:"activity_type" binding:"required"`
 	}
 
 	Activity struct {
