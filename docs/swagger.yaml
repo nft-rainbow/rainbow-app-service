@@ -11,12 +11,10 @@ definitions:
     enum:
     - 1
     - 2
-    - 3
     type: integer
     x-enum-varnames:
     - ACTIVITY_BLINDBOX
     - ACTIVITY_SINGLE
-    - ACTIVITY_POAP
   enums.SocialToolType:
     enum:
     - 1

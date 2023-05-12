@@ -1334,13 +1334,11 @@ const docTemplate = `{
             "type": "integer",
             "enum": [
                 1,
-                2,
-                3
+                2
             ],
             "x-enum-varnames": [
                 "ACTIVITY_BLINDBOX",
-                "ACTIVITY_SINGLE",
-                "ACTIVITY_POAP"
+                "ACTIVITY_SINGLE"
             ]
         },
         "enums.SocialToolType": {
