@@ -99,6 +99,11 @@ definitions:
       start_time:
         default: -1
         type: integer
+      support_wallets:
+        description: 'default:"[\"anyweb\",\"cellar\"]"  default value: ["anyweb","cellar"]'
+        items:
+          type: string
+        type: array
       updated_at:
         type: string
       white_list_infos:
@@ -162,6 +167,11 @@ definitions:
       start_time:
         default: -1
         type: integer
+      support_wallets:
+        description: 'default:"[\"anyweb\",\"cellar\"]"  default value: ["anyweb","cellar"]'
+        items:
+          type: string
+        type: array
       white_list_infos:
         items:
           $ref: '#/definitions/models.WhiteListInfo'
@@ -481,6 +491,9 @@ definitions:
         type: integer
       is_phone_white_list_opened:
         type: boolean
+      is_token_id_ordered:
+        default: true
+        type: boolean
       max_mint_count:
         type: integer
       metadata_uri:
@@ -495,6 +508,11 @@ definitions:
       start_time:
         default: -1
         type: integer
+      support_wallets:
+        description: 'default:"[\"anyweb\",\"cellar\"]"  default value: ["anyweb","cellar"]'
+        items:
+          type: string
+        type: array
       white_list_infos:
         items:
           $ref: '#/definitions/models.WhiteListInfo'

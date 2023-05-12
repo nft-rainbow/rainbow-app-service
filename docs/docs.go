@@ -1471,6 +1471,13 @@ const docTemplate = `{
                     "type": "integer",
                     "default": -1
                 },
+                "support_wallets": {
+                    "description": "default:\"[\\\"anyweb\\\",\\\"cellar\\\"]\"  default value: [\"anyweb\",\"cellar\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "updated_at": {
                     "type": "string"
                 },
@@ -1561,6 +1568,13 @@ const docTemplate = `{
                 "start_time": {
                     "type": "integer",
                     "default": -1
+                },
+                "support_wallets": {
+                    "description": "default:\"[\\\"anyweb\\\",\\\"cellar\\\"]\"  default value: [\"anyweb\",\"cellar\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "white_list_infos": {
                     "type": "array",
@@ -2036,6 +2050,10 @@ const docTemplate = `{
                 "is_phone_white_list_opened": {
                     "type": "boolean"
                 },
+                "is_token_id_ordered": {
+                    "type": "boolean",
+                    "default": true
+                },
                 "max_mint_count": {
                     "type": "integer"
                 },
@@ -2055,6 +2073,13 @@ const docTemplate = `{
                 "start_time": {
                     "type": "integer",
                     "default": -1
+                },
+                "support_wallets": {
+                    "description": "default:\"[\\\"anyweb\\\",\\\"cellar\\\"]\"  default value: [\"anyweb\",\"cellar\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "white_list_infos": {
                     "type": "array",

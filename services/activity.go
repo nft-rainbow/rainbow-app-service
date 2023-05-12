@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mcuadros/go-defaults"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
@@ -47,7 +46,7 @@ func GetActivityService() *ActivityService {
 }
 
 func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.Activity, error) {
-	defaults.SetDefaults(activityReq)
+	activityReq.SetDefaults()
 	if err := activityReq.Verify(); err != nil {
 		return nil, err
 	}
@@ -135,6 +134,7 @@ func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateAc
 		nftConfig.ActivityID = activity.ID
 	}
 
+	req.SetDefaults()
 	activity.UpdateActivityReq = *req
 	if err := models.GetDB().Session(&gorm.Session{FullSaveAssociations: true}).Updates(&activity).Error; err != nil {
 		return nil, err
