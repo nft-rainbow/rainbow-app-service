@@ -81,7 +81,7 @@ func SetupRoutes(router *gin.Engine) {
 	// }
 
 	poap := apps.Group("/poap")
-	poap.POST("/h5", middlewares.IpLimitMiddleware(), poapMintByH5)
+	poap.POST("/h5", middlewares.IpLimitMiddleware(), mintByH5)
 	poap.GET("/activity/:activity_code", getActivity)
 	poap.GET("/activity/result/:activity_code", getMintResultList)
 	poap.GET("/activity/result/:activity_code/:id", getMintResultDetail)
@@ -103,6 +103,9 @@ func SetupRoutes(router *gin.Engine) {
 		poap.PUT("/activity/:activity_code", updateActivity)
 		poap.POST("/activity/h5", setActivityH5Config)
 		poap.GET("/activity", getUserActivities)
+
+		poap.POST("/activity/token-reserve", addTokenReserves)
+		poap.GET("/activity/token-reserve/:activity_code", getTokenReserves)
 	}
 }
 
