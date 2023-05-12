@@ -2,6 +2,7 @@ package services
 
 import (
 	"sort"
+	"strings"
 	"sync"
 
 	"fmt"
@@ -16,6 +17,8 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
+	randutils "github.com/nft-rainbow/rainbow-app-service/utils/rand"
+
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -415,6 +418,10 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 }
 
 func calcNftConfig(activity *models.Activity) (*models.NFTConfig, error) {
+	if len(activity.NFTConfigs) == 0 {
+		return nil, fmt.Errorf("at least one NFTConfig is required")
+	}
+
 	var nftConfigIndex int
 	switch activity.ActivityType {
 	case enums.ACTIVITY_SINGLE:
@@ -518,14 +525,7 @@ func mint(activity *models.Activity, nftConfig *models.NFTConfig, to string, tok
 		return nil, errors.WithStack(err)
 	}
 
-	// create mint meta
-	mintMeta := openapiclient.ServicesCustomMintDto{
-		Chain:           chain,
-		ContractAddress: activity.Contract.ContractAddress,
-		MintToAddress:   to,
-		MetadataUri:     &metadataURI,
-	}
-
+	nextTokenId := randutils.NumString(10)
 	if activity.IsTokenIdOrdered != nil && *activity.IsTokenIdOrdered {
 		ignoreTokenIds, err := models.GetActivityResrverTokenIds(activity.ID)
 		if err != nil {
@@ -535,11 +535,17 @@ func mint(activity *models.Activity, nftConfig *models.NFTConfig, to string, tok
 		if err != nil {
 			return nil, err
 		}
-		// 11, [12,15], [17,19]
-		nextTokenId := calcNextTokenId(uint(*profile.MaxTokenId), ignoreTokenIds)
+		_nextTokenId := calcNextTokenId(uint(*profile.MaxTokenId), ignoreTokenIds)
+		nextTokenId = fmt.Sprintf("%d", _nextTokenId)
+	}
 
-		tokenIdStr := strconv.Itoa(int(nextTokenId))
-		mintMeta.TokenId = &tokenIdStr
+	// create mint meta
+	mintMeta := openapiclient.ServicesCustomMintDto{
+		Chain:           chain,
+		ContractAddress: activity.Contract.ContractAddress,
+		MintToAddress:   to,
+		MetadataUri:     utils.PtrString(strings.Replace(metadataURI, "{id}", nextTokenId, -1)),
+		TokenId:         &nextTokenId,
 	}
 
 	resp, err := utils.SendCustomMintRequest(token, mintMeta)
