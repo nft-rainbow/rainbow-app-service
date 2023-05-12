@@ -62,7 +62,7 @@ type UpdateActivityReq struct {
 	MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
 	WhiteListInfos         []WhiteListInfo `json:"white_list_infos"`
 	NFTConfigs             []NFTConfig     `json:"nft_configs"`
-	MetadataUri            string          `gorm:"type:string" json:"metadata_uri"` //与contract base_uri 的区别：base_uri需拼接tokenid后缀；
+	MetadataUri            string          `gorm:"type:string" json:"metadata_uri"` //支持模版 如 http://xx/{id}.json, 铸造时 MetadataUri 优先，若为空则根据nftconfig创建metadata
 	ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
 	ContractRawID          *int32          `gorm:"type:string" json:"contract_id"`
 	SupportWallets         datatypes.JSON  `json:"support_wallets,omitempty" swaggertype:"array,string"` //default value: ["anyweb","cellar"]
