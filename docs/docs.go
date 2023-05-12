@@ -1977,12 +1977,12 @@ const docTemplate = `{
         "models.TokenReserve": {
             "type": "object",
             "required": [
-                "activity",
+                "activity_id",
                 "token_id_end",
                 "token_id_start"
             ],
             "properties": {
-                "activity": {
+                "activity_id": {
                     "type": "integer"
                 },
                 "created_at": {
