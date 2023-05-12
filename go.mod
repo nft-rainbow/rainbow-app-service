@@ -16,7 +16,7 @@ require (
 	github.com/imroc/req/v3 v3.33.1
 	github.com/json-iterator/go v1.1.12
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/nft-rainbow/rainbow-sdk-go v0.1.11
+	github.com/nft-rainbow/rainbow-sdk-go v0.1.12
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
@@ -122,4 +122,4 @@ require (
 
 replace github.com/dodo-open/dodo-open-go v0.0.0-20220905103425-3e85ab616f11 => github.com/wangdayong228/dodo-open-go v0.0.0-20230403111334-1886ae4d6848
 
-replace github.com/nft-rainbow/rainbow-sdk-go v0.1.11 => ../rainbow-sdk-go
+// replace github.com/nft-rainbow/rainbow-sdk-go v0.1.11 => ../rainbow-sdk-go
