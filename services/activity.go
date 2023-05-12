@@ -278,7 +278,7 @@ func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateAc
 // 	return oldConfig, nil
 // }
 
-func (a *ActivityService) HandleH5Mint(req *MintReq) (*models.POAPResult, error) {
+func (a *ActivityService) H5Mint(req *MintReq) (*models.POAPResult, error) {
 	activity, err := models.FindActivityByCode(req.ActivityID)
 	if err != nil {
 		return nil, errors.WithStack(err)

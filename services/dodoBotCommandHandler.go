@@ -155,7 +155,7 @@ func (d *DodoBotCommander) Mint(msgSource ChannelMsgSource, activityId string, v
 		toAddr = testAddr
 	}
 
-	res, err := GetActivityService().HandleH5Mint(&MintReq{
+	res, err := GetActivityService().H5Mint(&MintReq{
 		ActivityID:  activity.ActivityCode,
 		UserAddress: toAddr,
 		Command:     verbalSecret,

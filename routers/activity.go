@@ -60,7 +60,7 @@ func mintByH5(c *gin.Context) {
 		return
 	}
 
-	resp, err := activityService.HandleH5Mint(&poapRequest)
+	resp, err := activityService.H5Mint(&poapRequest)
 	ginutils.RenderResp(c, resp, err)
 }
 
