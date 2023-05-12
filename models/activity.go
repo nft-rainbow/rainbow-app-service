@@ -1,11 +1,13 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
 	"github.com/mcuadros/go-defaults"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"gorm.io/datatypes"
 )
 
 type (
@@ -48,22 +50,48 @@ type (
 	}
 )
 
-type (
-	UpdateActivityReq struct {
-		Amount                 int32           `gorm:"type:integer" json:"amount" binding:"required"`
-		Name                   string          `gorm:"type:string" json:"name" binding:"required"`
-		Description            string          `gorm:"type:string" json:"description" binding:"required"`
-		Command                string          `gorm:"type:string" json:"command,omitempty"`
-		IsPhoneWhiteListOpened bool            `gorm:"type:bool;default:false" json:"is_phone_white_list_opened"`
-		EndedTime              int64           `gorm:"type:integer" json:"end_time" default:"-1"`
-		StartedTime            int64           `gorm:"type:integer" json:"start_time" default:"-1"`
-		MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
-		WhiteListInfos         []WhiteListInfo `json:"white_list_infos"`
-		NFTConfigs             []NFTConfig     `json:"nft_configs"`
-		MetadataUri            string          `gorm:"type:string" json:"metadata_uri"` //与contract base_uri 的区别：base_uri需拼接tokenid后缀；
-		ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
-		ContractRawID          *int32          `gorm:"type:string" json:"contract_id"`
+type UpdateActivityReq struct {
+	Amount                 int32           `gorm:"type:integer" json:"amount" binding:"required"`
+	Name                   string          `gorm:"type:string" json:"name" binding:"required"`
+	Description            string          `gorm:"type:string" json:"description" binding:"required"`
+	Command                string          `gorm:"type:string" json:"command,omitempty"`
+	IsPhoneWhiteListOpened bool            `gorm:"type:bool;default:false" json:"is_phone_white_list_opened"`
+	IsTokenIdOrdered       *bool           `gorm:"type:bool" json:"is_token_id_ordered" default:"true"`
+	EndedTime              int64           `gorm:"type:integer" json:"end_time" default:"-1"`
+	StartedTime            int64           `gorm:"type:integer" json:"start_time" default:"-1"`
+	MaxMintCount           int32           `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
+	WhiteListInfos         []WhiteListInfo `json:"white_list_infos"`
+	NFTConfigs             []NFTConfig     `json:"nft_configs"`
+	MetadataUri            string          `gorm:"type:string" json:"metadata_uri"` //支持模版 如 http://xx/{id}.json, 铸造时 MetadataUri 优先，若为空则根据nftconfig创建metadata
+	ActivityPictureURL     string          `gorm:"type:string" json:"activity_picture_url"`
+	ContractRawID          *int32          `gorm:"type:string" json:"contract_id"`
+	SupportWallets         datatypes.JSON  `json:"support_wallets,omitempty" swaggertype:"array,string"` //default value: ["anyweb","cellar"]
+}
+
+func (u *UpdateActivityReq) SetDefaults() error {
+
+	var wallets []enums.WalletType
+	if len(u.SupportWallets) > 0 {
+		if err := json.Unmarshal(u.SupportWallets, &wallets); err != nil {
+			return err
+		}
 	}
+
+	if len(wallets) == 0 {
+		j, _ := json.Marshal([]enums.WalletType{enums.WALLET_ANYWEB, enums.WALLET_CELLAR})
+		u.SupportWallets = j
+	}
+
+	if u.IsTokenIdOrdered == nil {
+		t := true
+		u.IsTokenIdOrdered = &t
+	}
+
+	defaults.SetDefaults(u)
+	return nil
+}
+
+type (
 	ActivityReq struct {
 		UpdateActivityReq
 		AppId        uint               `gorm:"index" json:"app_id" binding:"required"`
@@ -175,7 +203,7 @@ func FindActivityByCode(activityCode string) (*Activity, error) {
 
 		var item Activity
 		item.ActivityCode = activityCode
-		err := db.Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(&item).First(&item).Error
+		err := db.Debug().Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(&item).First(&item).Error
 		if err != nil {
 			return nil, err
 		}

@@ -61,11 +61,7 @@ func CountPOAPResult(poapId string, filter *POAPResultFilter) (int64, error) {
 	cond.ActivityCode = poapId
 
 	if filter == nil {
-		cache, err := InitCache(poapId)
-		if err != nil {
-			return 0, err
-		}
-		return cache.GetCount(), nil
+		return GetMintCountCache(poapId).GetCount(), nil
 	}
 
 	cond.Address = filter.Address
@@ -151,7 +147,7 @@ func (p *POAPResultCountCache) Increase() {
 	p.Count += 1
 }
 
-func InitCache(ActivityID string) (*POAPResultCountCache, error) {
+func GetMintCountCache(ActivityID string) *POAPResultCountCache {
 	countCache, ok := Cache[ActivityID]
 	if !ok {
 		countCache = &POAPResultCountCache{}
@@ -161,9 +157,9 @@ func InitCache(ActivityID string) (*POAPResultCountCache, error) {
 	if countCache.Count == 0 {
 		var count int64
 		if err := db.Model(&POAPResult{}).Where(&POAPResult{ActivityCode: ActivityID}).Count(&count).Error; err != nil {
-			return nil, err
+			panic(err)
 		}
 		countCache.SetCount(count)
 	}
-	return countCache, nil
+	return countCache
 }
