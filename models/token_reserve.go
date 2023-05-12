@@ -4,7 +4,7 @@ type TokenReserve struct {
 	BaseModel
 	TokenIdStart uint `gorm:"index" json:"token_id_start" binding:"required"`
 	TokenIdEnd   uint `gorm:"index" json:"token_id_end" binding:"required"`
-	ActivityId   uint `gorm:"index" json:"activity" binding:"required"`
+	ActivityId   uint `gorm:"index" json:"activity_id" binding:"required"`
 }
 
 func IsTokenReserved(activityId uint, tokenId string) (bool, error) {
