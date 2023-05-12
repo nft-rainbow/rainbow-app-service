@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -89,9 +90,10 @@ func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, err
 	return resp, nil
 }
 
-func GetContractProfile(address string, token string) (*openapiclient.ModelsContractRuntimeProfile, error) {
+func GetContractProfile(address string, ignoreTokenIds [][2]uint, token string) (*openapiclient.ModelsContractRuntimeProfile, error) {
 	// logrus.Info("Start to get contract profile")
-	resp, _, err := newClient().ContractApi.GetContractProfile(context.Background(), address).Authorization(token).Execute()
+	ignoreTokenIdsJson, _ := json.Marshal(ignoreTokenIds)
+	resp, _, err := newClient().ContractApi.GetContractProfile(context.Background(), address).IgnoreTokenIds(string(ignoreTokenIdsJson)).Authorization(token).Execute()
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to get contract profile")
 	}

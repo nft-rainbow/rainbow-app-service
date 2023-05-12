@@ -50,11 +50,11 @@ func createPhoneList(data [][]string) []PhoneInfo {
 }
 
 // TODO update this two value
-const ACTIVITY_ID = "changeAnDao"
+const ACTIVITY_CODE = "changeAnDao"
 const CSV_FILE = "./scripts/data.csv"
 
 func main() {
-	activityId := flag.String("activity_id", ACTIVITY_ID, "the activity id")
+	activityId := flag.String("activity_code", ACTIVITY_CODE, "the activity id")
 	csvFile := flag.String("csv", CSV_FILE, "the csv file")
 	flag.Parse()
 
@@ -81,8 +81,8 @@ func main() {
 		inList := models.IsPhoneInWhiteList(*activityId, phone.Phone)
 		if !inList {
 			models.GetDB().Create(&models.PhoneWhiteList{
-				ActivityId: *activityId,
-				Phone:      phone.Phone,
+				ActivityCode: *activityId,
+				Phone:        phone.Phone,
 			})
 		}
 	}

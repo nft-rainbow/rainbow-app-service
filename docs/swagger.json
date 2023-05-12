@@ -676,12 +676,12 @@
                     },
                     {
                         "type": "string",
-                        "name": "activityId",
+                        "name": "activity_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "name": "contractAddress",
+                        "name": "contract_address",
                         "in": "query"
                     },
                     {
@@ -952,6 +952,108 @@
                 }
             }
         },
+        "/poap/activity/token-reserve": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Add reserve tokenids for activity, they will be skiped when mint by h5",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Add reserve tokenids for activity",
+                "operationId": "AddTokenReserves",
+                "parameters": [
+                    {
+                        "description": "token reserves",
+                        "name": "token_reserves",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.TokenReserve"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ginutils.CommonMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/poap/activity/token-reserve/{activity_code}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get reserve tokenids of activity",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Get reserve tokenids of activity",
+                "operationId": "GetTokenReserves",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity code",
+                        "name": "activity_code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.TokenReserve"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/poap/activity/{activity_code}": {
             "get": {
                 "security": [
@@ -1181,24 +1283,13 @@
                 "operationId": "AddWalletUser",
                 "parameters": [
                     {
-                        "type": "string",
-                        "name": "address",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "code",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "phone",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "name": "wallet",
-                        "in": "query"
+                        "description": "add wallet user request",
+                        "name": "add_wallet_user_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.AddWalletUserReq"
+                        }
                     }
                 ],
                 "responses": {
@@ -1235,6 +1326,39 @@
                     "type": "string"
                 }
             }
+        },
+        "enums.ActivityType": {
+            "type": "integer",
+            "enum": [
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "ACTIVITY_BLINDBOX",
+                "ACTIVITY_SINGLE"
+            ]
+        },
+        "enums.SocialToolType": {
+            "type": "integer",
+            "enum": [
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "SOCIAL_TOOL_DISCORD",
+                "SOCIAL_TOOL_DODO"
+            ]
+        },
+        "enums.WalletType": {
+            "type": "integer",
+            "enum": [
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "WALLET_ANYWEB",
+                "WALLET_CELLAR"
+            ]
         },
         "ginutils.CommonMessage": {
             "type": "object",
@@ -1278,7 +1402,7 @@
                     "type": "string"
                 },
                 "activity_type": {
-                    "type": "integer"
+                    "$ref": "#/definitions/enums.ActivityType"
                 },
                 "amount": {
                     "type": "integer"
@@ -1317,6 +1441,10 @@
                 "is_phone_white_list_opened": {
                     "type": "boolean"
                 },
+                "is_token_id_ordered": {
+                    "type": "boolean",
+                    "default": true
+                },
                 "max_mint_count": {
                     "type": "integer"
                 },
@@ -1339,6 +1467,13 @@
                 "start_time": {
                     "type": "integer",
                     "default": -1
+                },
+                "support_wallets": {
+                    "description": "default value: [\"anyweb\",\"cellar\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "updated_at": {
                     "type": "string"
@@ -1380,7 +1515,7 @@
                     "type": "string"
                 },
                 "activity_type": {
-                    "type": "integer"
+                    "$ref": "#/definitions/enums.ActivityType"
                 },
                 "amount": {
                     "type": "integer"
@@ -1407,6 +1542,10 @@
                 "is_phone_white_list_opened": {
                     "type": "boolean"
                 },
+                "is_token_id_ordered": {
+                    "type": "boolean",
+                    "default": true
+                },
                 "max_mint_count": {
                     "type": "integer"
                 },
@@ -1426,6 +1565,13 @@
                 "start_time": {
                     "type": "integer",
                     "default": -1
+                },
+                "support_wallets": {
+                    "description": "default value: [\"anyweb\",\"cellar\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "white_list_infos": {
                     "type": "array",
@@ -1471,7 +1617,7 @@
                     "type": "string"
                 },
                 "social_tool": {
-                    "type": "integer"
+                    "$ref": "#/definitions/enums.SocialToolType"
                 },
                 "updated_at": {
                     "type": "string"
@@ -1549,7 +1695,7 @@
                     "type": "string"
                 },
                 "activity_type": {
-                    "type": "integer"
+                    "$ref": "#/definitions/enums.ActivityType"
                 },
                 "chain_id": {
                     "type": "integer"
@@ -1592,7 +1738,7 @@
                     "type": "string"
                 },
                 "social_tool": {
-                    "type": "integer"
+                    "$ref": "#/definitions/enums.SocialToolType"
                 },
                 "start_time": {
                     "type": "integer",
@@ -1839,6 +1985,37 @@
                 }
             }
         },
+        "models.TokenReserve": {
+            "type": "object",
+            "required": [
+                "activity_id",
+                "token_id_end",
+                "token_id_start"
+            ],
+            "properties": {
+                "activity_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "token_id_end": {
+                    "type": "integer"
+                },
+                "token_id_start": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "models.UpdateActivityReq": {
             "type": "object",
             "required": [
@@ -1870,6 +2047,10 @@
                 "is_phone_white_list_opened": {
                     "type": "boolean"
                 },
+                "is_token_id_ordered": {
+                    "type": "boolean",
+                    "default": true
+                },
                 "max_mint_count": {
                     "type": "integer"
                 },
@@ -1889,6 +2070,13 @@
                 "start_time": {
                     "type": "integer",
                     "default": -1
+                },
+                "support_wallets": {
+                    "description": "default value: [\"anyweb\",\"cellar\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "white_list_infos": {
                     "type": "array",
@@ -1921,6 +2109,23 @@
                 },
                 "user": {
                     "type": "string"
+                }
+            }
+        },
+        "services.AddWalletUserReq": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "wallet": {
+                    "$ref": "#/definitions/enums.WalletType"
                 }
             }
         },

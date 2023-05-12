@@ -153,7 +153,7 @@ var (
 			if len(options) > 1 {
 				command = options[1].Value.(string)
 			}
-			res, err := GetActivityService().HandlePOAPH5Mint(&MintReq{
+			res, err := GetActivityService().H5Mint(&MintReq{
 				ActivityID:  config.ActivityCode,
 				UserAddress: bind.CFXAddress,
 				Command:     command,
