@@ -103,6 +103,9 @@ func SetupRoutes(router *gin.Engine) {
 		poap.PUT("/activity/:activity_code", updateActivity)
 		poap.POST("/activity/h5", setActivityH5Config)
 		poap.GET("/activity", getUserActivities)
+
+		poap.POST("/activity/token-reserve", addTokenReserves)
+		poap.GET("/activity/token-reserve/:activity_code", getTokenReserves)
 	}
 }
 

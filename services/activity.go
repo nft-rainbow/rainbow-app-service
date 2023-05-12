@@ -549,7 +549,7 @@ func mint(activity *models.Activity, nftConfig *models.NFTConfig, to string, tok
 }
 
 func calcNextTokenId(currentMax uint, ignoreTokenIds [][2]uint) uint {
-	orderIgnoreTokenIds(ignoreTokenIds)
+	sortIgnoreTokenIds(ignoreTokenIds)
 	nextTokenId := uint(currentMax + 1)
 
 	fmt.Println(ignoreTokenIds)
@@ -562,7 +562,7 @@ func calcNextTokenId(currentMax uint, ignoreTokenIds [][2]uint) uint {
 	return nextTokenId
 }
 
-func orderIgnoreTokenIds(ignoreTokenIds [][2]uint) {
+func sortIgnoreTokenIds(ignoreTokenIds [][2]uint) {
 	sort.SliceStable(ignoreTokenIds, func(i, j int) bool {
 		return (ignoreTokenIds[i][0] <= ignoreTokenIds[j][0]) && (ignoreTokenIds[i][1] <= ignoreTokenIds[j][1])
 	})

@@ -1,15 +1,15 @@
 package routers
 
-// @Tags        CustomMint
-// @ID          GetDiscordChannelDetail
-// @Summary     Discord Channel detail
-// @Description Get Discord Channel detail info
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       guild_id path     int true "guild_id"
-// @Success     200      {array}  discordgo.Channel
-// @Failure     500      {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /custom/discord/{guild_id}/channels [get]
+//	@Tags			CustomMint
+//	@ID				GetDiscordChannelDetail
+//	@Summary		Discord Channel detail
+//	@Description	Get Discord Channel detail info
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			guild_id	path		int	true	"guild_id"
+//	@Success		200			{array}		discordgo.Channel
+//	@Failure		500			{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/custom/discord/{guild_id}/channels [get]
 // func getDiscordChannelInfo(c *gin.Context) {
 // 	guildId := c.Param("guild_id")
 // 	resp, err := services.GetDiscordChannelInfo(guildId)
@@ -17,16 +17,16 @@ package routers
 // 	ginutils.RenderResp(c, resp, err)
 // }
 
-// @Tags        CustomMint
-// @ID          GetDoDoChannelDetail
-// @Summary     DoDo Channel detail
-// @Description Get DoDo Channel detail info
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       island_id path     int true "island_id"
-// @Success     200       {array}  model.ChannelElement
-// @Failure     500       {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /custom/dodo/{island_id}/channels [get]
+//	@Tags			CustomMint
+//	@ID				GetDoDoChannelDetail
+//	@Summary		DoDo Channel detail
+//	@Description	Get DoDo Channel detail info
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			island_id	path		int	true	"island_id"
+//	@Success		200			{array}		model.ChannelElement
+//	@Failure		500			{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/custom/dodo/{island_id}/channels [get]
 // func getDoDoChannelInfo(c *gin.Context) {
 // 	islandId := c.Param("island_id")
 // 	resp, err := services.GetDoDoChannelInfo(islandId)
@@ -64,16 +64,16 @@ package routers
 // 	}
 // }
 
-// @Tags        POAP
-// @ID          BindServerInfo
-// @Summary     Bind Server Info
-// @Description Bind Server Info
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       user_server body     models.BotServer                                   true "user_server"
-// @Success     200         {object} string                                             "success"
-// @Failure     500         {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/server [post]
+//	@Tags			POAP
+//	@ID				BindServerInfo
+//	@Summary		Bind Server Info
+//	@Description	Bind Server Info
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			user_server	body		models.BotServer									true	"user_server"
+//	@Success		200			{object}	string												"success"
+//	@Failure		500			{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/poap/activity/server [post]
 // func bindServerInfo(c *gin.Context) {
 // 	var req *models.BotServer
 // 	if err := c.ShouldBind(&req); err != nil {
@@ -87,17 +87,17 @@ package routers
 // 	ginutils.RenderResp(c, "success", res.Error)
 // }
 
-// @Tags        POAP
-// @ID          GetPush
-// @Summary     Get Pushes List
-// @Description Get Pushes List
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       app_id path     string true "app_id"
-// @Param       bot    path     string true "bot"
-// @Success     200    {object} models.PushInfoQueryResult
-// @Failure     500    {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/push/{bot} [get]
+//	@Tags			POAP
+//	@ID				GetPush
+//	@Summary		Get Pushes List
+//	@Description	Get Pushes List
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			app_id	path		string	true	"app_id"
+//	@Param			bot		path		string	true	"bot"
+//	@Success		200		{object}	models.PushInfoQueryResult
+//	@Failure		500		{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/poap/activity/push/{bot} [get]
 // func getPushes(c *gin.Context) {
 // 	pagination, err := GetPagination(c)
 // 	if err != nil {
@@ -116,16 +116,16 @@ package routers
 // 	ginutils.RenderResp(c, resp, err)
 // }
 
-// @Tags        POAP
-// @ID          GetServers
-// @Summary     Get Server List
-// @Description Get Server List
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       bot path     string true "bot"
-// @Success     200 {object} models.UserServerQueryResult
-// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/servers/{bot} [get]
+//	@Tags			POAP
+//	@ID				GetServers
+//	@Summary		Get Server List
+//	@Description	Get Server List
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			bot	path		string	true	"bot"
+//	@Success		200	{object}	models.UserServerQueryResult
+//	@Failure		500	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/poap/activity/servers/{bot} [get]
 // func getServers(c *gin.Context) {
 // 	pagination, err := GetPagination(c)
 // 	if err != nil {
@@ -144,64 +144,64 @@ package routers
 // 	ginutils.RenderResp(c, resp, err)
 // }
 
-// @Tags        POAP
-// @ID          GetDiscordChannels
-// @Summary     Get Discord Channels
-// @Description Get Discord Channels
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       bot path     string true "guild_id"
-// @Success     200 {array}  model.Channel
-// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/channels/discord/{guild_id} [get]
+//	@Tags			POAP
+//	@ID				GetDiscordChannels
+//	@Summary		Get Discord Channels
+//	@Description	Get Discord Channels
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			bot	path		string	true	"guild_id"
+//	@Success		200	{array}		model.Channel
+//	@Failure		500	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/poap/activity/channels/discord/{guild_id} [get]
 // func getDiscordChannels(c *gin.Context) {
 // 	guild := c.Param("guild_id")
 // 	resp, err := services.GetDiscordChannels(services.GetSession(), guild)
 // 	ginutils.RenderResp(c, resp, err)
 // }
 
-// @Tags        POAP
-// @ID          GetDiscordRoles
-// @Summary     Get Discord Roles
-// @Description Get Discord Roles
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       bot path     string true "guild_id"
-// @Success     200 {array}  model.Role
-// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/roles/discord/{guild_id} [get]
+//	@Tags			POAP
+//	@ID				GetDiscordRoles
+//	@Summary		Get Discord Roles
+//	@Description	Get Discord Roles
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			bot	path		string	true	"guild_id"
+//	@Success		200	{array}		model.Role
+//	@Failure		500	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/poap/activity/roles/discord/{guild_id} [get]
 // func getDiscordRoles(c *gin.Context) {
 // 	guild := c.Param("guild_id")
 // 	resp, err := services.GetDiscordRoles(services.GetSession(), guild)
 // 	ginutils.RenderResp(c, resp, err)
 // }
 
-// @Tags        POAP
-// @ID          GetDoDoChannels
-// @Summary     Get DoDo Channels
-// @Description Get DoDo Channels
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       bot path     string true "island_id"
-// @Success     200 {array}  model.Channel
-// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/channels/dodo/{island_id} [get]
+//	@Tags			POAP
+//	@ID				GetDoDoChannels
+//	@Summary		Get DoDo Channels
+//	@Description	Get DoDo Channels
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			bot	path		string	true	"island_id"
+//	@Success		200	{array}		model.Channel
+//	@Failure		500	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/poap/activity/channels/dodo/{island_id} [get]
 // func getDoDoChannels(c *gin.Context) {
 // 	guild := c.Param("island_id")
 // 	resp, err := services.GetDoDoChannels(services.GetInstance(), guild)
 // 	ginutils.RenderResp(c, resp, err)
 // }
 
-// @Tags        POAP
-// @ID          GetDoDoRoles
-// @Summary     Get DoDo Roles
-// @Description Get DoDo Roles
-// @security    ApiKeyAuth
-// @Produce     json
-// @Param       bot path     string true "island_id"
-// @Success     200 {array}  model.Role
-// @Failure     500 {object} appService_errors.RainbowAppServiceErrorDetailInfo "Internal Server error"
-// @Router      /poap/activity/roles/dodo/{island_id} [get]
+//	@Tags			POAP
+//	@ID				GetDoDoRoles
+//	@Summary		Get DoDo Roles
+//	@Description	Get DoDo Roles
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			bot	path		string	true	"island_id"
+//	@Success		200	{array}		model.Role
+//	@Failure		500	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/poap/activity/roles/dodo/{island_id} [get]
 // func getDoDoRoles(c *gin.Context) {
 // 	guild := c.Param("island_id")
 // 	resp, err := services.GetDoDoRoles(services.GetInstance(), guild)

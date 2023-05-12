@@ -7,6 +7,32 @@ definitions:
       message:
         type: string
     type: object
+  enums.ActivityType:
+    enum:
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-varnames:
+    - ACTIVITY_BLINDBOX
+    - ACTIVITY_SINGLE
+    - ACTIVITY_POAP
+  enums.SocialToolType:
+    enum:
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - SOCIAL_TOOL_DISCORD
+    - SOCIAL_TOOL_DODO
+  enums.WalletType:
+    enum:
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - WALLET_ANYWEB
+    - WALLET_CELLAR
   ginutils.CommonMessage:
     properties:
       message:
@@ -30,7 +56,7 @@ definitions:
       activity_poster_url:
         type: string
       activity_type:
-        type: integer
+        $ref: '#/definitions/enums.ActivityType'
       amount:
         type: integer
       app_id:
@@ -55,6 +81,9 @@ definitions:
       id:
         type: integer
       is_phone_white_list_opened:
+        type: boolean
+      is_token_id_ordered:
+        default: true
         type: boolean
       max_mint_count:
         type: integer
@@ -100,7 +129,7 @@ definitions:
       activity_picture_url:
         type: string
       activity_type:
-        type: integer
+        $ref: '#/definitions/enums.ActivityType'
       amount:
         type: integer
       app_id:
@@ -117,6 +146,9 @@ definitions:
         default: -1
         type: integer
       is_phone_white_list_opened:
+        type: boolean
+      is_token_id_ordered:
+        default: true
         type: boolean
       max_mint_count:
         type: integer
@@ -165,7 +197,7 @@ definitions:
       server_name:
         type: string
       social_tool:
-        type: integer
+        $ref: '#/definitions/enums.SocialToolType'
       updated_at:
         type: string
     required:
@@ -219,7 +251,7 @@ definitions:
       activity_id:
         type: string
       activity_type:
-        type: integer
+        $ref: '#/definitions/enums.ActivityType'
       chain_id:
         type: integer
       chain_type:
@@ -248,7 +280,7 @@ definitions:
       server_name:
         type: string
       social_tool:
-        type: integer
+        $ref: '#/definitions/enums.SocialToolType'
       start_time:
         default: -1
         type: integer
@@ -413,6 +445,27 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.TokenReserve:
+    properties:
+      activity:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      token_id_end:
+        type: integer
+      token_id_start:
+        type: integer
+      updated_at:
+        type: string
+    required:
+    - activity
+    - token_id_end
+    - token_id_start
+    type: object
   models.UpdateActivityReq:
     properties:
       activity_picture_url:
@@ -470,6 +523,17 @@ definitions:
         type: string
       user:
         type: string
+    type: object
+  services.AddWalletUserReq:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      phone:
+        type: string
+      wallet:
+        $ref: '#/definitions/enums.WalletType'
     type: object
   services.Channel:
     properties:
@@ -966,10 +1030,10 @@ paths:
         name: limit
         type: integer
       - in: query
-        name: activityId
+        name: activity_id
         type: string
       - in: query
-        name: contractAddress
+        name: contract_address
         type: string
       - default: 10
         in: query
@@ -1219,6 +1283,72 @@ paths:
       summary: Get Mint Result
       tags:
       - POAP
+  /poap/activity/token-reserve:
+    post:
+      description: Add reserve tokenids for activity, they will be skiped when mint
+        by h5
+      operationId: AddTokenReserves
+      parameters:
+      - description: token reserves
+        in: body
+        name: token_reserves
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.TokenReserve'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ginutils.CommonMessage'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Add reserve tokenids for activity
+      tags:
+      - POAP
+  /poap/activity/token-reserve/{activity_code}:
+    get:
+      description: Get reserve tokenids of activity
+      operationId: GetTokenReserves
+      parameters:
+      - description: activity code
+        in: path
+        name: activity_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.TokenReserve'
+            type: array
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get reserve tokenids of activity
+      tags:
+      - POAP
   /poap/count/{address}/{activity_code}:
     get:
       description: Get Mint Count
@@ -1290,18 +1420,12 @@ paths:
       description: Add user wallet profile, so backend can get user phone from anyweb
       operationId: AddWalletUser
       parameters:
-      - in: query
-        name: address
-        type: string
-      - in: query
-        name: code
-        type: string
-      - in: query
-        name: phone
-        type: string
-      - in: query
-        name: wallet
-        type: integer
+      - description: add wallet user request
+        in: body
+        name: add_wallet_user_request
+        required: true
+        schema:
+          $ref: '#/definitions/services.AddWalletUserReq'
       produces:
       - application/json
       responses:
