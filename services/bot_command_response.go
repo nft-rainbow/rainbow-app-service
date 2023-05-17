@@ -16,14 +16,14 @@ const (
 	CrShowVisperSecret     = "活动 {{.PushInfoId}} 领取口令为: {{.VisperSecret}}"
 	CrnotNeedVisperSecret  = "活动 {{.PushInfoId}} 无需领取口令"
 	CrShowCreateAddressDoc = "<@!{{.DodoSourceId}}> 查看如何创建钱包地址：xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-	CrShowAddress          = "<@!{{.DodoSourceId}}> 您绑定的地址为：\n主网: \t{{.MainnetAddress}}\n测试网: \t{{.TestnetAddress}}"
+	CrShowAddress          = "<@!{{.DodoSourceId}}> 您绑定的地址为: \n主网: \t{{.MainnetAddress}}\n测试网: \t{{.TestnetAddress}}"
 	CrSeeOnDirectMessage   = "<@!{{.DodoSourceId}}> 请查看RainbowBot的私信"
 
 	CrAllCommandsZh = "\n" +
 		"1./帮助——查询指令集\n" +
-		"2./铸造/ID——铸造社区活动NFT「例如：/铸造/1234」\n" +
-		"3./查口令/ID——查询社区活动口令「例如：/查口令/1234」\n" +
-		"4./铸造/ID/口令——使用口令铸造社区活动NFT「例如：/铸造/1234/123456」\n" +
+		"2./铸造/ID——铸造社区活动NFT「例如: /铸造/1234」\n" +
+		"3./查口令/ID——查询社区活动口令「例如: /查口令/1234」\n" +
+		"4./铸造/ID/口令——使用口令铸造社区活动NFT「例如: /铸造/1234/123456」\n" +
 		"5./绑定/cfx:123456——绑定钱包地址\n" +
 		"6./查地址——查询绑定的钱包地址\n" +
 		"7./创建地址——学习如何创建钱包地址\n"
