@@ -2,12 +2,14 @@ package services
 
 import (
 	"context"
+	"strconv"
 
 	"fmt"
 	"runtime/debug"
 	"strings"
 	"time"
 
+	. "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
@@ -25,26 +27,6 @@ type CommandRequest struct {
 	ChannelMsgSource
 	args []string
 }
-
-const (
-	allCommandsZh = "\n" +
-		"/帮助\t查所有指令\n" +
-		"/教程\t获取教程链接\n" +
-		"/铸造/活动ID/TokenID\t铸造nft\n" +
-		"/查口令/活动ID\t查活动口令\n" +
-		"/创建地址\t创建conflux地址并绑定到您的dodo账户\n" +
-		"/查地址\t查询已绑定的conflux地址\n" +
-		"/绑定地址/conflux地址\t绑定指定conflux地址到您的dodo账户\n\n"
-
-	allCommandsEn = "\n" +
-		"/help\t查所有指令\n" +
-		"/tutorial\t获取教程链接\n" +
-		"/mint/activity_id/token_id\t铸造nft\n" +
-		"/command/activity_id\t查活动口令\n" +
-		"/create_address\t创建conflux地址并绑定到您的dodo账户\n" +
-		"/address\t查询已绑定的conflux地址\n" +
-		"/bind_address/conflux地址\t绑定指定conflux地址到您的dodo账户\n"
-)
 
 func NewDodoBotCommander(_dodoBot *DodoBot) *DodoBotCommander {
 	d := &DodoBotCommander{dodoBot: _dodoBot}
@@ -74,7 +56,7 @@ func NewDodoBotCommander(_dodoBot *DodoBot) *DodoBotCommander {
 		return d.GetAddress(req.ChannelMsgSource)
 	}
 
-	router["绑定地址"] = func(req *CommandRequest) error {
+	router["绑定"] = func(req *CommandRequest) error {
 		return d.Bind(req.ChannelMsgSource, req.args[0])
 	}
 
@@ -113,7 +95,7 @@ func (d *DodoBotCommander) ExcuteCommand(msgSource ChannelMsgSource, command str
 	logrus.WithField("method", method).WithField("args", args).Info("parse commands")
 
 	if d.router[method] == nil {
-		msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, fmt.Sprintf("不支持的指令 %s", method))
+		msg := GenCommandResponse(CrCommandUnSupport, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
 		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	}
 
@@ -123,111 +105,173 @@ func (d *DodoBotCommander) ExcuteCommand(msgSource ChannelMsgSource, command str
 	})
 	if err != nil {
 		logrus.WithField("method", method).WithField("args", args).WithField("error stack", fmt.Sprintf("%+v", errors.WithStack(err))).Info("failed run command")
-		fmt.Printf("failed run command\n%+v\n", errors.WithStack(err))
-		msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, err.Error())
+		msg := GenCommandResponse(CrErrUnknown, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
 		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	}
 	return nil
 }
 
-func (d *DodoBotCommander) Mint(msgSource ChannelMsgSource, activityId string, verbalSecret string) error {
-	mainAddr, testAddr, err := GetBindAddress(msgSource.userDodoSourceId, enums.SOCIAL_TOOL_DODO)
+func (d *DodoBotCommander) Mint(msgSource ChannelMsgSource, pushInfoIdStr string, verbalSecret string) error {
+	pushInfoIdInt, err := strconv.Atoi(pushInfoIdStr)
 	if err != nil {
-		return err
+		errResp := GenCommandErrResponse(ERR_BUSINESS_ACTIVITY_NOT_EXIST, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
+		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+	}
+	pushInfoId := uint(pushInfoIdInt)
+
+	// var activity *models.Activity
+	cmdRespData := CmdRespData{
+		DodoSourceId: msgSource.userDodoSourceId,
+		PushInfoId:   pushInfoId,
 	}
 
-	activity, err := models.FindActivityByCode(activityId)
-	if err != nil {
-		return err
-	}
-
-	if _, err = models.FindPushInfo(models.PushInfo{ActivityId: activity.ID, ChannelId: msgSource.channelId}); err != nil {
-		return customNotFoundError(err, "the activity not support on this channel")
-	}
-
-	msg := fmt.Sprintf("<@!%s> 开始铸造, 大约需要30秒, 请耐心等待", msgSource.userDodoSourceId)
-	if err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId); err != nil {
-		return err
-	}
-
-	toAddr := mainAddr
-	if activity.Contract.ChainId == int32(utils.CONFLUX_TEST_ID) {
-		toAddr = testAddr
-	}
-
-	res, err := GetActivityService().H5Mint(&MintReq{
-		ActivityID:  activity.ActivityCode,
-		UserAddress: toAddr,
-		Command:     verbalSecret,
-	})
-	if err != nil {
-		return err
-	}
-
-	for {
-		resp, _ := models.FindPOAPResultById(activity.ActivityCode, int(res.ID))
-		if resp.Hash == "" {
-			time.Sleep(time.Second)
-			continue
+	err = func() error {
+		var err error
+		mainAddr, testAddr, err := GetBindAddress(msgSource.userDodoSourceId, enums.SOCIAL_TOOL_DODO)
+		if err != nil {
+			return err
 		}
 
-		msg = fmt.Sprintf("<@!%s> 铸造成功。 交易hash为 %v", msgSource.userDodoSourceId, resp.Hash)
-		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+		pushInfo, err := models.FindPushInfoById(pushInfoId)
+		if err != nil {
+			return ERR_BUSINESS_ACTIVITY_NOT_EXIST
+		}
+		activity := pushInfo.Activity
+
+		if activity.Contract == nil {
+			return ERR_BUSNISS_ACTIVITY_CONFIG_WRONG
+		}
+
+		msg := GenCommandResponse(CrReadyMint, cmdRespData)
+		if err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId); err != nil {
+			return err
+		}
+
+		toAddr := mainAddr
+		if activity.Contract.ChainId == int32(utils.CONFLUX_TEST_ID) {
+			toAddr = testAddr
+		}
+
+		res, err := GetActivityService().H5Mint(&MintReq{
+			ActivityID:  activity.ActivityCode,
+			UserAddress: toAddr,
+			Command:     verbalSecret,
+		})
+		if err != nil {
+			return err
+		}
+
+		for {
+			resp, _ := models.FindPOAPResultById(activity.ActivityCode, int(res.ID))
+			if resp.Hash == "" {
+				time.Sleep(time.Second)
+				continue
+			}
+
+			msg := GenCommandResponse(CrMintSuccess, cmdRespData)
+			return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+		}
+	}()
+
+	if err != nil {
+		errResp := GenCommandErrResponse(err, cmdRespData)
+		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
 	}
+	return nil
 }
 
 func (d *DodoBotCommander) Bind(msgSource ChannelMsgSource, userAddress string) error {
 	mainAddr, testAddr, err := BindCfxAddress(msgSource.userDodoSourceId, userAddress, enums.SOCIAL_TOOL_DODO)
 	if err != nil {
-		return err
+		if err != ERR_BIND_ADDRESS_WRONG_FORMAT {
+			err = ERR_BIND_ADDRESS_OTHER
+		}
+		errResp := GenCommandErrResponse(err, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
+		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
 	}
 
-	msg := fmt.Sprintf("<@!%s> 您已成功绑定 conflux 地址！\nTestnet\t%s\nMainnet\t%s\n", msgSource.userDodoSourceId, mainAddr, testAddr)
+	cmdRespData := CmdRespData{
+		MainnetAddress: mainAddr,
+		TestnetAddress: testAddr,
+		DodoSourceId:   msgSource.userDodoSourceId,
+	}
+	msg := GenCommandResponse(CrBindSuccess, cmdRespData)
 	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 }
 
 func (d *DodoBotCommander) GetAddress(msgSource ChannelMsgSource) error {
-	mainAddr, testAddr, err := GetBindAddress(msgSource.userDodoSourceId, enums.SOCIAL_TOOL_DODO)
-	if err != nil {
-		return err
+	cmdRespData := CmdRespData{
+		DodoSourceId: msgSource.userDodoSourceId,
 	}
 
-	msg := fmt.Sprintf("<@!%s> 您的地址:\nTestnet\t%s\nMainnet\t%s\n", msgSource.userDodoSourceId, mainAddr, testAddr)
+	mainAddr, testAddr, err := GetBindAddress(msgSource.userDodoSourceId, enums.SOCIAL_TOOL_DODO)
+	if err != nil {
+		errResp := GenCommandErrResponse(err, cmdRespData)
+		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+	}
+
+	cmdRespData.MainnetAddress = mainAddr
+	cmdRespData.TestnetAddress = testAddr
+	msg := GenCommandResponse(CrShowAddress, cmdRespData)
 	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 }
 
 func (d *DodoBotCommander) GetTutorial(msgSource ChannelMsgSource) error {
-	// msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, guide)
 	return d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, guide)
 }
 
 func (d *DodoBotCommander) GetAllCommands(msgSource ChannelMsgSource, language string) error {
-	_allCommand := allCommandsZh
-	if language == "en" {
-		_allCommand = allCommandsEn
+	msg := GenCommandResponse(CrSeeOnDirectMessage, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
+	if err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId); err != nil {
+		return err
 	}
-	msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, _allCommand)
-	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+
+	_allCommand := CrAllCommandsZh
+	if language == "en" {
+		_allCommand = CrAllCommandsEn
+	}
+
+	return d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, _allCommand)
 }
 
 func (d *DodoBotCommander) CreateAccount(msgSource ChannelMsgSource) error {
-	msg := fmt.Sprintf("<@!%s> %s", msgSource.userDodoSourceId, anywebH5)
+	msg := GenCommandResponse(CrShowCreateAddressDoc, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
 	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 }
 
-func (d *DodoBotCommander) GetVerbalSecret(msgSource ChannelMsgSource, activityCode string) error {
-	config, err := models.FindActivityByCode(activityCode)
+func (d *DodoBotCommander) GetVerbalSecret(msgSource ChannelMsgSource, pushInfoIdStr string) error {
+	pushInfoIdInt, err := strconv.Atoi(pushInfoIdStr)
 	if err != nil {
-		return err
+		errResp := GenCommandErrResponse(ERR_BUSINESS_ACTIVITY_NOT_EXIST, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
+		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
 	}
-	if config.Command == "" {
-		msg := fmt.Sprintf("<@!%s> %s 不需要口令码", msgSource.userDodoSourceId, activityCode)
+	pushInfoId := uint(pushInfoIdInt)
+
+	pushInfo, err := models.FindPushInfoById(pushInfoId)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			err = ERR_BUSINESS_ACTIVITY_NOT_EXIST
+		}
+		errMsg := GenCommandErrResponse(err, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
+		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errMsg, msgSource.messageId)
+	}
+
+	activity := pushInfo.Activity
+	cmdRespData := CmdRespData{DodoSourceId: msgSource.userDodoSourceId,
+		PushInfoId:   pushInfoId,
+		VisperSecret: activity.Command,
+	}
+
+	if activity.Command == "" {
+		msg := GenCommandResponse(CrnotNeedVisperSecret, cmdRespData)
 		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	}
 
-	msg := fmt.Sprintf("活动 %s 的口令码是 %s", activityCode, config.Command)
-	return d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, msg)
-	// return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, config.Command, msgSource.messageId)
+	msg := GenCommandResponse(CrShowVisperSecret, cmdRespData)
+	if err := d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, msg); err != nil {
+		return err
+	}
+	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, CrSeeOnDirectMessage, msgSource.messageId)
 }
 
 func customNotFoundError(err error, msgOfNotFound string) error {

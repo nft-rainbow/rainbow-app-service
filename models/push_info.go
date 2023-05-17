@@ -22,6 +22,9 @@ func (p *PushInfo) LoadActivity() error {
 	if err := GetDB().Where(&activity).First(&activity).Error; err != nil {
 		return err
 	}
+	if err := activity.LoadBindedContract(); err != nil {
+		return err
+	}
 	p.Activity = &activity
 	return nil
 }

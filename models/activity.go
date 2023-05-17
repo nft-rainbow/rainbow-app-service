@@ -2,11 +2,13 @@ package models
 
 import (
 	"encoding/json"
-	"errors"
+
 	"time"
 
 	"github.com/mcuadros/go-defaults"
+	. "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"github.com/pkg/errors"
 	"gorm.io/datatypes"
 )
 
@@ -132,7 +134,7 @@ func (a *Activity) IsContractBinded() bool {
 // check if mintable by user
 func (a *Activity) VerifyMintable() error {
 	if !a.IsContractBinded() {
-		return errors.New("not bind contract")
+		return errors.Wrap(ERR_BUSNISS_ACTIVITY_CONFIG_WRONG, "not bind contract")
 	}
 	// FIXME: 设置了地址白名单后，只能空投，不能页面领; v2会变更逻辑
 	if len(a.WhiteListInfos) != 0 {
@@ -140,18 +142,15 @@ func (a *Activity) VerifyMintable() error {
 	}
 
 	if a.StartedTime != -1 && time.Now().Unix() < a.StartedTime {
-		return errors.New("the activity has not been started")
+		return ERR_BUSINESS_TIME_EARLY
 	}
 
 	if a.EndedTime != -1 && time.Now().Unix() > a.EndedTime {
-		return errors.New("the activity has been expired")
+		return ERR_BUSINESS_TIME_EXPIRED
 	}
 
-	switch a.ActivityType {
-	case enums.ACTIVITY_BLINDBOX:
-		if len(a.NFTConfigs) == 0 {
-			return errors.New("missing nft configs for blind box activity")
-		}
+	if len(a.NFTConfigs) == 0 {
+		return errors.Wrap(ERR_BUSNISS_ACTIVITY_CONFIG_WRONG, "missing nft config")
 	}
 
 	if a.Amount != -1 {
@@ -160,7 +159,7 @@ func (a *Activity) VerifyMintable() error {
 			return err
 		}
 		if int32(resp) >= a.Amount {
-			return errors.New("the mint amount has exceeded the limit")
+			return ERR_BUSINESS_ACTIVITY_MAX_AMOUNT_ARRIVED
 		}
 	}
 

@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"time"
 
+	. "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
@@ -396,7 +397,7 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 		}
 
 		if !isInWhiteList {
-			return errors.New("无领取资格")
+			return ERR_BUSINESS_NO_MINT_PERMISSIION
 		}
 
 		addrs, err := models.FindAllUserAddrsOfPhone(users[0].Phone)
@@ -411,7 +412,7 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 	}
 
 	if req.Command != config.Command {
-		return errors.New("the command is wrong")
+		return ERR_BUSINESS_VISPER_WRONG
 	}
 
 	return nil
@@ -419,7 +420,7 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 
 func calcNftConfig(activity *models.Activity) (*models.NFTConfig, error) {
 	if len(activity.NFTConfigs) == 0 {
-		return nil, fmt.Errorf("at least one NFTConfig is required")
+		return nil, ERR_BUSNISS_ACTIVITY_CONFIG_WRONG
 	}
 
 	var nftConfigIndex int
@@ -509,7 +510,7 @@ func checkUserMintQuota(activityId string, userAddrs []string, max int32) error 
 	}
 
 	if int32(count) >= max {
-		return fmt.Errorf("the mint amount has exceeded the personal limit")
+		return ERR_BUSINESS_PERSONAL_MAX_AMOUNT_ARRIVED
 	}
 	return nil
 }

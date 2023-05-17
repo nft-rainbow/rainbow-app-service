@@ -2,7 +2,7 @@ package services
 
 import (
 	"bytes"
-	"errors"
+
 	"fmt"
 	"image"
 	"image/draw"
@@ -17,10 +17,12 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/bwmarrin/discordgo"
 	"github.com/fogleman/gg"
+	. "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -36,17 +38,21 @@ func BindCfxAddress(userId, userAddress string, socialTool enums.SocialToolType)
 	err := func() error {
 		addr, err := cfxaddress.New(config.CFXAddress, uint32(utils.CONFLUX_MAINNET_ID))
 		if err != nil {
-			return err
+			return errors.Wrap(ERR_BIND_ADDRESS_WRONG_FORMAT, err.Error())
 		}
 
 		result, err := models.FindSocialUserConfig(config.UserId, config.SocialTool)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			config.CFXAddress = addr.String()
-			return models.GetDB().Create(&config).Error
+			err = models.GetDB().Create(&config).Error
 		} else {
 			result.CFXAddress = addr.String()
-			return models.GetDB().Save(result).Error
+			err = models.GetDB().Save(result).Error
 		}
+		if err != nil {
+			return errors.Wrap(ERR_BIND_ADDRESS_OTHER, err.Error())
+		}
+		return nil
 	}()
 	if err != nil {
 		return "", "", err
@@ -59,7 +65,7 @@ func GetBindAddress(userDodoSourceId string, socialTool enums.SocialToolType) (s
 	userConfig, err := models.FindSocialUserConfig(userDodoSourceId, socialTool)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return "", "", errors.New("请先创建或绑定 Conflux 地址")
+			return "", "", ERR_BUSINESS_NOT_BIND_WALLET
 		}
 		return "", "", err
 	}
