@@ -128,23 +128,38 @@ func (d *DodoBot) GetChannels(serverId string) ([]*Channel, error) {
 	return channels, nil
 }
 
-func (d *DodoBot) Push(channelId string, roles []string, name, activityId, content, color string) error {
-	var message model.CardMessage
+func (d *DodoBot) Push(channelId string, pushData PushData) error {
 
 	_roles := ""
-	if len(roles) == 0 || roles[0] == "" {
+	if len(pushData.Roles) == 0 || pushData.Roles[0] == "" {
 		_roles = "<@all>"
 	} else {
-		_roles = "<@&" + strings.Join(roles, "><@&") + ">"
+		_roles = "<@&" + strings.Join(pushData.Roles, "><@&") + ">"
 	}
 
-	card := pushTemplate
-	card = strings.Replace(card, "{roles}", _roles, -1)
-	card = strings.Replace(card, "{name}", name, -1)
-	card = strings.Replace(card, "{activity}", activityId, -1)
-	card = strings.Replace(card, "{content}", content, -1)
-	card = strings.Replace(card, "{color}", color, -1)
-	err := json.Unmarshal([]byte(card), &message)
+	pushDataForTemplate := struct {
+		PushData
+		Roles               string
+		StartTime           string
+		EndTime             string
+		StartTimeInMillisec int64
+	}{
+		PushData:            pushData,
+		Roles:               _roles,
+		StartTime:           pushData.StartTime.Format("2006-01-02 15:04:05"),
+		EndTime:             pushData.EndTime.Format("2006-01-02 15:04:05"),
+		StartTimeInMillisec: pushData.StartTime.UnixMilli(),
+	}
+	if pushData.StartTime.Before(time.Unix(1, 0)) {
+		pushDataForTemplate.StartTime = "无"
+	}
+	if pushData.EndTime.Before(time.Unix(1, 0)) {
+		pushDataForTemplate.EndTime = "无"
+	}
+
+	pushMsgInJson := ExcuteTemplate(CrPushJsonTemplate, pushDataForTemplate)
+	var message model.CardMessage
+	err := json.Unmarshal([]byte(pushMsgInJson), &message)
 	if err != nil {
 		return err
 	}

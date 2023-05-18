@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/spf13/viper"
@@ -18,7 +19,7 @@ type (
 		GetChannels(serverId string) ([]*Channel, error)
 		GetRoles(serverId string) ([]*Role, error)
 		GetInviteUrl() string
-		Push(channelId string, roles []string, name, activityId, content, color string) error
+		Push(channelId string, pushData PushData) error
 	}
 
 	BotCommander interface {
@@ -48,6 +49,17 @@ type (
 		channelId        string
 		userDodoSourceId string
 		messageId        string
+	}
+
+	PushData struct {
+		Roles         []string
+		Content       string
+		PushInfoID    uint
+		ActivityName  string
+		StartTime     time.Time
+		EndTime       time.Time
+		ActivityImage string
+		ClaimLink     string
 	}
 )
 

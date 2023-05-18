@@ -21,9 +21,10 @@ type (
 		SocialToolQueryReq
 	}
 	InsertBotServerReq struct {
-		SocialTool string `json:"social_tool" binding:"required,oneof=dodo discord"`
-		ServerId   string `json:"server_id" binding:"required"`
-		AuthCode   string `json:"auth_code" binding:"required"`
+		SocialTool       string `json:"social_tool" binding:"required,oneof=dodo discord"`
+		ServerId         string `json:"server_id" binding:"required"`
+		OutdatedServerId string `json:"outdated_server_id"`
+		AuthCode         string `json:"auth_code" binding:"required"`
 	}
 	GetBotServersReq struct {
 		SocialToolQueryReq
@@ -119,6 +120,7 @@ func (d *BotServerService) InsertBotServer(userId uint, req InsertBotServerReq) 
 
 	var p models.BotServer
 	p.RainbowUserId = userId
+	p.OutdatedServerId = req.OutdatedServerId
 	p.SocialTool = *socialTool
 	p.RawServerId = req.ServerId
 	p.ServerName = serverInfo.Name
@@ -180,7 +182,7 @@ func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq P
 }
 
 // send message to channel
-func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
+func (d *BotServerService) Push(userId uint, channelId string, pushInfoId uint) error {
 	pushInfo, err := models.FindPushInfoById(pushInfoId)
 	if err != nil {
 		return err
@@ -192,13 +194,20 @@ func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
 		return err
 	}
 
+	// startTime, err := time.ParseDuration(fmt.Sprintf("%ds", pushInfo.Activity.StartedTime))
 	if err := d.mustGetBot(botServer.SocialTool).Push(
-		pushInfo.ChannelId,
-		strings.Split(pushInfo.Roles, ","),
-		pushInfo.Activity.AppName,
-		pushInfo.Activity.ActivityCode,
-		pushInfo.Content,
-		pushInfo.ColorTheme); err != nil {
+		channelId,
+		PushData{
+			Roles:         strings.Split(pushInfo.Roles, ","),
+			Content:       pushInfo.Content,
+			PushInfoID:    pushInfoId,
+			ActivityName:  pushInfo.Activity.Name,
+			StartTime:     time.Unix(pushInfo.Activity.StartedTime, 0),
+			EndTime:       time.Unix(pushInfo.Activity.EndedTime, 0),
+			ActivityImage: pushInfo.Activity.ActivityPictureURL,
+			ClaimLink:     fmt.Sprintf("https://imdodo.com/i?gNo=%s&c=%s", botServer.OutdatedServerId, pushInfo.ChannelId),
+		},
+	); err != nil {
 		return err
 	}
 

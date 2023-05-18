@@ -15,11 +15,11 @@ const (
 	CrBindSuccess          = "<@!{{.DodoSourceId}}> ⭕️绑定成功。\n主网: \t{{.MainnetAddress}}\n测试网: \t{{.TestnetAddress}}\n"
 	CrShowVisperSecret     = "活动 {{.PushInfoId}} 领取口令为: {{.VisperSecret}}"
 	CrnotNeedVisperSecret  = "活动 {{.PushInfoId}} 无需领取口令"
-	CrShowCreateAddressDoc = "<@!{{.DodoSourceId}}> 查看如何创建钱包地址：xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+	CrShowCreateAddressDoc = "<@!{{.DodoSourceId}}> 查看如何创建钱包地址: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 	CrShowAddress          = "<@!{{.DodoSourceId}}> 您绑定的地址为: \n主网: \t{{.MainnetAddress}}\n测试网: \t{{.TestnetAddress}}"
 	CrSeeOnDirectMessage   = "<@!{{.DodoSourceId}}> 请查看RainbowBot的私信"
 
-	CrAllCommandsZh = "\n" +
+	CrAllCommandsZh = "指令集:\n" +
 		"1./帮助——查询指令集\n" +
 		"2./铸造/ID——铸造社区活动NFT「例如: /铸造/1234」\n" +
 		"3./查口令/ID——查询社区活动口令「例如: /查口令/1234」\n" +
@@ -28,7 +28,7 @@ const (
 		"6./查地址——查询绑定的钱包地址\n" +
 		"7./创建地址——学习如何创建钱包地址\n"
 
-	CrAllCommandsEn = "\n" +
+	CrAllCommandsEn = "commands:\n" +
 		"/help\t查所有指令\n" +
 		"/tutorial\t获取教程链接\n" +
 		"/mint/activity_id/token_id\t铸造nft\n" +
@@ -36,6 +36,68 @@ const (
 		"/create_address\t创建conflux地址并绑定到您的dodo账户\n" +
 		"/address\t查询已绑定的conflux地址\n" +
 		"/bind_address/conflux地址\t绑定指定conflux地址到您的dodo账户\n"
+)
+
+var (
+	CrPushJsonTemplate = `{
+		"card": {
+			"type": "card",
+			"components": [
+				{
+					"type": "header",
+					"text": {
+						"type": "dodo-md",
+						"content": "{{.Content}}"
+					}
+				},
+				{
+					"type": "section",
+					"text": {
+						"type": "dodo-md",
+						"content": "**ID: {{.PushInfoID}}**\n**活动名称：{{.ActivityName}}**\n**开始日期：{{.StartTime}}**\n**结束日期：{{.EndTime}}**"
+					}
+				},
+				{
+					"type": "countdown",
+					"title": "活动开始计时:",
+					"style": "hour",
+					"endTime": {{.StartTimeInMillisec}}
+				},
+				{
+					"type": "image",
+					"src": "{{.ActivityImage}}"
+				},
+				{
+					"type": "button-group",
+					"elements": [
+						{
+							"type": "button",
+							"interactCustomId": "claim",
+							"click": {
+								"value": "{{.ClaimLink}}",
+								"action": "link_url"
+							},
+							"color": "green",
+							"name": "去领取"
+						}
+					]
+				},
+				{
+					"type": "remark",
+					"elements": [{
+							"type": "image",
+							"src": "https://console.nftrainbow.cn/nftrainbow-logo-icon.png"
+						}, {
+							"type": "dodo-md",
+							"content": "NFTRainbowBot帮助您使用POAP和专属NFT奖励以及管理您的社区。"
+						}
+					]
+				}
+			],
+			"theme": "green",
+			"title": "NFT Rainbow"
+		}
+	}`
 )
 
 var (
@@ -69,6 +131,14 @@ var (
 	CrCommandUnSupport = "<@!{{.DodoSourceId}}> ❌不支持的指令！"
 )
 
+type CmdRespData struct {
+	DodoSourceId   string
+	PushInfoId     uint
+	MainnetAddress string
+	TestnetAddress string
+	VisperSecret   string
+}
+
 func GenCommandErrResponse(err error, data CmdRespData) string {
 	var _template string
 	e, ok := errors.Cause(err).(RainbowAppServiceError)
@@ -81,16 +151,12 @@ func GenCommandErrResponse(err error, data CmdRespData) string {
 }
 
 func GenCommandResponse(crTemplateStr string, data CmdRespData) string {
-	_template := template.Must(template.New("").Parse(crTemplateStr))
-	buf := bytes.NewBuffer(nil)
-	_template.Execute(buf, data)
-	return buf.String()
+	return ExcuteTemplate(crTemplateStr, data)
 }
 
-type CmdRespData struct {
-	DodoSourceId   string
-	PushInfoId     uint
-	MainnetAddress string
-	TestnetAddress string
-	VisperSecret   string
+func ExcuteTemplate(_template string, data interface{}) string {
+	t := template.Must(template.New("").Parse(_template))
+	buf := bytes.NewBuffer(nil)
+	t.Execute(buf, data)
+	return buf.String()
 }
