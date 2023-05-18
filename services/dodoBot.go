@@ -75,6 +75,18 @@ func (d *DodoBot) GetSocialToolType() enums.SocialToolType {
 	return enums.SOCIAL_TOOL_DODO
 }
 
+func (d *DodoBot) CreateChannel(ctx context.Context, serverId string, channelName string, channelType int) (string, error) {
+	resp, err := d.instance.CreateChannel(ctx, &model.CreateChannelReq{
+		IslandSourceId: serverId,
+		ChannelName:    channelName,
+		ChannelType:    model.ChannelType(channelType),
+	})
+	if err != nil {
+		return "", err
+	}
+	return resp.ChannelId, nil
+}
+
 func (d *DodoBot) SendChannelMessage(ctx context.Context, channedId string, msg string, referMsgId ...string) error {
 	if len(referMsgId) == 0 {
 		referMsgId = append(referMsgId, "")

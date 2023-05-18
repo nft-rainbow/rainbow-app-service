@@ -113,9 +113,17 @@ func (d *BotServerService) InsertBotServer(userId uint, req InsertBotServerReq) 
 	}
 
 	// get user social id
+	bot := d.mustGetBot(*socialTool)
 	serverInfo, err := d.mustGetBot(*socialTool).GetSeverInfo(context.Background(), req.ServerId)
 	if err != nil {
 		return nil, err
+	}
+
+	// create channel
+	// 自动创建一个文字频道，该频道作为指令交互频道。频道名称：NFT领取通道，频道图片使用NFTRainbow logo；
+	channelId, err := bot.CreateChannel(context.Background(), req.ServerId, "NFT领取通道", 1)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create rainbow channel")
 	}
 
 	var p models.BotServer
@@ -125,6 +133,7 @@ func (d *BotServerService) InsertBotServer(userId uint, req InsertBotServerReq) 
 	p.RawServerId = req.ServerId
 	p.ServerName = serverInfo.Name
 	p.OwnerSocialId = serverInfo.OwnerId
+	p.DefaultActivityChannelId = channelId
 
 	if err := models.GetDB().Save(&p).Error; err != nil {
 		return nil, err
@@ -171,6 +180,9 @@ func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq P
 	pushInfo, err := pushInfoReq.ToModel(false)
 	if err != nil {
 		return nil, err
+	}
+	if pushInfo.ChannelId == "" {
+		pushInfo.ChannelId = botServer.DefaultActivityChannelId
 	}
 	pushInfo.BotServerID = botServer.ID
 	pushInfo.Activity = &activity

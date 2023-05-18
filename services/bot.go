@@ -12,6 +12,7 @@ import (
 
 type (
 	Bot interface {
+		CreateChannel(ctx context.Context, serverId string, channelName string, channelType int) (string, error)
 		SendChannelMessage(ctx context.Context, channedId string, msg string, referMsgId ...string) error
 		SendDirectMessage(ctx context.Context, serverId string, userId string, msg string) error
 		GetSeverInfo(ctx context.Context, serverId string) (*SeverInfo, error)
