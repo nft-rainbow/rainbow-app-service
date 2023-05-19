@@ -10,9 +10,9 @@ import (
 
 const (
 	CrReadyMint   = "<@!{{.DodoSourceId}}> ⭕️准备铸造活动 {{.PushInfoId}} NFT, 请耐心等待......"
-	CrMintSuccess = "<@!{{.DodoSourceId}}> ⭕活动 {{.PushInfoId}} 铸造成功！请到区块链浏览器或绑定的钱包查看"
+	CrMintSuccess = "<@!{{.DodoSourceId}}> ✅活动 {{.PushInfoId}} 铸造成功！请到区块链浏览器或绑定的钱包查看"
 
-	CrBindSuccess          = "<@!{{.DodoSourceId}}> ⭕️绑定成功。\n主网: \t{{.MainnetAddress}}\n测试网: \t{{.TestnetAddress}}\n"
+	CrBindSuccess          = "<@!{{.DodoSourceId}}> ✅绑定成功。\n主网: \t{{.MainnetAddress}}\n测试网: \t{{.TestnetAddress}}\n"
 	CrShowVisperSecret     = "活动 {{.PushInfoId}} 领取口令为: {{.VisperSecret}}"
 	CrnotNeedVisperSecret  = "活动 {{.PushInfoId}} 无需领取口令"
 	CrShowCreateAddressDoc = "<@!{{.DodoSourceId}}> 查看如何创建钱包地址: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

@@ -177,7 +177,8 @@ func (d *DodoBot) Push(channelId string, pushData PushData) error {
 		StartTime:           pushData.StartTime.Format("2006-01-02 15:04:05"),
 		EndTime:             pushData.EndTime.Format("2006-01-02 15:04:05"),
 		StartTimeInMillisec: pushData.StartTime.UnixMilli(),
-		CountdownStyle:      "hour",
+		// 小于1天也按day style倒计时
+		CountdownStyle: "day", //"hour",
 	}
 	if pushData.StartTime.Before(time.Unix(1, 0)) {
 		pushDataForTemplate.StartTime = "无"
