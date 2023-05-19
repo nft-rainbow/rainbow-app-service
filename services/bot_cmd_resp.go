@@ -15,7 +15,7 @@ const (
 	CrBindSuccess          = "<@!{{.DodoSourceId}}> ✅绑定成功。\n主网: \t{{.MainnetAddress}}\n测试网: \t{{.TestnetAddress}}\n"
 	CrShowVisperSecret     = "活动 {{.PushInfoId}} 领取口令为: {{.VisperSecret}}"
 	CrnotNeedVisperSecret  = "活动 {{.PushInfoId}} 无需领取口令"
-	CrShowCreateAddressDoc = "<@!{{.DodoSourceId}}> 查看如何创建钱包地址: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+	CrShowCreateAddressDoc = "<@!{{.DodoSourceId}}> 查看如何创建钱包地址: https://anyweb.cc/"
 	CrShowAddress          = "<@!{{.DodoSourceId}}> 您绑定的地址为: \n主网: \t{{.MainnetAddress}}\n测试网: \t{{.TestnetAddress}}"
 	CrSeeOnDirectMessage   = "<@!{{.DodoSourceId}}> 请查看RainbowBot的私信"
 
