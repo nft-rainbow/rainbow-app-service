@@ -228,6 +228,9 @@ func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*Acti
 		clause = clause.Where("contract_raw_id is not null")
 	}
 
+	// 未开始 starttime>now
+	// 进行中 (starttime<now || starttime==-1) && (endtime>now || endtime==-1) && (results.count<max_mint_count || max_mint_count==-1)
+	// 已结束 (endtime<now && endedtime!=-1) || (results.count>=max_mint_count && max_mint_count!=-1)
 	if len(_cond.ActivityStatus) > 0 {
 		orClause := db
 		now := time.Now().Unix()
@@ -238,22 +241,19 @@ func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*Acti
 			case enums.ACTIVITY_STATUS_ONGOING:
 				orClause = orClause.Or(db.
 					Where(db.Where("results.minted_count < activities.max_mint_count").Or("activities.max_mint_count = -1")).
-					Where(db.Where("started_time <? or started_time=-1", now).Where("ended_time >? or ended_time=-1", now)))
+					Where("started_time <? or started_time=-1", now).
+					Where("ended_time >? or ended_time=-1", now))
 			case enums.ACTIVITY_SINGLE_END:
 				orClause = orClause.Or(db.
-					Where("results.minted_count>=activities.max_mint_count and activities.max_mint_count!=-1").
-					Or("activities.ended_time<? and ended_time!=-1", now))
+					Or(db.Where("results.minted_count>=activities.max_mint_count").Where("activities.max_mint_count!=-1")).
+					Or(db.Where("activities.ended_time<? ", now).Where("ended_time!=-1")))
 			}
 		}
 
 		clause = clause.
-			Joins("left join (select activity_code,count(*) as minted_count from poap_results group by activity_code) as results on activities.activity_code=results.activity_code").
+			Joins("left join (select activity_code,count(*) as minted_count from poap_results where status!=2 group by activity_code) as results on activities.activity_code=results.activity_code").
 			Where(orClause)
 	}
-
-	// 未开始 starttime>now
-	// 进行中 (starttime<now || starttime==-1) and (endtime>now || endtime==-1) && (results.count<max_mint_count || max_mint_count==-1)
-	// 已结束 (endtime<now and endedtime!=-1) || (results.count>=max_mint_count && max_mint_count!=-1)
 
 	// _cond.ContractAddress 如果不为空，查找Contract, 拿到 contract_raw_id
 	if _cond.ContractAddress != nil {
