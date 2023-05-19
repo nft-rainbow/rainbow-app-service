@@ -170,12 +170,14 @@ func (d *DodoBot) Push(channelId string, pushData PushData) error {
 		StartTime           string
 		EndTime             string
 		StartTimeInMillisec int64
+		CountdownStyle      string
 	}{
 		PushData:            pushData,
 		Roles:               _roles,
 		StartTime:           pushData.StartTime.Format("2006-01-02 15:04:05"),
 		EndTime:             pushData.EndTime.Format("2006-01-02 15:04:05"),
 		StartTimeInMillisec: pushData.StartTime.UnixMilli(),
+		CountdownStyle:      "hour",
 	}
 	if pushData.StartTime.Before(time.Unix(1, 0)) {
 		pushDataForTemplate.StartTime = "无"
@@ -184,11 +186,20 @@ func (d *DodoBot) Push(channelId string, pushData PushData) error {
 		pushDataForTemplate.EndTime = "无"
 	}
 
+	countDown := time.Until(pushData.StartTime)
+	if countDown > time.Hour*24 {
+		pushDataForTemplate.CountdownStyle = "day"
+	}
+
 	pushMsgInJson := ExcuteTemplate(CrPushJsonTemplate, pushDataForTemplate)
 	var message model.CardMessage
 	err := json.Unmarshal([]byte(pushMsgInJson), &message)
 	if err != nil {
 		return err
+	}
+
+	if pushData.StartTime.Before(time.Now()) {
+		message.Card.Components = append(message.Card.Components[:2], message.Card.Components[3:]...)
 	}
 
 	_, err = d.instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{

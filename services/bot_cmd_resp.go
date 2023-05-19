@@ -60,7 +60,7 @@ var (
 				{
 					"type": "countdown",
 					"title": "活动开始计时:",
-					"style": "hour",
+					"style": "{{.CountdownStyle}}",
 					"endTime": {{.StartTimeInMillisec}}
 				},
 				{
