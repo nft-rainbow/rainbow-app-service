@@ -229,21 +229,20 @@ func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*Acti
 	}
 
 	if len(_cond.ActivityStatus) > 0 {
+		joinCluase := clause.Joins("left join (select activity_code,count(*) as minted_count from poap_results group by activity_code) as results on activities.activity_code=results.activity_code")
+		orClause := db
 		for _, item := range _cond.ActivityStatus {
 			switch item {
 			case enums.ACTIVITY_STATUS_UNSTART:
-				clause = clause.Where("started_time<?", time.Now().Unix())
+				orClause = orClause.Or("started_time<?", time.Now().Unix())
 			case enums.ACTIVITY_STATUS_ONGOING:
-				clause = clause.Where("started_time>=? && ended_time<?", time.Now().Unix(), time.Now().Unix()).
-					Joins("left join (select activity_code,count(*) as minted_count from poap_results group by activity_code) as results on activities.activity_code=results.activity_code").
-					Where("results.minted_count<activities.max_mint_count")
-
+				orClause = orClause.Or(db.Where("results.minted_count<activities.max_mint_count").Or("started_time>=? && ended_time<?", time.Now().Unix(), time.Now().Unix()))
 			case enums.ACTIVITY_SINGLE_END:
-				clause = clause.
-					Joins("left join (select activity_code,count(*) as minted_count from poap_results group by activity_code) as results on activities.activity_code=results.activity_code").
-					Where(db.Where("results.minted_count>=activities.max_mint_count").Or("activities.ended_time>?", time.Now().Unix()))
+				orClause = orClause.Or(db.Where("results.minted_count>=activities.max_mint_count").Or("activities.ended_time>?", time.Now().Unix()))
 			}
 		}
+
+		clause = joinCluase.Where(orClause)
 	}
 
 	// _cond.ContractAddress 如果不为空，查找Contract, 拿到 contract_raw_id
