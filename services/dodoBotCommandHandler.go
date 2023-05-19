@@ -85,6 +85,11 @@ func (d *DodoBotCommander) ExcuteCommand(msgSource ChannelMsgSource, command str
 		}
 	}()
 
+	b, _ := models.FindBotServerByChannel(msgSource.channelId)
+	if b == nil {
+		return nil
+	}
+
 	methodAndArgs := strings.Split(command, "/")
 	if len(methodAndArgs) == 1 {
 		return nil
@@ -139,8 +144,12 @@ func (d *DodoBotCommander) Mint(msgSource ChannelMsgSource, pushInfoIdStr string
 		if err != nil {
 			return ERR_BUSINESS_ACTIVITY_NOT_EXIST
 		}
-		activity := pushInfo.Activity
 
+		if pushInfo.ChannelId != msgSource.channelId {
+			return ERR_BUSINESS_ACTIVITY_NOT_EXIST
+		}
+
+		activity := pushInfo.Activity
 		if activity.Contract == nil {
 			return ERR_BUSNISS_ACTIVITY_CONFIG_WRONG
 		}
@@ -286,7 +295,8 @@ func (d *DodoBotCommander) GetVerbalSecret(msgSource ChannelMsgSource, pushInfoI
 	if _, err := d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, msg); err != nil {
 		return err
 	}
-	_, err = d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, CrSeeOnDirectMessage, msgSource.messageId)
+	msg = GenCommandResponse(CrSeeOnDirectMessage, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
+	_, err = d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
 	return err
 }
 
