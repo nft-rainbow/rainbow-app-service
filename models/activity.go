@@ -229,8 +229,8 @@ func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*Acti
 	}
 
 	// 未开始 starttime>now
-	// 进行中 (starttime<now || starttime==-1) && (endtime>now || endtime==-1) && (results.count<max_mint_count || max_mint_count==-1)
-	// 已结束 (endtime<now && endedtime!=-1) || (results.count>=max_mint_count && max_mint_count!=-1)
+	// 进行中 (starttime<now || starttime==-1) && (endtime>now || endtime==-1) && (results.count<max_mint_count || results.count is null || max_mint_count==-1)
+	// 已结束 (endtime<now && endedtime!=-1) || (results.count>=max_mint_count && results.count is not null && max_mint_count!=-1)
 	if len(_cond.ActivityStatus) > 0 {
 		orClause := db
 		now := time.Now().Unix()
@@ -240,12 +240,12 @@ func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*Acti
 				orClause = orClause.Or(db.Where("started_time > ?", now))
 			case enums.ACTIVITY_STATUS_ONGOING:
 				orClause = orClause.Or(db.
-					Where(db.Where("results.minted_count < activities.max_mint_count").Or("activities.max_mint_count = -1")).
+					Where(db.Where("results.minted_count < activities.max_mint_count").Or("results.minted_count is null").Or("activities.max_mint_count = -1")).
 					Where("started_time <? or started_time=-1", now).
 					Where("ended_time >? or ended_time=-1", now))
 			case enums.ACTIVITY_SINGLE_END:
 				orClause = orClause.Or(db.
-					Or(db.Where("results.minted_count>=activities.max_mint_count").Where("activities.max_mint_count!=-1")).
+					Or(db.Where("results.minted_count>=activities.max_mint_count").Where("results.minted_count is not null").Where("activities.max_mint_count!=-1")).
 					Or(db.Where("activities.ended_time<? ", now).Where("ended_time!=-1")))
 			}
 		}
