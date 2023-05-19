@@ -226,6 +226,10 @@ func (d *BotServerService) Push(userId uint, channelId string, pushInfoId uint) 
 		return err
 	}
 
+	if channelId == "" {
+		channelId = pushInfo.ChannelId
+	}
+
 	// startTime, err := time.ParseDuration(fmt.Sprintf("%ds", pushInfo.Activity.StartedTime))
 	if err := d.mustGetBot(botServer.SocialTool).Push(
 		channelId,

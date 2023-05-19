@@ -1,8 +1,6 @@
 package routers
 
 import (
-	"errors"
-
 	"github.com/gin-gonic/gin"
 	"github.com/mcuadros/go-defaults"
 	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
@@ -185,11 +183,6 @@ func (b *BotServerController) Push(c *gin.Context) {
 	}
 
 	channelId := c.Query("channel")
-	if channelId == "" {
-		ginutils.RenderRespError(c, errors.New("miss channel"), appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-
 	userId := GetIdFromJwtClaim(c)
 	err := b.botService.Push(userId, channelId, uriParams.Id)
 	ginutils.RenderResp(c, ginutils.CommonSuccessMessage, err)
