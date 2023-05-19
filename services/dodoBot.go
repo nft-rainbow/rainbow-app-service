@@ -201,6 +201,8 @@ func (d *DodoBot) Push(channelId string, pushData PushData) error {
 
 	if pushData.StartTime.Before(time.Now()) {
 		message.Card.Components = append(message.Card.Components[:2], message.Card.Components[3:]...)
+	} else {
+		message.Card.Components = append(message.Card.Components[:4], message.Card.Components[5:]...)
 	}
 
 	_, err = d.instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{

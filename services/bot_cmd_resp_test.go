@@ -50,6 +50,8 @@ func TestCrPushJsonTemplate(t *testing.T) {
 
 	if pushData.StartTime.Before(time.Now()) {
 		message.Card.Components = append(message.Card.Components[:2], message.Card.Components[3:]...)
+	} else {
+		message.Card.Components = append(message.Card.Components[:4], message.Card.Components[5:]...)
 	}
 
 	j, _ := json.Marshal(message)
