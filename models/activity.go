@@ -46,11 +46,11 @@ type (
 
 	ActivityFindCondition struct {
 		Pagination
-		Name               string  `form:"name"`
-		ActivityId         string  `form:"activity_id"`
-		ContractAddress    *string `form:"contract_address"`
-		ContainsNoContract bool    `form:"contains_no_contract"`
-		ActivityStatus     string  `form:""`
+		Name              string                 `form:"name"`
+		ActivityId        string                 `form:"activity_id"`
+		ContractAddress   *string                `form:"contract_address"`
+		ExcludeNoContract bool                   `form:"exclude_no_contract"`
+		ActivityStatus    []enums.ActivityStatus `form:"activity_status"`
 	}
 )
 
@@ -222,7 +222,29 @@ func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*Acti
 	cond.Name = _cond.Name
 	cond.ActivityCode = _cond.ActivityId
 
-	clause := db.Model(&Activity{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond)
+	clause := db.Debug().Model(&Activity{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond)
+
+	if _cond.ExcludeNoContract {
+		clause = clause.Where("contract_raw_id is not null")
+	}
+
+	if len(_cond.ActivityStatus) > 0 {
+		for _, item := range _cond.ActivityStatus {
+			switch item {
+			case enums.ACTIVITY_STATUS_UNSTART:
+				clause = clause.Where("started_time<?", time.Now().Unix())
+			case enums.ACTIVITY_STATUS_ONGOING:
+				clause = clause.Where("started_time>=? && ended_time<?", time.Now().Unix(), time.Now().Unix()).
+					Joins("left join (select activity_code,count(*) as minted_count from poap_results group by activity_code) as results on activities.activity_code=results.activity_code").
+					Where("results.minted_count<activities.max_mint_count")
+
+			case enums.ACTIVITY_SINGLE_END:
+				clause = clause.
+					Joins("left join (select activity_code,count(*) as minted_count from poap_results group by activity_code) as results on activities.activity_code=results.activity_code").
+					Where(db.Where("results.minted_count>=activities.max_mint_count").Or("activities.ended_time>?", time.Now().Unix()))
+			}
+		}
+	}
 
 	// _cond.ContractAddress 如果不为空，查找Contract, 拿到 contract_raw_id
 	if _cond.ContractAddress != nil {
