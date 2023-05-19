@@ -13,6 +13,7 @@ import (
 	"github.com/dodo-open/dodo-open-go/websocket"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -87,23 +88,37 @@ func (d *DodoBot) CreateChannel(ctx context.Context, serverId string, channelNam
 	return resp.ChannelId, nil
 }
 
-func (d *DodoBot) SendChannelMessage(ctx context.Context, channedId string, msg string, referMsgId ...string) error {
+func (d *DodoBot) SendChannelMessage(ctx context.Context, channedId string, msg string, referMsgId ...string) (string, error) {
 	if len(referMsgId) == 0 {
 		referMsgId = append(referMsgId, "")
 	}
-	_, err := d.instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
+	resp, err := d.instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
 		ChannelId:           channedId,
 		MessageBody:         &model.TextMessage{Content: msg},
 		ReferencedMessageId: referMsgId[0],
 	})
-	return err
+	if err != nil {
+		return "", err
+	}
+	return resp.MessageId, nil
 }
 
-func (d *DodoBot) SendDirectMessage(ctx context.Context, serverId string, userId string, msg string) error {
-	_, err := d.instance.SendDirectMessage(ctx, &model.SendDirectMessageReq{
+func (d *DodoBot) SendDirectMessage(ctx context.Context, serverId string, userId string, msg string) (string, error) {
+	resp, err := d.instance.SendDirectMessage(ctx, &model.SendDirectMessageReq{
 		IslandSourceId: serverId,
 		DodoSourceId:   userId,
 		MessageBody:    &model.TextMessage{Content: msg},
+	})
+	if err != nil {
+		return "", err
+	}
+	return resp.MessageId, nil
+}
+
+func (d *DodoBot) SetChannelMessageTop(ctx context.Context, messageId string, setTop bool) error {
+	_, err := d.instance.SetChannelMessageTop(ctx, &model.SetChannelMessageTopReq{
+		MessageId:   messageId,
+		OperateType: utils.Bool2Int(setTop),
 	})
 	return err
 }

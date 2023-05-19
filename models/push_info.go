@@ -67,7 +67,7 @@ func FindPushInfo(cond PushInfo) (*PushInfo, error) {
 
 func FindPushInfos(cond PushInfo) ([]*PushInfo, error) {
 	var result []*PushInfo
-	if err := GetDB().Where(&cond).Find(&result).Error; err != nil {
+	if err := GetDB().Debug().Where(&cond).Find(&result).Error; err != nil {
 		return nil, err
 	}
 

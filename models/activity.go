@@ -46,9 +46,11 @@ type (
 
 	ActivityFindCondition struct {
 		Pagination
-		Name            string  `form:"name"`
-		ActivityId      string  `form:"activity_id"`
-		ContractAddress *string `form:"contract_address"`
+		Name               string  `form:"name"`
+		ActivityId         string  `form:"activity_id"`
+		ContractAddress    *string `form:"contract_address"`
+		ContainsNoContract bool    `form:"contains_no_contract"`
+		ActivityStatus     string  `form:""`
 	}
 )
 

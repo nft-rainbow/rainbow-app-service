@@ -28,7 +28,7 @@ type BotServer struct {
 	ServerName               string               `gorm:"type:varchar(255)" json:"server_name"`
 	OwnerSocialId            string               `gorm:"type:varchar(255)" json:"owner_social_id" binding:"required"`
 	PushInfos                []*PushInfo          `gorm:"-" json:"push_infos"`
-	DefaultActivityChannelId string               `gorm:"type:varchar(255)" json:"default_push_channel_id"`
+	DefaultActivityChannelId string               `gorm:"type:varchar(255)" json:"default_activity_channel_id"`
 }
 
 type (

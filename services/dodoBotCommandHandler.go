@@ -96,7 +96,8 @@ func (d *DodoBotCommander) ExcuteCommand(msgSource ChannelMsgSource, command str
 
 	if d.router[method] == nil {
 		msg := GenCommandResponse(CrCommandUnSupport, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
-		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+		_, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+		return err
 	}
 
 	err := d.router[method](&CommandRequest{
@@ -106,7 +107,8 @@ func (d *DodoBotCommander) ExcuteCommand(msgSource ChannelMsgSource, command str
 	if err != nil {
 		logrus.WithField("method", method).WithField("args", args).WithField("error stack", fmt.Sprintf("%+v", errors.WithStack(err))).Info("failed run command")
 		msg := GenCommandResponse(CrErrUnknown, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
-		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+		_, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+		return err
 	}
 	return nil
 }
@@ -115,7 +117,8 @@ func (d *DodoBotCommander) Mint(msgSource ChannelMsgSource, pushInfoIdStr string
 	pushInfoIdInt, err := strconv.Atoi(pushInfoIdStr)
 	if err != nil {
 		errResp := GenCommandErrResponse(ERR_BUSINESS_ACTIVITY_NOT_EXIST, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
-		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+		_, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+		return err
 	}
 	pushInfoId := uint(pushInfoIdInt)
 
@@ -143,7 +146,7 @@ func (d *DodoBotCommander) Mint(msgSource ChannelMsgSource, pushInfoIdStr string
 		}
 
 		msg := GenCommandResponse(CrReadyMint, cmdRespData)
-		if err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId); err != nil {
+		if _, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId); err != nil {
 			return err
 		}
 
@@ -169,13 +172,15 @@ func (d *DodoBotCommander) Mint(msgSource ChannelMsgSource, pushInfoIdStr string
 			}
 
 			msg := GenCommandResponse(CrMintSuccess, cmdRespData)
-			return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+			_, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+			return err
 		}
 	}()
 
 	if err != nil {
 		errResp := GenCommandErrResponse(err, cmdRespData)
-		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+		_, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+		return err
 	}
 	return nil
 }
@@ -187,7 +192,8 @@ func (d *DodoBotCommander) Bind(msgSource ChannelMsgSource, userAddress string) 
 			err = ERR_BIND_ADDRESS_OTHER
 		}
 		errResp := GenCommandErrResponse(err, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
-		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+		_, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+		return err
 	}
 
 	cmdRespData := CmdRespData{
@@ -196,7 +202,8 @@ func (d *DodoBotCommander) Bind(msgSource ChannelMsgSource, userAddress string) 
 		DodoSourceId:   msgSource.userDodoSourceId,
 	}
 	msg := GenCommandResponse(CrBindSuccess, cmdRespData)
-	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+	_, err = d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+	return err
 }
 
 func (d *DodoBotCommander) GetAddress(msgSource ChannelMsgSource) error {
@@ -207,22 +214,25 @@ func (d *DodoBotCommander) GetAddress(msgSource ChannelMsgSource) error {
 	mainAddr, testAddr, err := GetBindAddress(msgSource.userDodoSourceId, enums.SOCIAL_TOOL_DODO)
 	if err != nil {
 		errResp := GenCommandErrResponse(err, cmdRespData)
-		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+		_, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+		return err
 	}
 
 	cmdRespData.MainnetAddress = mainAddr
 	cmdRespData.TestnetAddress = testAddr
 	msg := GenCommandResponse(CrShowAddress, cmdRespData)
-	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+	_, err = d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+	return err
 }
 
 func (d *DodoBotCommander) GetTutorial(msgSource ChannelMsgSource) error {
-	return d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, guide)
+	_, err := d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, guide)
+	return err
 }
 
 func (d *DodoBotCommander) GetAllCommands(msgSource ChannelMsgSource, language string) error {
 	msg := GenCommandResponse(CrSeeOnDirectMessage, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
-	if err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId); err != nil {
+	if _, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId); err != nil {
 		return err
 	}
 
@@ -231,19 +241,22 @@ func (d *DodoBotCommander) GetAllCommands(msgSource ChannelMsgSource, language s
 		_allCommand = CrAllCommandsEn
 	}
 
-	return d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, _allCommand)
+	_, err := d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, _allCommand)
+	return err
 }
 
 func (d *DodoBotCommander) CreateAccount(msgSource ChannelMsgSource) error {
 	msg := GenCommandResponse(CrShowCreateAddressDoc, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
-	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+	_, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+	return err
 }
 
 func (d *DodoBotCommander) GetVerbalSecret(msgSource ChannelMsgSource, pushInfoIdStr string) error {
 	pushInfoIdInt, err := strconv.Atoi(pushInfoIdStr)
 	if err != nil {
 		errResp := GenCommandErrResponse(ERR_BUSINESS_ACTIVITY_NOT_EXIST, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
-		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+		_, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errResp, msgSource.messageId)
+		return err
 	}
 	pushInfoId := uint(pushInfoIdInt)
 
@@ -253,7 +266,8 @@ func (d *DodoBotCommander) GetVerbalSecret(msgSource ChannelMsgSource, pushInfoI
 			err = ERR_BUSINESS_ACTIVITY_NOT_EXIST
 		}
 		errMsg := GenCommandErrResponse(err, CmdRespData{DodoSourceId: msgSource.userDodoSourceId})
-		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errMsg, msgSource.messageId)
+		_, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, errMsg, msgSource.messageId)
+		return err
 	}
 
 	activity := pushInfo.Activity
@@ -264,14 +278,16 @@ func (d *DodoBotCommander) GetVerbalSecret(msgSource ChannelMsgSource, pushInfoI
 
 	if activity.Command == "" {
 		msg := GenCommandResponse(CrnotNeedVisperSecret, cmdRespData)
-		return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+		_, err := d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, msg, msgSource.messageId)
+		return err
 	}
 
 	msg := GenCommandResponse(CrShowVisperSecret, cmdRespData)
-	if err := d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, msg); err != nil {
+	if _, err := d.dodoBot.SendDirectMessage(context.Background(), msgSource.serverId, msgSource.userDodoSourceId, msg); err != nil {
 		return err
 	}
-	return d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, CrSeeOnDirectMessage, msgSource.messageId)
+	_, err = d.dodoBot.SendChannelMessage(context.Background(), msgSource.channelId, CrSeeOnDirectMessage, msgSource.messageId)
+	return err
 }
 
 func customNotFoundError(err error, msgOfNotFound string) error {

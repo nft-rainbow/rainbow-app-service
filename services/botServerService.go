@@ -12,6 +12,9 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils/rand"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
+	utils "github.com/nft-rainbow/rainbow-app-service/utils"
 	"gorm.io/gorm"
 )
 
@@ -84,8 +87,8 @@ func (d *BotServerService) GetAuthcode(socialTool enums.SocialToolType, serverId
 		return err
 	}
 
-	msg := fmt.Sprintf("You are setting Rainbow-Bot, your Rainbow auth code is %v, please fill back to Rainbow to complete authentication.", v)
-	if err := bot.SendDirectMessage(context.Background(), serverId, serverInfo.OwnerId, msg); err != nil {
+	msg := fmt.Sprintf("您的授权码是 %v, 有效期5分钟。请前往NFTRainbow管理后台-「添加机器人」填写此授权码, 完成NFTRainbow机器人配置。", v)
+	if _, err := bot.SendDirectMessage(context.Background(), serverId, serverInfo.OwnerId, msg); err != nil {
 		return err
 	}
 
@@ -126,6 +129,22 @@ func (d *BotServerService) InsertBotServer(userId uint, req InsertBotServerReq) 
 		return nil, errors.Wrap(err, "failed to create rainbow channel")
 	}
 
+	var msgId string
+	if err = utils.Retry(3, time.Millisecond*100, func() error {
+		msgId, err = bot.SendChannelMessage(context.Background(), channelId, CrAllCommandsZh)
+		return err
+	}); err != nil {
+		logrus.WithError(err).Info("failed to send help message to channel")
+	}
+
+	if msgId != "" {
+		if err = utils.Retry(3, time.Millisecond*100, func() error {
+			return bot.SetChannelMessageTop(context.Background(), msgId, true)
+		}); err != nil {
+			logrus.WithField("message id", msgId).WithError(err).Info("failed to set message to top")
+		}
+	}
+
 	var p models.BotServer
 	p.RainbowUserId = userId
 	p.OutdatedServerId = req.OutdatedServerId
@@ -163,6 +182,10 @@ func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq P
 		return nil, err
 	}
 
+	if pushInfoReq.ChannelId == "" {
+		pushInfoReq.ChannelId = botServer.DefaultActivityChannelId
+	}
+
 	exists, err := models.IsPushInfoExists(pushInfoReq.ActivityID, pushInfoReq.ChannelId)
 	if err != nil {
 		return nil, err
@@ -180,9 +203,6 @@ func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq P
 	pushInfo, err := pushInfoReq.ToModel(false)
 	if err != nil {
 		return nil, err
-	}
-	if pushInfo.ChannelId == "" {
-		pushInfo.ChannelId = botServer.DefaultActivityChannelId
 	}
 	pushInfo.BotServerID = botServer.ID
 	pushInfo.Activity = &activity

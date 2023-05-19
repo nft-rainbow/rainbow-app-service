@@ -19,7 +19,7 @@ const (
 	CrShowAddress          = "<@!{{.DodoSourceId}}> 您绑定的地址为: \n主网: \t{{.MainnetAddress}}\n测试网: \t{{.TestnetAddress}}"
 	CrSeeOnDirectMessage   = "<@!{{.DodoSourceId}}> 请查看RainbowBot的私信"
 
-	CrAllCommandsZh = "指令集:\n" +
+	CrAllCommandsZh = "频道指令集:\n" +
 		"1./帮助——查询指令集\n" +
 		"2./铸造/ID——铸造社区活动NFT「例如: /铸造/1234」\n" +
 		"3./查口令/ID——查询社区活动口令「例如: /查口令/1234」\n" +
