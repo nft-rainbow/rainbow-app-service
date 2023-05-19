@@ -6,11 +6,13 @@ import (
 	_ "image/gif"
 	_ "image/png"
 	"math/big"
+	"runtime/debug"
 	"strings"
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -113,7 +115,26 @@ func TomorrowBegin() time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
 
-func ChangAnDaoMetadataUriFromId(id uint64) string {
-	metadataUri := fmt.Sprintf("https://nftrainbow.oss-cn-hangzhou.aliyuncs.com/events/ChangAnDaoMetadata/%d.json", id)
-	return metadataUri
+func Retry(count int, interval time.Duration, fn func() error) error {
+	for i := 0; i < count; i++ {
+		err := fn()
+		if err != nil {
+			logrus.WithError(err).WithField("stack", string(debug.Stack())).WithField("retry cnt", i).Info("retry function error")
+			if i == count-1 {
+				return err
+			} else {
+				time.Sleep(interval)
+				continue
+			}
+		}
+		return nil
+	}
+	return nil
+}
+
+func Bool2Int(val bool) int {
+	if val {
+		return 1
+	}
+	return 0
 }

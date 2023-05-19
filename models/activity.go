@@ -2,11 +2,13 @@ package models
 
 import (
 	"encoding/json"
-	"errors"
+
 	"time"
 
 	"github.com/mcuadros/go-defaults"
+	. "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"github.com/pkg/errors"
 	"gorm.io/datatypes"
 )
 
@@ -44,9 +46,11 @@ type (
 
 	ActivityFindCondition struct {
 		Pagination
-		Name            string  `form:"name"`
-		ActivityId      string  `form:"activity_id"`
-		ContractAddress *string `form:"contract_address"`
+		Name              string                 `form:"name"`
+		ActivityId        string                 `form:"activity_id"`
+		ContractAddress   *string                `form:"contract_address"`
+		ExcludeNoContract bool                   `form:"exclude_no_contract"`
+		ActivityStatus    []enums.ActivityStatus `form:"activity_status"`
 	}
 )
 
@@ -132,7 +136,7 @@ func (a *Activity) IsContractBinded() bool {
 // check if mintable by user
 func (a *Activity) VerifyMintable() error {
 	if !a.IsContractBinded() {
-		return errors.New("not bind contract")
+		return errors.Wrap(ERR_BUSNISS_ACTIVITY_CONFIG_WRONG, "not bind contract")
 	}
 	// FIXME: 设置了地址白名单后，只能空投，不能页面领; v2会变更逻辑
 	if len(a.WhiteListInfos) != 0 {
@@ -140,18 +144,15 @@ func (a *Activity) VerifyMintable() error {
 	}
 
 	if a.StartedTime != -1 && time.Now().Unix() < a.StartedTime {
-		return errors.New("the activity has not been started")
+		return ERR_BUSINESS_TIME_EARLY
 	}
 
 	if a.EndedTime != -1 && time.Now().Unix() > a.EndedTime {
-		return errors.New("the activity has been expired")
+		return ERR_BUSINESS_TIME_EXPIRED
 	}
 
-	switch a.ActivityType {
-	case enums.ACTIVITY_BLINDBOX:
-		if len(a.NFTConfigs) == 0 {
-			return errors.New("missing nft configs for blind box activity")
-		}
+	if len(a.NFTConfigs) == 0 {
+		return errors.Wrap(ERR_BUSNISS_ACTIVITY_CONFIG_WRONG, "missing nft config")
 	}
 
 	if a.Amount != -1 {
@@ -160,7 +161,7 @@ func (a *Activity) VerifyMintable() error {
 			return err
 		}
 		if int32(resp) >= a.Amount {
-			return errors.New("the mint amount has exceeded the limit")
+			return ERR_BUSINESS_ACTIVITY_MAX_AMOUNT_ARRIVED
 		}
 	}
 
@@ -221,7 +222,38 @@ func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*Acti
 	cond.Name = _cond.Name
 	cond.ActivityCode = _cond.ActivityId
 
-	clause := db.Model(&Activity{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond)
+	clause := db.Debug().Model(&Activity{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond)
+
+	if _cond.ExcludeNoContract {
+		clause = clause.Where("contract_raw_id is not null")
+	}
+
+	// 未开始 starttime>now
+	// 进行中 (starttime<now || starttime==-1) && (endtime>now || endtime==-1) && (results.count<max_mint_count || results.count is null || max_mint_count==-1)
+	// 已结束 (endtime<now && endedtime!=-1) || (results.count>=max_mint_count && results.count is not null && max_mint_count!=-1)
+	if len(_cond.ActivityStatus) > 0 {
+		orClause := db
+		now := time.Now().Unix()
+		for _, item := range _cond.ActivityStatus {
+			switch item {
+			case enums.ACTIVITY_STATUS_UNSTART:
+				orClause = orClause.Or(db.Where("started_time > ?", now))
+			case enums.ACTIVITY_STATUS_ONGOING:
+				orClause = orClause.Or(db.
+					Where(db.Where("results.minted_count < activities.max_mint_count").Or("results.minted_count is null").Or("activities.max_mint_count = -1")).
+					Where("started_time <? or started_time=-1", now).
+					Where("ended_time >? or ended_time=-1", now))
+			case enums.ACTIVITY_SINGLE_END:
+				orClause = orClause.Or(db.
+					Or(db.Where("results.minted_count>=activities.max_mint_count").Where("results.minted_count is not null").Where("activities.max_mint_count!=-1")).
+					Or(db.Where("activities.ended_time<? ", now).Where("ended_time!=-1")))
+			}
+		}
+
+		clause = clause.
+			Joins("left join (select activity_code,count(*) as minted_count from poap_results where status!=2 group by activity_code) as results on activities.activity_code=results.activity_code").
+			Where(orClause)
+	}
 
 	// _cond.ContractAddress 如果不为空，查找Contract, 拿到 contract_raw_id
 	if _cond.ContractAddress != nil {
