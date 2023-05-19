@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/spf13/viper"
@@ -11,14 +12,16 @@ import (
 
 type (
 	Bot interface {
-		SendChannelMessage(ctx context.Context, channedId string, msg string, referMsgId ...string) error
-		SendDirectMessage(ctx context.Context, serverId string, userId string, msg string) error
+		CreateChannel(ctx context.Context, serverId string, channelName string, channelType int) (string, error)
+		SendChannelMessage(ctx context.Context, channedId string, msg string, referMsgId ...string) (string, error)
+		SendDirectMessage(ctx context.Context, serverId string, userId string, msg string) (string, error)
+		SetChannelMessageTop(ctx context.Context, messageId string, setTop bool) error
 		GetSeverInfo(ctx context.Context, serverId string) (*SeverInfo, error)
 		GetSocialToolType() enums.SocialToolType
 		GetChannels(serverId string) ([]*Channel, error)
 		GetRoles(serverId string) ([]*Role, error)
 		GetInviteUrl() string
-		Push(channelId string, roles []string, name, activityId, content, color string) error
+		Push(channelId string, pushData PushData) error
 	}
 
 	BotCommander interface {
@@ -48,6 +51,17 @@ type (
 		channelId        string
 		userDodoSourceId string
 		messageId        string
+	}
+
+	PushData struct {
+		Roles         []string
+		Content       string
+		PushInfoID    uint
+		ActivityName  string
+		StartTime     time.Time
+		EndTime       time.Time
+		ActivityImage string
+		ClaimLink     string
 	}
 )
 

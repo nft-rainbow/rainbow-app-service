@@ -12,6 +12,9 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils/rand"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
+	utils "github.com/nft-rainbow/rainbow-app-service/utils"
 	"gorm.io/gorm"
 )
 
@@ -21,9 +24,10 @@ type (
 		SocialToolQueryReq
 	}
 	InsertBotServerReq struct {
-		SocialTool string `json:"social_tool" binding:"required,oneof=dodo discord"`
-		ServerId   string `json:"server_id" binding:"required"`
-		AuthCode   string `json:"auth_code" binding:"required"`
+		SocialTool       string `json:"social_tool" binding:"required,oneof=dodo discord"`
+		ServerId         string `json:"server_id" binding:"required"`
+		OutdatedServerId string `json:"outdated_server_id"`
+		AuthCode         string `json:"auth_code" binding:"required"`
 	}
 	GetBotServersReq struct {
 		SocialToolQueryReq
@@ -83,8 +87,8 @@ func (d *BotServerService) GetAuthcode(socialTool enums.SocialToolType, serverId
 		return err
 	}
 
-	msg := fmt.Sprintf("You are setting Rainbow-Bot, your Rainbow auth code is %v, please fill back to Rainbow to complete authentication.", v)
-	if err := bot.SendDirectMessage(context.Background(), serverId, serverInfo.OwnerId, msg); err != nil {
+	msg := fmt.Sprintf("您的授权码是 %v, 有效期5分钟。请前往NFTRainbow管理后台-「添加机器人」填写此授权码, 完成NFTRainbow机器人配置。", v)
+	if _, err := bot.SendDirectMessage(context.Background(), serverId, serverInfo.OwnerId, msg); err != nil {
 		return err
 	}
 
@@ -112,17 +116,43 @@ func (d *BotServerService) InsertBotServer(userId uint, req InsertBotServerReq) 
 	}
 
 	// get user social id
+	bot := d.mustGetBot(*socialTool)
 	serverInfo, err := d.mustGetBot(*socialTool).GetSeverInfo(context.Background(), req.ServerId)
 	if err != nil {
 		return nil, err
 	}
 
+	// create channel
+	// 自动创建一个文字频道，该频道作为指令交互频道。频道名称：NFT领取通道，频道图片使用NFTRainbow logo；
+	channelId, err := bot.CreateChannel(context.Background(), req.ServerId, "NFT领取通道", 1)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create rainbow channel")
+	}
+
+	var msgId string
+	if err = utils.Retry(3, time.Millisecond*100, func() error {
+		msgId, err = bot.SendChannelMessage(context.Background(), channelId, CrAllCommandsZh)
+		return err
+	}); err != nil {
+		logrus.WithError(err).Info("failed to send help message to channel")
+	}
+
+	if msgId != "" {
+		if err = utils.Retry(3, time.Millisecond*100, func() error {
+			return bot.SetChannelMessageTop(context.Background(), msgId, true)
+		}); err != nil {
+			logrus.WithField("message id", msgId).WithError(err).Info("failed to set message to top")
+		}
+	}
+
 	var p models.BotServer
 	p.RainbowUserId = userId
+	p.OutdatedServerId = req.OutdatedServerId
 	p.SocialTool = *socialTool
 	p.RawServerId = req.ServerId
 	p.ServerName = serverInfo.Name
 	p.OwnerSocialId = serverInfo.OwnerId
+	p.DefaultActivityChannelId = channelId
 
 	if err := models.GetDB().Save(&p).Error; err != nil {
 		return nil, err
@@ -150,6 +180,10 @@ func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq P
 	botServer, err := VerifyServerBelongsToUser(userId, serverId)
 	if err != nil {
 		return nil, err
+	}
+
+	if pushInfoReq.ChannelId == "" {
+		pushInfoReq.ChannelId = botServer.DefaultActivityChannelId
 	}
 
 	exists, err := models.IsPushInfoExists(pushInfoReq.ActivityID, pushInfoReq.ChannelId)
@@ -180,7 +214,7 @@ func (d *BotServerService) AddPushInfo(userId uint, serverId uint, pushInfoReq P
 }
 
 // send message to channel
-func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
+func (d *BotServerService) Push(userId uint, channelId string, pushInfoId uint) error {
 	pushInfo, err := models.FindPushInfoById(pushInfoId)
 	if err != nil {
 		return err
@@ -192,13 +226,24 @@ func (d *BotServerService) Push(userId uint, pushInfoId uint) error {
 		return err
 	}
 
+	if channelId == "" {
+		channelId = pushInfo.ChannelId
+	}
+
+	// startTime, err := time.ParseDuration(fmt.Sprintf("%ds", pushInfo.Activity.StartedTime))
 	if err := d.mustGetBot(botServer.SocialTool).Push(
-		pushInfo.ChannelId,
-		strings.Split(pushInfo.Roles, ","),
-		pushInfo.Activity.AppName,
-		pushInfo.Activity.ActivityCode,
-		pushInfo.Content,
-		pushInfo.ColorTheme); err != nil {
+		channelId,
+		PushData{
+			Roles:         strings.Split(pushInfo.Roles, ","),
+			Content:       pushInfo.Content,
+			PushInfoID:    pushInfoId,
+			ActivityName:  pushInfo.Activity.Name,
+			StartTime:     time.Unix(pushInfo.Activity.StartedTime, 0),
+			EndTime:       time.Unix(pushInfo.Activity.EndedTime, 0),
+			ActivityImage: pushInfo.Activity.ActivityPictureURL,
+			ClaimLink:     fmt.Sprintf("https://imdodo.com/i?gNo=%s&c=%s", botServer.OutdatedServerId, pushInfo.ChannelId),
+		},
+	); err != nil {
 		return err
 	}
 

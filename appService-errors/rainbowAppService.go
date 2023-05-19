@@ -11,6 +11,7 @@ type RainbowAppServiceError int
 type RainbowAppServiceErrorInfo struct {
 	Message        string
 	HttpStatusCode int
+	zh             string
 }
 
 type RainbowAppServiceErrorDetailInfo struct {
@@ -26,6 +27,14 @@ func (r RainbowAppServiceError) HttpStatusCode() int {
 
 func (r RainbowAppServiceError) Error() string {
 	return RainbowAppServiceErrorInfos[r].Message
+}
+
+func (r RainbowAppServiceError) GetDescribe(lan string) string {
+	info := RainbowAppServiceErrorInfos[r]
+	if lan == "zh" && info.zh != "" {
+		return info.zh
+	}
+	return info.Message
 }
 
 func (r RainbowAppServiceError) RenderJSON(c *gin.Context) {

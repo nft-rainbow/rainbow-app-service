@@ -13,6 +13,7 @@ import (
 	"github.com/dodo-open/dodo-open-go/websocket"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -75,23 +76,49 @@ func (d *DodoBot) GetSocialToolType() enums.SocialToolType {
 	return enums.SOCIAL_TOOL_DODO
 }
 
-func (d *DodoBot) SendChannelMessage(ctx context.Context, channedId string, msg string, referMsgId ...string) error {
+func (d *DodoBot) CreateChannel(ctx context.Context, serverId string, channelName string, channelType int) (string, error) {
+	resp, err := d.instance.CreateChannel(ctx, &model.CreateChannelReq{
+		IslandSourceId: serverId,
+		ChannelName:    channelName,
+		ChannelType:    model.ChannelType(channelType),
+	})
+	if err != nil {
+		return "", err
+	}
+	return resp.ChannelId, nil
+}
+
+func (d *DodoBot) SendChannelMessage(ctx context.Context, channedId string, msg string, referMsgId ...string) (string, error) {
 	if len(referMsgId) == 0 {
 		referMsgId = append(referMsgId, "")
 	}
-	_, err := d.instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
+	resp, err := d.instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{
 		ChannelId:           channedId,
 		MessageBody:         &model.TextMessage{Content: msg},
 		ReferencedMessageId: referMsgId[0],
 	})
-	return err
+	if err != nil {
+		return "", err
+	}
+	return resp.MessageId, nil
 }
 
-func (d *DodoBot) SendDirectMessage(ctx context.Context, serverId string, userId string, msg string) error {
-	_, err := d.instance.SendDirectMessage(ctx, &model.SendDirectMessageReq{
+func (d *DodoBot) SendDirectMessage(ctx context.Context, serverId string, userId string, msg string) (string, error) {
+	resp, err := d.instance.SendDirectMessage(ctx, &model.SendDirectMessageReq{
 		IslandSourceId: serverId,
 		DodoSourceId:   userId,
 		MessageBody:    &model.TextMessage{Content: msg},
+	})
+	if err != nil {
+		return "", err
+	}
+	return resp.MessageId, nil
+}
+
+func (d *DodoBot) SetChannelMessageTop(ctx context.Context, messageId string, setTop bool) error {
+	_, err := d.instance.SetChannelMessageTop(ctx, &model.SetChannelMessageTopReq{
+		MessageId:   messageId,
+		OperateType: utils.Bool2Int(setTop),
 	})
 	return err
 }
@@ -128,25 +155,54 @@ func (d *DodoBot) GetChannels(serverId string) ([]*Channel, error) {
 	return channels, nil
 }
 
-func (d *DodoBot) Push(channelId string, roles []string, name, activityId, content, color string) error {
-	var message model.CardMessage
+func (d *DodoBot) Push(channelId string, pushData PushData) error {
 
 	_roles := ""
-	if len(roles) == 0 || roles[0] == "" {
+	if len(pushData.Roles) == 0 || pushData.Roles[0] == "" {
 		_roles = "<@all>"
 	} else {
-		_roles = "<@&" + strings.Join(roles, "><@&") + ">"
+		_roles = "<@&" + strings.Join(pushData.Roles, "><@&") + ">"
 	}
 
-	card := pushTemplate
-	card = strings.Replace(card, "{roles}", _roles, -1)
-	card = strings.Replace(card, "{name}", name, -1)
-	card = strings.Replace(card, "{activity}", activityId, -1)
-	card = strings.Replace(card, "{content}", content, -1)
-	card = strings.Replace(card, "{color}", color, -1)
-	err := json.Unmarshal([]byte(card), &message)
+	pushDataForTemplate := struct {
+		PushData
+		Roles               string
+		StartTime           string
+		EndTime             string
+		StartTimeInMillisec int64
+		CountdownStyle      string
+	}{
+		PushData:            pushData,
+		Roles:               _roles,
+		StartTime:           pushData.StartTime.Format("2006-01-02 15:04:05"),
+		EndTime:             pushData.EndTime.Format("2006-01-02 15:04:05"),
+		StartTimeInMillisec: pushData.StartTime.UnixMilli(),
+		// 小于1天也按day style倒计时
+		CountdownStyle: "day", //"hour",
+	}
+	if pushData.StartTime.Before(time.Unix(1, 0)) {
+		pushDataForTemplate.StartTime = "无"
+	}
+	if pushData.EndTime.Before(time.Unix(1, 0)) {
+		pushDataForTemplate.EndTime = "无"
+	}
+
+	countDown := time.Until(pushData.StartTime)
+	if countDown > time.Hour*24 {
+		pushDataForTemplate.CountdownStyle = "day"
+	}
+
+	pushMsgInJson := ExcuteTemplate(CrPushJsonTemplate, pushDataForTemplate)
+	var message model.CardMessage
+	err := json.Unmarshal([]byte(pushMsgInJson), &message)
 	if err != nil {
 		return err
+	}
+
+	if pushData.StartTime.Before(time.Now()) {
+		message.Card.Components = append(message.Card.Components[:2], message.Card.Components[3:]...)
+	} else {
+		message.Card.Components = append(message.Card.Components[:4], message.Card.Components[5:]...)
 	}
 
 	_, err = d.instance.SendChannelMessage(context.Background(), &model.SendChannelMessageReq{

@@ -182,8 +182,9 @@ func (b *BotServerController) Push(c *gin.Context) {
 		return
 	}
 
+	channelId := c.Query("channel")
 	userId := GetIdFromJwtClaim(c)
-	err := b.botService.Push(userId, uriParams.Id)
+	err := b.botService.Push(userId, channelId, uriParams.Id)
 	ginutils.RenderResp(c, ginutils.CommonSuccessMessage, err)
 }
 
