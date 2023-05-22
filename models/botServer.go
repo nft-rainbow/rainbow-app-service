@@ -184,13 +184,14 @@ func FindActivitiesOfUserBotServers(rainbowUserId uint, cond *FindBotServerActiv
 }
 
 func FindBotServerByChannel(channelId string) (*BotServer, error) {
+	// select * from bot_servers left join push_infos on bot_servers.id=push_infos.bot_server_id where push_infos.channel_id=1565461 or bot_servers.default_activity_channel_id=1565461
 	bs, err := DoAndCompleteBotServer(func() (*BotServer, error) {
 		var result *BotServer
-		var pi PushInfo
-		if err := db.Model(&PushInfo{}).Where("channel_id=?", channelId).First(&pi).Error; err != nil {
-			return nil, err
-		}
-		err := db.Model(&BotServer{}).Where("id=?", pi.BotServerID).First(&result).Error
+		err := db.Model(&BotServer{}).
+			Joins("left join push_infos on bot_servers.id=push_infos.bot_server_id").
+			Where("push_infos.channel_id=?", channelId).
+			Or("bot_servers.default_activity_channel_id=?", channelId).
+			First(&result).Error
 		return result, err
 	})
 	return bs, err
