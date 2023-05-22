@@ -14,6 +14,7 @@ import (
 	"time"
 
 	. "github.com/nft-rainbow/rainbow-app-service/appService-errors"
+	. "github.com/nft-rainbow/rainbow-app-service/config"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
@@ -32,11 +33,7 @@ var (
 )
 
 type MintReq struct {
-	ActivityID string `json:"activity_id" binding:"required"`
-	MintGaslessReq
-}
-
-type MintGaslessReq struct {
+	ActivityID  string `json:"activity_id" binding:"required"`
 	UserAddress string `json:"user_address" binding:"required"`
 	Command     string `json:"command"`
 }
@@ -72,7 +69,19 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId
 		ActivityPosterURL: posterUrl,
 	}
 
-	if activityReq.ContractRawID != nil {
+	if activityReq.ActivityType == enums.ACTIVITY_GASLESS {
+		gasLess := GetConfig().Activity.Gasless
+		contractRawId := gasLess.ContractRawID.Testnet
+		if activityReq.ChainOfGasless == enums.CHAIN_CONFLUX {
+			contractRawId = gasLess.ContractRawID.Mainnet
+		}
+		_contractRawId := int32(contractRawId)
+		activity.ContractRawID = &_contractRawId
+
+		if err := a.UpdateOrCreateContract(gasLess.UserID, gasLess.AppID, contractRawId); err != nil {
+			return nil, errors.WithStack(err)
+		}
+	} else if activityReq.ContractRawID != nil {
 		if err := a.UpdateOrCreateContract(userId, activityReq.AppId, uint(*activityReq.ContractRawID)); err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -299,7 +308,7 @@ func (a *ActivityService) H5Mint(req *MintReq) (*models.POAPResult, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	token, err := middlewares.GenerateRainbowOpenJWT(activity.RainbowUserId, activity.AppId)
+	token, err := getOpenApiToken(activity)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -595,6 +604,19 @@ func saveMintResult(activity *models.Activity, nftConfig *models.NFTConfig, resp
 	}
 	err := models.GetDB().Create(&item).Error
 	return item, err
+}
+
+func getOpenApiToken(activity *models.Activity) (string, error) {
+	userId, appId := activity.RainbowUserId, activity.AppId
+	if activity.ActivityType == enums.ACTIVITY_GASLESS {
+		gasless := GetConfig().Activity.Gasless
+		userId, appId = gasless.UserID, gasless.AppID
+	}
+	token, err := middlewares.GenerateRainbowOpenJWT(userId, appId)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	return token, err
 }
 
 // func getPOAPId(address string, name string) (string, error) {

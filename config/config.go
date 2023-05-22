@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
 
@@ -13,7 +14,9 @@ var (
 
 func Init() {
 	initViper()
-	if err := viper.Unmarshal(&_config); err != nil {
+	if err := viper.Unmarshal(&_config, func(d *mapstructure.DecoderConfig) {
+		d.ErrorUnset = true
+	}); err != nil {
 		panic(err)
 	}
 }
@@ -87,6 +90,17 @@ type Config struct {
 		Level  string `yaml:"level"`
 		Folder string `yaml:"folder"`
 	} `yaml:"log"`
+
+	Activity struct {
+		Gasless struct {
+			UserID        uint `yaml:"userId"`
+			AppID         uint `yaml:"appId"`
+			ContractRawID struct {
+				Mainnet uint `yaml:"mainnet"`
+				Testnet uint `yaml:"testnet"`
+			} `yaml:"contractRawId"`
+		} `yaml:"gasless"`
+	} `yaml:"activity"`
 }
 
 func GetConfig() *Config {

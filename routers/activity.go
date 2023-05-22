@@ -65,33 +65,6 @@ func mintByH5(c *gin.Context) {
 }
 
 //	@Tags			POAP
-//	@ID				MintGaslessByH5
-//	@Summary		Mint gasless By H5
-//	@Description	Mint gasless By H5
-//	@security		ApiKeyAuth
-//	@Produce		json
-//	@Param			mint_req	body		services.MintReq	true	"mint request"
-//	@Success		200			{object}	models.POAPResult
-//	@Failure		400			{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
-//	@Failure		500			{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
-//	@Router			/poap/h5 [post]
-func mintGaslessByH5(c *gin.Context) {
-	var poapRequest services.MintGaslessReq
-	if err := c.ShouldBind(&poapRequest); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-
-	if _, err := cfxaddress.NewFromBase32(poapRequest.UserAddress); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-
-	resp, err := activityService.H5Mint(&poapRequest)
-	ginutils.RenderResp(c, resp, err)
-}
-
-//	@Tags			POAP
 //	@ID				GetActivityDetail
 //	@Summary		Get Activity detail
 //	@Description	Get Activity detail info

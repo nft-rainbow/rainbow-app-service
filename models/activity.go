@@ -98,9 +98,10 @@ func (u *UpdateActivityReq) SetDefaults() error {
 type (
 	ActivityReq struct {
 		UpdateActivityReq
-		AppId        uint               `gorm:"index" json:"app_id" binding:"required"`
-		AppName      string             `gorm:"string" json:"app_name"`
-		ActivityType enums.ActivityType `gorm:"type:uint" json:"activity_type" binding:"required"`
+		AppId          uint               `gorm:"index" json:"app_id" binding:"required"`
+		AppName        string             `gorm:"string" json:"app_name"`
+		ActivityType   enums.ActivityType `gorm:"type:uint" json:"activity_type" binding:"required"`
+		ChainOfGasless enums.Chain        `gorm:"type:uint" json:"chain_of_gasless" default:"2"`
 	}
 
 	Activity struct {
