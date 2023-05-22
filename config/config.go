@@ -91,16 +91,14 @@ type Config struct {
 		Folder string `yaml:"folder"`
 	} `yaml:"log"`
 
-	Activity struct {
-		Gasless struct {
-			UserID        uint `yaml:"userId"`
-			AppID         uint `yaml:"appId"`
-			ContractRawID struct {
-				Mainnet uint `yaml:"mainnet"`
-				Testnet uint `yaml:"testnet"`
-			} `yaml:"contractRawId"`
-		} `yaml:"gasless"`
-	} `yaml:"activity"`
+	Gasless struct {
+		UserID        uint `yaml:"userId"`
+		AppID         uint `yaml:"appId"`
+		ContractRawID struct {
+			Mainnet uint `yaml:"mainnet"`
+			Testnet uint `yaml:"testnet"`
+		} `yaml:"contractRawId"`
+	} `yaml:"gasless"`
 }
 
 func GetConfig() *Config {

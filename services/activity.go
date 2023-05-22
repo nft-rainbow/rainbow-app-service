@@ -70,7 +70,7 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId
 	}
 
 	if activityReq.ActivityType == enums.ACTIVITY_GASLESS {
-		gasLess := GetConfig().Activity.Gasless
+		gasLess := GetConfig().Gasless
 		contractRawId := gasLess.ContractRawID.Testnet
 		if activityReq.ChainOfGasless == enums.CHAIN_CONFLUX {
 			contractRawId = gasLess.ContractRawID.Mainnet
@@ -609,7 +609,7 @@ func saveMintResult(activity *models.Activity, nftConfig *models.NFTConfig, resp
 func getOpenApiToken(activity *models.Activity) (string, error) {
 	userId, appId := activity.RainbowUserId, activity.AppId
 	if activity.ActivityType == enums.ACTIVITY_GASLESS {
-		gasless := GetConfig().Activity.Gasless
+		gasless := GetConfig().Gasless
 		userId, appId = gasless.UserID, gasless.AppID
 	}
 	token, err := middlewares.GenerateRainbowOpenJWT(userId, appId)

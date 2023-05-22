@@ -40,5 +40,9 @@ ipLimitEveryday: 100
 anyweb:
   appid: 
   secret: 
-changandao:
-  activityId: 
+gasless:
+  userId: 10
+  appId: 10
+  contractRawId: 
+    mainnet: 156
+    testnet: 157
