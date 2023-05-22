@@ -423,12 +423,12 @@ func createPushEmbed(config *models.Activity, roles, content string, color int) 
 }
 
 func checkDiscordChannel(channelId, guildId string) bool {
-	push, err := models.FindBotServerByChannel(channelId)
+	botServer, err := models.FindBotServerByChannel(channelId)
 	if err != nil {
 		logrus.Errorf("Failed to find channel: %v", err.Error())
 		return false
 	}
-	if push.RawServerId != guildId {
+	if botServer.RawServerId != guildId {
 		return false
 	}
 	//channels, err := s.GuildChannels(guildId)
