@@ -32,7 +32,11 @@ var (
 )
 
 type MintReq struct {
-	ActivityID  string `json:"activity_id" binding:"required"`
+	ActivityID string `json:"activity_id" binding:"required"`
+	MintGaslessReq
+}
+
+type MintGaslessReq struct {
 	UserAddress string `json:"user_address" binding:"required"`
 	Command     string `json:"command"`
 }
