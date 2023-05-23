@@ -11,25 +11,6 @@ import (
 )
 
 type (
-	NftConfigUpdatePart struct {
-		ImageURL           string                                 `gorm:"type:string" json:"image_url"`
-		Name               string                                 `gorm:"type:string" json:"name"`
-		Probability        float32                                `gorm:"type:float" json:"probability"`
-		MetadataAttributes datatypes.JSONSlice[MetadataAttribute] `gorm:"type:json" json:"metadata_attributes"`
-	}
-
-	NFTConfig struct {
-		BaseModel
-		ActivityID uint
-		NftConfigUpdatePart
-	}
-
-	MetadataAttribute struct {
-		TraitType   string `gorm:"type:varchar(256)"  json:"trait_type"`
-		DisplayType string `gorm:"type:varchar(256)"  json:"display_type,omitempty"`
-		Value       string `gorm:"type:varchar(256)"  json:"value"`
-	}
-
 	WhiteListInfo struct {
 		BaseModel
 		User       string `gorm:"type:string" json:"user"`
@@ -196,7 +177,7 @@ func FindActivityByCode(activityCode string) (*Activity, error) {
 
 		var item Activity
 		item.ActivityCode = activityCode
-		err := db.Debug().Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(&item).First(&item).Error
+		err := db.Debug().Preload("WhiteListInfos").Preload("NFTConfigs").Where(&item).First(&item).Error
 		if err != nil {
 			return nil, err
 		}
@@ -214,7 +195,7 @@ func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*Acti
 	cond.Name = _cond.Name
 	cond.ActivityCode = _cond.ActivityId
 
-	clause := db.Debug().Model(&Activity{}).Preload("WhiteListInfos").Preload("NFTConfigs").Preload("NFTConfigs.MetadataAttributes").Where(cond)
+	clause := db.Debug().Model(&Activity{}).Preload("WhiteListInfos").Preload("NFTConfigs").Where(cond)
 
 	if _cond.ExcludeNoContract {
 		clause = clause.Where("contract_raw_id is not null")

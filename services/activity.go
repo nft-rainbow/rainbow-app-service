@@ -154,10 +154,14 @@ func (a *ActivityService) UpdateOrCreateContract(userId uint, appId uint, contra
 	return nil
 }
 
-func (a *ActivityService) UpdateActivityBase(activityCode string, req *models.ActivityUpdateBasePart) (*models.Activity, error) {
+func (a *ActivityService) UpdateActivityBase(userId uint, activityCode string, req *models.ActivityUpdateBasePart) (*models.Activity, error) {
 	activity, err := models.FindActivityByCode(activityCode)
 	if err != nil {
 		return nil, err
+	}
+
+	if activity.RainbowUserId != userId {
+		return nil, errors.New("no permission")
 	}
 
 	if req.ContractRawID != nil {
@@ -183,20 +187,14 @@ func (a *ActivityService) UpdateActivityBase(activityCode string, req *models.Ac
 	return activity, nil
 }
 
-func (a *ActivityService) UpdateActivityNftConfig(activityCode string, nftConfigId uint, updateNftConfig *models.NftConfigUpdatePart) (*models.NFTConfig, error) {
-	var nftConfig models.NFTConfig
-	err := models.GetDB().First(&nftConfig, nftConfigId).Error
+func (a *ActivityService) UpdateNftConfig(userId uint, nftConfigId uint, updateNftConfig *models.NftConfigUpdatePart) (*models.NFTConfig, error) {
+	nftConfig, err := models.FindNftConfigById(nftConfigId)
 	if err != nil {
 		return nil, err
 	}
 
-	activity, err := models.FindActivityByCode(activityCode)
-	if err != nil {
+	if err := models.CheckNftConfigBelongToUser(nftConfig, userId); err != nil {
 		return nil, err
-	}
-
-	if nftConfig.ActivityID != activity.ID {
-		return nil, errors.New("the nft config not belongs to the activity")
 	}
 
 	nftConfig.NftConfigUpdatePart = *updateNftConfig
@@ -204,7 +202,20 @@ func (a *ActivityService) UpdateActivityNftConfig(activityCode string, nftConfig
 		return nil, err
 	}
 
-	return &nftConfig, nil
+	return nftConfig, nil
+}
+
+func (a *ActivityService) DeleteActivityNftConfig(userId uint, nftConfigId uint) error {
+	nftConfig, err := models.FindNftConfigById(nftConfigId)
+	if err != nil {
+		return err
+	}
+
+	if err := models.CheckNftConfigBelongToUser(nftConfig, userId); err != nil {
+		return err
+	}
+
+	return models.GetDB().Delete(&nftConfig).Error
 }
 
 // func (a *ActivityService) UpdateActivity2(activityId string, req *models.UpdateActivityReq) (*models.Activity, error) {
