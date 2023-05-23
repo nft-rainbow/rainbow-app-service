@@ -7,14 +7,34 @@ definitions:
       message:
         type: string
     type: object
+  enums.ActivityStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-varnames:
+    - ACTIVITY_STATUS_UNSTART
+    - ACTIVITY_STATUS_ONGOING
+    - ACTIVITY_SINGLE_END
   enums.ActivityType:
+    enum:
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-varnames:
+    - ACTIVITY_BLINDBOX
+    - ACTIVITY_SINGLE
+    - ACTIVITY_GASLESS
+  enums.Chain:
     enum:
     - 1
     - 2
     type: integer
     x-enum-varnames:
-    - ACTIVITY_BLINDBOX
-    - ACTIVITY_SINGLE
+    - CHAIN_CONFLUX
+    - CHAIN_CONFLUX_TEST
   enums.SocialToolType:
     enum:
     - 1
@@ -61,6 +81,10 @@ definitions:
         type: integer
       app_name:
         type: string
+      chain_of_gasless:
+        allOf:
+        - $ref: '#/definitions/enums.Chain'
+        default: 2
       command:
         type: string
       contract:
@@ -86,7 +110,7 @@ definitions:
       max_mint_count:
         type: integer
       metadata_uri:
-        description: 与contract base_uri 的区别：base_uri需拼接tokenid后缀；
+        description: 支持模版 如 http://xx/{id}.json, 铸造时 MetadataUri 优先，若为空则根据nftconfig创建metadata
         type: string
       name:
         type: string
@@ -118,16 +142,7 @@ definitions:
     - max_mint_count
     - name
     type: object
-  models.ActivityQueryResult:
-    properties:
-      count:
-        type: integer
-      items:
-        items:
-          $ref: '#/definitions/models.Activity'
-        type: array
-    type: object
-  models.ActivityReq:
+  models.ActivityInsertPart:
     properties:
       activity_picture_url:
         type: string
@@ -139,6 +154,10 @@ definitions:
         type: integer
       app_name:
         type: string
+      chain_of_gasless:
+        allOf:
+        - $ref: '#/definitions/enums.Chain'
+        default: 2
       command:
         type: string
       contract_id:
@@ -156,14 +175,10 @@ definitions:
       max_mint_count:
         type: integer
       metadata_uri:
-        description: 与contract base_uri 的区别：base_uri需拼接tokenid后缀；
+        description: 支持模版 如 http://xx/{id}.json, 铸造时 MetadataUri 优先，若为空则根据nftconfig创建metadata
         type: string
       name:
         type: string
-      nft_configs:
-        items:
-          $ref: '#/definitions/models.NFTConfig'
-        type: array
       start_time:
         default: -1
         type: integer
@@ -171,10 +186,6 @@ definitions:
         description: 'default value: ["anyweb","cellar"]'
         items:
           type: string
-        type: array
-      white_list_infos:
-        items:
-          $ref: '#/definitions/models.WhiteListInfo'
         type: array
     required:
     - activity_type
@@ -184,14 +195,68 @@ definitions:
     - max_mint_count
     - name
     type: object
+  models.ActivityQueryResult:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.Activity'
+        type: array
+    type: object
+  models.ActivityUpdateBasePart:
+    properties:
+      activity_picture_url:
+        type: string
+      amount:
+        type: integer
+      command:
+        type: string
+      contract_id:
+        type: integer
+      description:
+        type: string
+      end_time:
+        default: -1
+        type: integer
+      is_phone_white_list_opened:
+        type: boolean
+      is_token_id_ordered:
+        default: true
+        type: boolean
+      max_mint_count:
+        type: integer
+      metadata_uri:
+        description: 支持模版 如 http://xx/{id}.json, 铸造时 MetadataUri 优先，若为空则根据nftconfig创建metadata
+        type: string
+      name:
+        type: string
+      start_time:
+        default: -1
+        type: integer
+      support_wallets:
+        description: 'default value: ["anyweb","cellar"]'
+        items:
+          type: string
+        type: array
+    required:
+    - amount
+    - description
+    - max_mint_count
+    - name
+    type: object
   models.BotServer:
     properties:
       created_at:
+        type: string
+      default_activity_channel_id:
         type: string
       deleted_at:
         $ref: '#/definitions/gorm.DeletedAt'
       id:
         type: integer
+      outdated_server_id:
+        type: string
       owner_social_id:
         type: string
       push_infos:
@@ -336,19 +401,9 @@ definitions:
     type: object
   models.MetadataAttribute:
     properties:
-      created_at:
-        type: string
-      deleted_at:
-        $ref: '#/definitions/gorm.DeletedAt'
       display_type:
         type: string
-      id:
-        type: integer
-      nftconfigID:
-        type: integer
       trait_type:
-        type: string
-      updated_at:
         type: string
       value:
         type: string
@@ -375,6 +430,19 @@ definitions:
         type: number
       updated_at:
         type: string
+    type: object
+  models.NftConfigUpdatePart:
+    properties:
+      image_url:
+        type: string
+      metadata_attributes:
+        items:
+          $ref: '#/definitions/models.MetadataAttribute'
+        type: array
+      name:
+        type: string
+      probability:
+        type: number
     type: object
   models.POAPResult:
     properties:
@@ -474,55 +542,6 @@ definitions:
     - token_id_end
     - token_id_start
     type: object
-  models.UpdateActivityReq:
-    properties:
-      activity_picture_url:
-        type: string
-      amount:
-        type: integer
-      command:
-        type: string
-      contract_id:
-        type: integer
-      description:
-        type: string
-      end_time:
-        default: -1
-        type: integer
-      is_phone_white_list_opened:
-        type: boolean
-      is_token_id_ordered:
-        default: true
-        type: boolean
-      max_mint_count:
-        type: integer
-      metadata_uri:
-        description: 与contract base_uri 的区别：base_uri需拼接tokenid后缀；
-        type: string
-      name:
-        type: string
-      nft_configs:
-        items:
-          $ref: '#/definitions/models.NFTConfig'
-        type: array
-      start_time:
-        default: -1
-        type: integer
-      support_wallets:
-        description: 'default value: ["anyweb","cellar"]'
-        items:
-          type: string
-        type: array
-      white_list_infos:
-        items:
-          $ref: '#/definitions/models.WhiteListInfo'
-        type: array
-    required:
-    - amount
-    - description
-    - max_mint_count
-    - name
-    type: object
   models.WhiteListInfo:
     properties:
       activityID:
@@ -563,6 +582,8 @@ definitions:
   services.InsertBotServerReq:
     properties:
       auth_code:
+        type: string
+      outdated_server_id:
         type: string
       server_id:
         type: string
@@ -625,6 +646,81 @@ info:
   title: Rainbow-APP-Service
   version: "1.0"
 paths:
+  /activity/nftconfig/{nft_config_id}:
+    delete:
+      description: Delete Activity NFT Config
+      operationId: DeleteActivityNftConfig
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: nft_config_id
+        in: path
+        name: nft_config_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.NFTConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Activity NFT Config
+      tags:
+      - POAP
+    put:
+      description: Update Activity NFT Config
+      operationId: UpdateActivityNftConfig
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: nft_config_id
+        in: path
+        name: nft_config_id
+        required: true
+        type: integer
+      - description: update Nft config request
+        in: body
+        name: update_nft_config_request
+        required: true
+        schema:
+          $ref: '#/definitions/models.NftConfigUpdatePart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.NFTConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Update Activity NFT Config
+      tags:
+      - POAP
   /bot/invite_url:
     get:
       description: get invite url
@@ -1048,9 +1144,22 @@ paths:
       - in: query
         name: activity_id
         type: string
+      - collectionFormat: csv
+        in: query
+        items:
+          enum:
+          - 1
+          - 2
+          - 3
+          type: integer
+        name: activity_status
+        type: array
       - in: query
         name: contract_address
         type: string
+      - in: query
+        name: exclude_no_contract
+        type: boolean
       - default: 10
         in: query
         name: limit
@@ -1083,27 +1192,31 @@ paths:
       tags:
       - POAP
     post:
-      description: Add Activity
-      operationId: AddActivity
+      description: Add Activity NFT configs
+      operationId: AddActivityNftConfigs
       parameters:
       - description: Bearer JWT
         in: header
         name: Authorization
         required: true
         type: string
-      - description: activity config
+      - description: activity nft configs
         in: body
-        name: activity_request
+        name: nft_configs
         required: true
         schema:
-          $ref: '#/definitions/models.ActivityReq'
+          items:
+            $ref: '#/definitions/models.NFTConfig'
+          type: array
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Activity'
+            items:
+              $ref: '#/definitions/models.NFTConfig'
+            type: array
         "400":
           description: Invalid request
           schema:
@@ -1114,7 +1227,7 @@ paths:
             $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
       security:
       - ApiKeyAuth: []
-      summary: Add Activity
+      summary: Add Activity NFT configs
       tags:
       - POAP
   /poap/activity/{activity_code}:
@@ -1166,7 +1279,7 @@ paths:
         name: update_activity_request
         required: true
         schema:
-          $ref: '#/definitions/models.UpdateActivityReq'
+          $ref: '#/definitions/models.ActivityUpdateBasePart'
       produces:
       - application/json
       responses:

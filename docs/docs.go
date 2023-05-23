@@ -20,6 +20,121 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/activity/nftconfig/{nft_config_id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update Activity NFT Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Update Activity NFT Config",
+                "operationId": "UpdateActivityNftConfig",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "nft_config_id",
+                        "name": "nft_config_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update Nft config request",
+                        "name": "update_nft_config_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NftConfigUpdatePart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NFTConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete Activity NFT Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Delete Activity NFT Config",
+                "operationId": "DeleteActivityNftConfig",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "nft_config_id",
+                        "name": "nft_config_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NFTConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/bot/invite_url": {
             "get": {
                 "security": [
@@ -683,8 +798,27 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                1,
+                                2,
+                                3
+                            ],
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "activity_status",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "name": "contract_address",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "exclude_no_contract",
                         "in": "query"
                     },
                     {
@@ -732,15 +866,15 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Add Activity",
+                "description": "Add Activity NFT configs",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "POAP"
                 ],
-                "summary": "Add Activity",
-                "operationId": "AddActivity",
+                "summary": "Add Activity NFT configs",
+                "operationId": "AddActivityNftConfigs",
                 "parameters": [
                     {
                         "type": "string",
@@ -750,12 +884,15 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "activity config",
-                        "name": "activity_request",
+                        "description": "activity nft configs",
+                        "name": "nft_configs",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ActivityReq"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.NFTConfig"
+                            }
                         }
                     }
                 ],
@@ -763,7 +900,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Activity"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.NFTConfig"
+                            }
                         }
                     },
                     "400": {
@@ -1139,7 +1279,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UpdateActivityReq"
+                            "$ref": "#/definitions/models.ActivityUpdateBasePart"
                         }
                     }
                 ],
@@ -1330,15 +1470,41 @@ const docTemplate = `{
                 }
             }
         },
+        "enums.ActivityStatus": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "ACTIVITY_STATUS_UNSTART",
+                "ACTIVITY_STATUS_ONGOING",
+                "ACTIVITY_SINGLE_END"
+            ]
+        },
         "enums.ActivityType": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "ACTIVITY_BLINDBOX",
+                "ACTIVITY_SINGLE",
+                "ACTIVITY_GASLESS"
+            ]
+        },
+        "enums.Chain": {
             "type": "integer",
             "enum": [
                 1,
                 2
             ],
             "x-enum-varnames": [
-                "ACTIVITY_BLINDBOX",
-                "ACTIVITY_SINGLE"
+                "CHAIN_CONFLUX",
+                "CHAIN_CONFLUX_TEST"
             ]
         },
         "enums.SocialToolType": {
@@ -1416,6 +1582,14 @@ const docTemplate = `{
                 "app_name": {
                     "type": "string"
                 },
+                "chain_of_gasless": {
+                    "default": 2,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.Chain"
+                        }
+                    ]
+                },
                 "command": {
                     "type": "string"
                 },
@@ -1452,7 +1626,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "metadata_uri": {
-                    "description": "与contract base_uri 的区别：base_uri需拼接tokenid后缀；",
+                    "description": "支持模版 如 http://xx/{id}.json, 铸造时 MetadataUri 优先，若为空则根据nftconfig创建metadata",
                     "type": "string"
                 },
                 "name": {
@@ -1489,21 +1663,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ActivityQueryResult": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Activity"
-                    }
-                }
-            }
-        },
-        "models.ActivityReq": {
+        "models.ActivityInsertPart": {
             "type": "object",
             "required": [
                 "activity_type",
@@ -1529,6 +1689,14 @@ const docTemplate = `{
                 "app_name": {
                     "type": "string"
                 },
+                "chain_of_gasless": {
+                    "default": 2,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enums.Chain"
+                        }
+                    ]
+                },
                 "command": {
                     "type": "string"
                 },
@@ -1553,17 +1721,11 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "metadata_uri": {
-                    "description": "与contract base_uri 的区别：base_uri需拼接tokenid后缀；",
+                    "description": "支持模版 如 http://xx/{id}.json, 铸造时 MetadataUri 优先，若为空则根据nftconfig创建metadata",
                     "type": "string"
                 },
                 "name": {
                     "type": "string"
-                },
-                "nft_configs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.NFTConfig"
-                    }
                 },
                 "start_time": {
                     "type": "integer",
@@ -1575,11 +1737,77 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "models.ActivityQueryResult": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
                 },
-                "white_list_infos": {
+                "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.WhiteListInfo"
+                        "$ref": "#/definitions/models.Activity"
+                    }
+                }
+            }
+        },
+        "models.ActivityUpdateBasePart": {
+            "type": "object",
+            "required": [
+                "amount",
+                "description",
+                "max_mint_count",
+                "name"
+            ],
+            "properties": {
+                "activity_picture_url": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "integer"
+                },
+                "command": {
+                    "type": "string"
+                },
+                "contract_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "is_phone_white_list_opened": {
+                    "type": "boolean"
+                },
+                "is_token_id_ordered": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "max_mint_count": {
+                    "type": "integer"
+                },
+                "metadata_uri": {
+                    "description": "支持模版 如 http://xx/{id}.json, 铸造时 MetadataUri 优先，若为空则根据nftconfig创建metadata",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "support_wallets": {
+                    "description": "default value: [\"anyweb\",\"cellar\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }
@@ -1595,11 +1823,17 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "default_activity_channel_id": {
+                    "type": "string"
+                },
                 "deleted_at": {
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "id": {
                     "type": "integer"
+                },
+                "outdated_server_id": {
+                    "type": "string"
                 },
                 "owner_social_id": {
                     "type": "string"
@@ -1811,25 +2045,10 @@ const docTemplate = `{
         "models.MetadataAttribute": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
                 "display_type": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "integer"
-                },
-                "nftconfigID": {
-                    "type": "integer"
-                },
                 "trait_type": {
-                    "type": "string"
-                },
-                "updated_at": {
                     "type": "string"
                 },
                 "value": {
@@ -1869,6 +2088,26 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "models.NftConfigUpdatePart": {
+            "type": "object",
+            "properties": {
+                "image_url": {
+                    "type": "string"
+                },
+                "metadata_attributes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MetadataAttribute"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "probability": {
+                    "type": "number"
                 }
             }
         },
@@ -2019,76 +2258,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.UpdateActivityReq": {
-            "type": "object",
-            "required": [
-                "amount",
-                "description",
-                "max_mint_count",
-                "name"
-            ],
-            "properties": {
-                "activity_picture_url": {
-                    "type": "string"
-                },
-                "amount": {
-                    "type": "integer"
-                },
-                "command": {
-                    "type": "string"
-                },
-                "contract_id": {
-                    "type": "integer"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "end_time": {
-                    "type": "integer",
-                    "default": -1
-                },
-                "is_phone_white_list_opened": {
-                    "type": "boolean"
-                },
-                "is_token_id_ordered": {
-                    "type": "boolean",
-                    "default": true
-                },
-                "max_mint_count": {
-                    "type": "integer"
-                },
-                "metadata_uri": {
-                    "description": "与contract base_uri 的区别：base_uri需拼接tokenid后缀；",
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "nft_configs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.NFTConfig"
-                    }
-                },
-                "start_time": {
-                    "type": "integer",
-                    "default": -1
-                },
-                "support_wallets": {
-                    "description": "default value: [\"anyweb\",\"cellar\"]",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "white_list_infos": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.WhiteListInfo"
-                    }
-                }
-            }
-        },
         "models.WhiteListInfo": {
             "type": "object",
             "properties": {
@@ -2154,6 +2323,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "auth_code": {
+                    "type": "string"
+                },
+                "outdated_server_id": {
                     "type": "string"
                 },
                 "server_id": {

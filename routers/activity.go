@@ -121,8 +121,8 @@ func getUserActivities(c *gin.Context) {
 //	@Description	Add Activity
 //	@security		ApiKeyAuth
 //	@Produce		json
-//	@Param			Authorization		header		string				true	"Bearer JWT"
-//	@Param			activity_request	body		models.ActivityReq	true	"activity config"
+//	@Param			Authorization		header		string						true	"Bearer JWT"
+//	@Param			activity_request	body		models.ActivityInsertPart	true	"activity config"
 //	@Success		200					{object}	models.Activity
 //	@Failure		400					{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500					{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
@@ -144,11 +144,11 @@ func addActivity(c *gin.Context) {
 //	@Description	Add Activity NFT configs
 //	@security		ApiKeyAuth
 //	@Produce		json
-//	@Param			Authorization		header		string				true	"Bearer JWT"
-//	@Param			nft_configs	body	[]models.NFTConfig	true	"activity nft configs"
-//	@Success		200					{array}	models.NFTConfig
-//	@Failure		400					{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
-//	@Failure		500					{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Param			Authorization	header		string				true	"Bearer JWT"
+//	@Param			nft_configs		body		[]models.NFTConfig	true	"activity nft configs"
+//	@Success		200				{array}		models.NFTConfig
+//	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
 //	@Router			/poap/activity [post]
 func addActivityNftConfigs(c *gin.Context) {
 	var nftConfigs []*models.NFTConfig
@@ -192,9 +192,9 @@ func setActivityH5Config(c *gin.Context) {
 //	@Description	Update Activity
 //	@security		ApiKeyAuth
 //	@Produce		json
-//	@Param			Authorization			header		string						true	"Bearer JWT"
-//	@Param			activity_id				path		string						true	"activity_id"
-//	@Param			update_activity_request	body		models.UpdateActivityReq	true	"update activity request"
+//	@Param			Authorization			header		string							true	"Bearer JWT"
+//	@Param			activity_id				path		string							true	"activity_id"
+//	@Param			update_activity_request	body		models.ActivityUpdateBasePart	true	"update activity request"
 //	@Success		200						{object}	models.Activity
 //	@Failure		400						{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500						{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
@@ -217,13 +217,13 @@ func updateActivityBase(c *gin.Context) {
 //	@Description	Update Activity NFT Config
 //	@security		ApiKeyAuth
 //	@Produce		json
-//	@Param			Authorization			header		string						true	"Bearer JWT"
+//	@Param			Authorization				header		string						true	"Bearer JWT"
 //	@Param			nft_config_id				path		uint						true	"nft_config_id"
-//	@Param			update_nft_config_request	body		models.UpdateNftConfigReq	true	"update Nft config request"
-//	@Success		200						{object}	models.NftConfig
-//	@Failure		400						{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
-//	@Failure		500						{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
-//	@Router			/activity/{activity_code}/nftconfig/{nft_config_id} [put]
+//	@Param			update_nft_config_request	body		models.NftConfigUpdatePart	true	"update Nft config request"
+//	@Success		200							{object}	models.NFTConfig
+//	@Failure		400							{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500							{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/activity/nftconfig/{nft_config_id} [put]
 func updateActivityNftConfig(c *gin.Context) {
 	req := struct {
 		models.NftConfigUpdatePart
@@ -250,12 +250,12 @@ func updateActivityNftConfig(c *gin.Context) {
 //	@Description	Delete Activity NFT Config
 //	@security		ApiKeyAuth
 //	@Produce		json
-//	@Param			Authorization			header		string						true	"Bearer JWT"
-//	@Param			nft_config_id				path		uint						true	"nft_config_id"
-//	@Success		200						{object}	models.NftConfig
-//	@Failure		400						{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
-//	@Failure		500						{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
-//	@Router			/activity/{activity_code}/nftconfig/{nft_config_id} [put]
+//	@Param			Authorization	header		string	true	"Bearer JWT"
+//	@Param			nft_config_id	path		uint	true	"nft_config_id"
+//	@Success		200				{object}	models.NFTConfig
+//	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/activity/nftconfig/{nft_config_id} [delete]
 func deleteActivityNftConfig(c *gin.Context) {
 	req := struct {
 		NftConfigId uint `uri:"nft_config_id"`
