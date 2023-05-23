@@ -172,7 +172,7 @@ func drawPoster(templatePath string, fontPath string,
 	return buf, nil
 }
 
-func generateActivityPoster(config *models.UpdateActivityReq, activityId string) (string, error) {
+func generateActivityPoster(config *models.ActivityUpdateBasePart, activityId string) (string, error) {
 	buf, err := drawPoster("./assets/images/activityPoster.png",
 		"./assets/fonts/PingFang.ttf",
 		activityId,

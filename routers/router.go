@@ -100,7 +100,9 @@ func SetupRoutes(router *gin.Engine) {
 		// poap.POST("/csv", poapMintByCSV)
 
 		poap.POST("/activity", addActivity)
-		poap.PUT("/activity/:activity_code", updateActivity)
+		poap.POST("/activity/:activity_code/nftconfigs", addActivityNftConfigs)
+		poap.PUT("/activity/:activity_code/base", updateActivityBase)
+		poap.PUT("/activity/:activity_code/nftconfig/:nft_config_id", updateActivityNftConfig)
 		poap.POST("/activity/h5", setActivityH5Config)
 		poap.GET("/activity", getUserActivities)
 

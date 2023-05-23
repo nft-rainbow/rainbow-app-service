@@ -50,23 +50,23 @@ func GetActivityService() *ActivityService {
 	return activityService
 }
 
-func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.Activity, error) {
+func (a *ActivityService) InsertActivity(activityReq *models.ActivityInsertPart, userId uint) (*models.Activity, error) {
 	if err := activityReq.SetDefaults(); err != nil {
 		return nil, err
 	}
 
 	activityId := utils.GenerateIDByTimeHash("", 8)
-	posterUrl, err := generateActivityPoster(&activityReq.UpdateActivityReq, activityId)
+	posterUrl, err := generateActivityPoster(&activityReq.ActivityUpdateBasePart, activityId)
 	if err != nil {
 		logrus.Errorf("Failed to generate poster for activity %v:%v \n", activityId, err.Error())
 		return nil, errors.WithStack(err)
 	}
 
 	activity := models.Activity{
-		ActivityReq:       *activityReq,
-		RainbowUserId:     userId,
-		ActivityCode:      activityId,
-		ActivityPosterURL: posterUrl,
+		ActivityInsertPart: *activityReq,
+		RainbowUserId:      userId,
+		ActivityCode:       activityId,
+		ActivityPosterURL:  posterUrl,
 	}
 
 	if activityReq.ActivityType == enums.ACTIVITY_GASLESS {
@@ -96,6 +96,27 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId
 		return nil, errors.WithStack(err)
 	}
 	return &activity, nil
+}
+
+func (a *ActivityService) AddActivityNftConfigs(activityCode string, nftConfigs []*models.NFTConfig, userId uint) ([]*models.NFTConfig, error) {
+	activity, err := models.FindActivityByCode(activityCode)
+	if err != nil {
+		return nil, err
+	}
+
+	if activity.RainbowUserId != userId {
+		return nil, errors.New("no permission")
+	}
+
+	for _, nftConfig := range nftConfigs {
+		nftConfig.ActivityID = activity.ID
+	}
+
+	if err := models.GetDB().Save(&nftConfigs).Error; err != nil {
+		return nil, err
+	}
+
+	return nftConfigs, nil
 }
 
 func (a *ActivityService) POAPH5Config(config *models.H5Config) (*models.H5Config, error) {
@@ -133,8 +154,8 @@ func (a *ActivityService) UpdateOrCreateContract(userId uint, appId uint, contra
 	return nil
 }
 
-func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateActivityReq) (*models.Activity, error) {
-	activity, err := models.FindActivityByCode(activityId)
+func (a *ActivityService) UpdateActivityBase(activityCode string, req *models.ActivityUpdateBasePart) (*models.Activity, error) {
+	activity, err := models.FindActivityByCode(activityCode)
 	if err != nil {
 		return nil, err
 	}
@@ -146,12 +167,12 @@ func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateAc
 		activity.ContractRawID = req.ContractRawID
 	}
 
-	for _, nftConfig := range req.NFTConfigs {
-		nftConfig.ActivityID = activity.ID
-	}
+	// for _, nftConfig := range req.NFTConfigs {
+	// 	nftConfig.ActivityID = activity.ID
+	// }
 
 	req.SetDefaults()
-	activity.UpdateActivityReq = *req
+	activity.ActivityUpdateBasePart = *req
 	if err := models.GetDB().Session(&gorm.Session{FullSaveAssociations: true}).Updates(&activity).Error; err != nil {
 		return nil, err
 	}
@@ -160,6 +181,30 @@ func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateAc
 		return nil, err
 	}
 	return activity, nil
+}
+
+func (a *ActivityService) UpdateActivityNftConfig(activityCode string, nftConfigId uint, updateNftConfig *models.NftConfigUpdatePart) (*models.NFTConfig, error) {
+	var nftConfig models.NFTConfig
+	err := models.GetDB().First(&nftConfig, nftConfigId).Error
+	if err != nil {
+		return nil, err
+	}
+
+	activity, err := models.FindActivityByCode(activityCode)
+	if err != nil {
+		return nil, err
+	}
+
+	if nftConfig.ActivityID != activity.ID {
+		return nil, errors.New("the nft config not belongs to the activity")
+	}
+
+	nftConfig.NftConfigUpdatePart = *updateNftConfig
+	if err := models.GetDB().Save(nftConfig).Error; err != nil {
+		return nil, err
+	}
+
+	return &nftConfig, nil
 }
 
 // func (a *ActivityService) UpdateActivity2(activityId string, req *models.UpdateActivityReq) (*models.Activity, error) {
