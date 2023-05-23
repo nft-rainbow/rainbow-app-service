@@ -144,14 +144,14 @@ func addActivity(c *gin.Context) {
 //	@Description	Add Activity NFT configs
 //	@security		ApiKeyAuth
 //	@Produce		json
-//	@Param			Authorization	header		string				true	"Bearer JWT"
-//	@Param			nft_configs		body		[]models.NFTConfig	true	"activity nft configs"
+//	@Param			Authorization	header		string							true	"Bearer JWT"
+//	@Param			nft_configs		body		[]models.NftConfigUpdatePart	true	"activity nft configs"
 //	@Success		200				{array}		models.NFTConfig
 //	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
-//	@Router			/poap/activity [post]
+//	@Router			/activity/{activity_code}/nftconfigs [post]
 func addActivityNftConfigs(c *gin.Context) {
-	var nftConfigs []*models.NFTConfig
+	var nftConfigs []*models.NftConfigUpdatePart
 	if err := c.ShouldBind(&nftConfigs); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return

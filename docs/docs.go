@@ -135,6 +135,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/activity/{activity_code}/nftconfigs": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Add Activity NFT configs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Add Activity NFT configs",
+                "operationId": "AddActivityNftConfigs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "activity nft configs",
+                        "name": "nft_configs",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.NftConfigUpdatePart"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.NFTConfig"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/bot/invite_url": {
             "get": {
                 "security": [
@@ -866,15 +928,15 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Add Activity NFT configs",
+                "description": "Add Activity",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "POAP"
                 ],
-                "summary": "Add Activity NFT configs",
-                "operationId": "AddActivityNftConfigs",
+                "summary": "Add Activity",
+                "operationId": "AddActivity",
                 "parameters": [
                     {
                         "type": "string",
@@ -884,15 +946,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "activity nft configs",
-                        "name": "nft_configs",
+                        "description": "activity config",
+                        "name": "activity_request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.NFTConfig"
-                            }
+                            "$ref": "#/definitions/models.ActivityInsertPart"
                         }
                     }
                 ],
@@ -900,10 +959,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.NFTConfig"
-                            }
+                            "$ref": "#/definitions/models.Activity"
                         }
                     },
                     "400": {

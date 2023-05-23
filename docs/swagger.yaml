@@ -646,6 +646,46 @@ info:
   title: Rainbow-APP-Service
   version: "1.0"
 paths:
+  /activity/{activity_code}/nftconfigs:
+    post:
+      description: Add Activity NFT configs
+      operationId: AddActivityNftConfigs
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: activity nft configs
+        in: body
+        name: nft_configs
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.NftConfigUpdatePart'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.NFTConfig'
+            type: array
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Add Activity NFT configs
+      tags:
+      - POAP
   /activity/nftconfig/{nft_config_id}:
     delete:
       description: Delete Activity NFT Config
@@ -1192,31 +1232,27 @@ paths:
       tags:
       - POAP
     post:
-      description: Add Activity NFT configs
-      operationId: AddActivityNftConfigs
+      description: Add Activity
+      operationId: AddActivity
       parameters:
       - description: Bearer JWT
         in: header
         name: Authorization
         required: true
         type: string
-      - description: activity nft configs
+      - description: activity config
         in: body
-        name: nft_configs
+        name: activity_request
         required: true
         schema:
-          items:
-            $ref: '#/definitions/models.NFTConfig'
-          type: array
+          $ref: '#/definitions/models.ActivityInsertPart'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/models.NFTConfig'
-            type: array
+            $ref: '#/definitions/models.Activity'
         "400":
           description: Invalid request
           schema:
@@ -1227,7 +1263,7 @@ paths:
             $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
       security:
       - ApiKeyAuth: []
-      summary: Add Activity NFT configs
+      summary: Add Activity
       tags:
       - POAP
   /poap/activity/{activity_code}:

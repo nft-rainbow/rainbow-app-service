@@ -98,7 +98,7 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityInsertPart,
 	return &activity, nil
 }
 
-func (a *ActivityService) AddActivityNftConfigs(activityCode string, nftConfigs []*models.NFTConfig, userId uint) ([]*models.NFTConfig, error) {
+func (a *ActivityService) AddActivityNftConfigs(activityCode string, nftConfigUpdateParts []*models.NftConfigUpdatePart, userId uint) ([]*models.NFTConfig, error) {
 	activity, err := models.FindActivityByCode(activityCode)
 	if err != nil {
 		return nil, err
@@ -108,8 +108,12 @@ func (a *ActivityService) AddActivityNftConfigs(activityCode string, nftConfigs 
 		return nil, errors.New("no permission")
 	}
 
-	for _, nftConfig := range nftConfigs {
-		nftConfig.ActivityID = activity.ID
+	var nftConfigs []*models.NFTConfig
+	for _, p := range nftConfigUpdateParts {
+		nftConfigs = append(nftConfigs, &models.NFTConfig{
+			NftConfigUpdatePart: *p,
+			ActivityID:          activity.ID,
+		})
 	}
 
 	if err := models.GetDB().Save(&nftConfigs).Error; err != nil {
