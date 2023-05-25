@@ -17,13 +17,15 @@ func init() {
 
 	// BUSINESS ERRORS
 	RainbowAppServiceErrorInfos[ERR_BUSINESS_NOT_BIND_WALLET] = RainbowAppServiceErrorInfo{Message: "Not bind wallet address", HttpStatusCode: StatusBussinessError}
-	RainbowAppServiceErrorInfos[ERR_BUSINESS_TIME_EARLY] = RainbowAppServiceErrorInfo{Message: "This activity has been expired", HttpStatusCode: StatusBussinessError}
-	RainbowAppServiceErrorInfos[ERR_BUSINESS_TIME_EXPIRED] = RainbowAppServiceErrorInfo{Message: "This activity has not been opened", HttpStatusCode: StatusBussinessError}
+	RainbowAppServiceErrorInfos[ERR_BUSINESS_ACTIVITY_NOT_EXIST] = RainbowAppServiceErrorInfo{Message: "The activity is not exist", HttpStatusCode: StatusBussinessError}
+	RainbowAppServiceErrorInfos[ERR_BUSINESS_TIME_EARLY] = RainbowAppServiceErrorInfo{Message: "This activity has not been opened", HttpStatusCode: StatusBussinessError}
+	RainbowAppServiceErrorInfos[ERR_BUSINESS_TIME_EXPIRED] = RainbowAppServiceErrorInfo{Message: "This activity has been expired", HttpStatusCode: StatusBussinessError}
 	RainbowAppServiceErrorInfos[ERR_BUSINESS_ACTIVITY_MAX_AMOUNT_ARRIVED] = RainbowAppServiceErrorInfo{Message: "This activity max mint amount arrived", HttpStatusCode: StatusBussinessError}
 	RainbowAppServiceErrorInfos[ERR_BUSINESS_PERSONAL_MAX_AMOUNT_ARRIVED] = RainbowAppServiceErrorInfo{Message: "Your max mint amount arrived", HttpStatusCode: StatusBussinessError}
 	RainbowAppServiceErrorInfos[ERR_BUSINESS_MISS_VISPER] = RainbowAppServiceErrorInfo{Message: "This activity need visper password", HttpStatusCode: StatusBussinessError}
+	RainbowAppServiceErrorInfos[ERR_BUSINESS_VISPER_WRONG] = RainbowAppServiceErrorInfo{Message: "Wrong visper password", HttpStatusCode: StatusBussinessError}
 	RainbowAppServiceErrorInfos[ERR_BUSINESS_NO_MINT_PERMISSIION] = RainbowAppServiceErrorInfo{Message: "No mint permission", HttpStatusCode: StatusBussinessError}
-	RainbowAppServiceErrorInfos[ERR_BUSNISS_ACTIVITY_CONFIG_WRONG] = RainbowAppServiceErrorInfo{Message: "At least one NFTConfig is required", HttpStatusCode: StatusBussinessError}
+	RainbowAppServiceErrorInfos[ERR_BUSNISS_ACTIVITY_CONFIG_WRONG] = RainbowAppServiceErrorInfo{Message: "Activity config wrong", HttpStatusCode: StatusBussinessError}
 
 	RainbowAppServiceErrorInfos[ERR_BIND_ADDRESS_WRONG_FORMAT] = RainbowAppServiceErrorInfo{Message: "Address format is not correct", HttpStatusCode: StatusBussinessError}
 	RainbowAppServiceErrorInfos[ERR_BIND_ADDRESS_OTHER] = RainbowAppServiceErrorInfo{Message: "Failed to bind address, unkown reason occured", HttpStatusCode: StatusBussinessError}
@@ -49,7 +51,7 @@ const (
 const (
 
 	// MINT
-	ERR_BUSINESS_TIME_COMMON RainbowAppServiceError = StatusBussinessError*100 + iota //60000
+	ERR_BUSINESS_COMMON RainbowAppServiceError = StatusBussinessError*100 + iota //60000
 	// ❌未绑定钱包地址！
 	ERR_BUSINESS_NOT_BIND_WALLET
 	// ❌此活动不支持或不存在。
