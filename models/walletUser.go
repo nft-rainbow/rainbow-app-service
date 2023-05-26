@@ -25,6 +25,9 @@ func FindWalletUserByAddress(address string) ([]*WalletUser, error) {
 
 func FindWalletUser(wallet enums.WalletType, address string) (walletUser *WalletUser, err error) {
 	err = GetDB().Where("wallet=? and address=?", wallet, address).First(&walletUser).Error
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 

@@ -45,6 +45,7 @@ func (a *Anyweb) InsertUser(userReq AddWalletUserReq) error {
 		RefreshExpire: now + tokenInfo.RefreshExpire,
 		Phone:         userInfo.Phone,
 		Address:       userReq.Address,
+		Wallet:        userReq.Wallet,
 	}
 
 	err = models.GetDB().Create(anywebUser).Error
