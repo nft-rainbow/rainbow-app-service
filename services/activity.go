@@ -345,6 +345,11 @@ func (a *ActivityService) GetMintCount(activityID, address string) (*int32, erro
 				return &count, nil
 			}
 		}
+	} else if config.IsAddressWhiteListOpened {
+		if !From(config.AddressWhitelist).Contains(address) {
+			count = 0
+			return &count, nil
+		}
 	}
 
 	mintedCount, err := models.GetMintSumByAddresses(activityID, address)
@@ -407,8 +412,8 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 		}
 		addrsOfPhone = append(addrsOfPhone, addrs...)
 	} else if config.IsAddressWhiteListOpened {
-		if From(config.AddressWhitelist).Contains(req.UserAddress) {
-			addrsOfPhone = append(addrsOfPhone, req.UserAddress)
+		if !From(config.AddressWhitelist).Contains(req.UserAddress) {
+			return ERR_BUSINESS_NO_MINT_PERMISSIION
 		}
 	} else {
 		addrsOfPhone = append(addrsOfPhone, req.UserAddress)
