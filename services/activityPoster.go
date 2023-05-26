@@ -28,11 +28,15 @@ func drawPoster(templatePath string, fontPath string,
 	// now := time.Now()
 	logrus.Info("strat draw poster")
 	var dc *gg.Context
-	paintSig := make(chan interface{}, 2)
+	paintSig := make(chan bool, 2)
 
 	drawBackground := func() error {
+
 		templateImg, err := gg.LoadImage(templatePath)
 		if err != nil {
+			for i := 0; i < 2; i++ {
+				paintSig <- false
+			}
 			return err
 		}
 
@@ -42,9 +46,8 @@ func drawPoster(templatePath string, fontPath string,
 		logrus.Info("draw tempate done")
 		// fmt.Printf("1 %v\n", time.Since(now))
 		for i := 0; i < 2; i++ {
-			paintSig <- struct{}{}
+			paintSig <- true
 		}
-
 		return nil
 	}
 
@@ -65,14 +68,22 @@ func drawPoster(templatePath string, fontPath string,
 			return err
 		}
 		img = imaging.Fill(img, 1260, 1260, 0, imaging.ResampleFilter{})
-		<-paintSig
+
+		isContinue := <-paintSig
+		if !isContinue {
+			return nil
+		}
+
 		dc.DrawImage(img, 120, 200)
 		logrus.Info("draw head done")
 		return nil
 	}
 
 	drawTexts := func() error {
-		<-paintSig
+		isContinue := <-paintSig
+		if !isContinue {
+			return nil
+		}
 		// 增加文字
 		err := dc.LoadFontFace(fontPath, 88)
 		if err != nil {

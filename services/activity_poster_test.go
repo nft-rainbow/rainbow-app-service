@@ -22,13 +22,6 @@ func TestUploadFileToOss(t *testing.T) {
 }
 
 func TestGenerateActivityPoster(t *testing.T) {
-	// drawPoster(&models.UpdateActivityReq{
-	// 	Name:               "UOVAMETA NO.022数字纪念徽章",
-	// 	Description:        "UOVAMETA NO.022数字纪念徽章",
-	// 	StartedTime:        1685030400,
-	// 	EndedTime:          -1,
-	// 	ActivityPictureURL: "https://nftrainbow.oss-cn-hangzhou.aliyuncs.com/events/YUANLONGYATU/POAP/yuanlong-poster.jpeg",
-	// }, "99b5b77c")
 	buf, err := drawPoster("/Users/dayong/myspace/mywork/rainbow-app-service/assets/images/activityPoster.png",
 		"/Users/dayong/myspace/mywork/rainbow-app-service/assets/fonts/PingFang.ttf",
 		"99b5b77c",
