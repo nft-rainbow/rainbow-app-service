@@ -20,6 +20,7 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	randutils "github.com/nft-rainbow/rainbow-app-service/utils/rand"
 
+	. "github.com/ahmetalpbalkan/go-linq"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -380,7 +381,7 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 		return errors.WithStack(err)
 	}
 
-	addrsOfPhone := []string{req.UserAddress}
+	var addrsOfPhone []string
 	if config.IsPhoneWhiteListOpened {
 		users, err := models.FindWalletUserByAddress(req.UserAddress)
 
@@ -405,6 +406,12 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 			return err
 		}
 		addrsOfPhone = append(addrsOfPhone, addrs...)
+	} else if config.IsAddressWhiteListOpened {
+		if From(config.AddressWhitelist).Contains(req.UserAddress) {
+			addrsOfPhone = append(addrsOfPhone, req.UserAddress)
+		}
+	} else {
+		addrsOfPhone = append(addrsOfPhone, req.UserAddress)
 	}
 
 	if err := checkUserMintQuota(config.ActivityCode, addrsOfPhone, config.MaxMintCount); err != nil {
