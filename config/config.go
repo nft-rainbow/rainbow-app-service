@@ -94,6 +94,7 @@ type Config struct {
 	Gasless struct {
 		UserID        uint `yaml:"userId"`
 		AppID         uint `yaml:"appId"`
+		MaxAmount     uint `yaml:"maxAmount"`
 		ContractRawID struct {
 			Mainnet uint `yaml:"mainnet"`
 			Testnet uint `yaml:"testnet"`

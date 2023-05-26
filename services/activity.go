@@ -71,6 +71,11 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityInsertPart,
 
 	if activityReq.ActivityType == enums.ACTIVITY_GASLESS {
 		gasLess := GetConfig().Gasless
+
+		if activityReq.Amount > int32(gasLess.MaxAmount) {
+			return nil, errors.Errorf("exceed gasless max amount: %v", gasLess.MaxAmount)
+		}
+
 		contractRawId := gasLess.ContractRawID.Testnet
 		if activityReq.ChainOfGasless == enums.CHAIN_CONFLUX {
 			contractRawId = gasLess.ContractRawID.Mainnet

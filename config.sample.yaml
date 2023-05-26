@@ -43,6 +43,7 @@ anyweb:
 gasless:
   userId: 10
   appId: 10
+  maxAmount: 100
   contractRawId: 
     mainnet: 156
     testnet: 157
