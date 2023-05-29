@@ -149,7 +149,7 @@ func addActivity(c *gin.Context) {
 //	@Success		200				{array}		models.NFTConfig
 //	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
-//	@Router			/activity/{activity_code}/nftconfigs [post]
+//	@Router			/poap/activity/{activity_code}/nftconfigs [post]
 func addActivityNftConfigs(c *gin.Context) {
 	var nftConfigs []*models.NftConfigUpdatePart
 	if err := c.ShouldBind(&nftConfigs); err != nil {
@@ -223,7 +223,7 @@ func updateActivityBase(c *gin.Context) {
 //	@Success		200							{object}	models.NFTConfig
 //	@Failure		400							{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500							{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
-//	@Router			/activity/nftconfig/{nft_config_id} [put]
+//	@Router			/poap/activity/nftconfig/{nft_config_id} [put]
 func updateActivityNftConfig(c *gin.Context) {
 	req := struct {
 		models.NftConfigUpdatePart
@@ -255,7 +255,7 @@ func updateActivityNftConfig(c *gin.Context) {
 //	@Success		200				{object}	models.NFTConfig
 //	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
-//	@Router			/activity/nftconfig/{nft_config_id} [delete]
+//	@Router			/poap/activity/nftconfig/{nft_config_id} [delete]
 func deleteActivityNftConfig(c *gin.Context) {
 	req := struct {
 		NftConfigId uint `uri:"nft_config_id"`

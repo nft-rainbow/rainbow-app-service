@@ -20,183 +20,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/activity/nftconfig/{nft_config_id}": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Update Activity NFT Config",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Update Activity NFT Config",
-                "operationId": "UpdateActivityNftConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "nft_config_id",
-                        "name": "nft_config_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "update Nft config request",
-                        "name": "update_nft_config_request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.NftConfigUpdatePart"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.NFTConfig"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Delete Activity NFT Config",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Delete Activity NFT Config",
-                "operationId": "DeleteActivityNftConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "nft_config_id",
-                        "name": "nft_config_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.NFTConfig"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/activity/{activity_code}/nftconfigs": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Add Activity NFT configs",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Add Activity NFT configs",
-                "operationId": "AddActivityNftConfigs",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "activity nft configs",
-                        "name": "nft_configs",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.NftConfigUpdatePart"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.NFTConfig"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
         "/bot/invite_url": {
             "get": {
                 "security": [
@@ -1033,6 +856,121 @@ const docTemplate = `{
                 }
             }
         },
+        "/poap/activity/nftconfig/{nft_config_id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update Activity NFT Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Update Activity NFT Config",
+                "operationId": "UpdateActivityNftConfig",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "nft_config_id",
+                        "name": "nft_config_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update Nft config request",
+                        "name": "update_nft_config_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NftConfigUpdatePart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NFTConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete Activity NFT Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Delete Activity NFT Config",
+                "operationId": "DeleteActivityNftConfig",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "nft_config_id",
+                        "name": "nft_config_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NFTConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/poap/activity/result/{activity_code}": {
             "get": {
                 "security": [
@@ -1344,6 +1282,68 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Activity"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/poap/activity/{activity_code}/nftconfigs": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Add Activity NFT configs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Add Activity NFT configs",
+                "operationId": "AddActivityNftConfigs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "activity nft configs",
+                        "name": "nft_configs",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.NftConfigUpdatePart"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.NFTConfig"
+                            }
                         }
                     },
                     "400": {
