@@ -414,6 +414,8 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 	} else if config.IsAddressWhiteListOpened {
 		if !From(config.AddressWhitelist).Contains(req.UserAddress) {
 			return ERR_BUSINESS_NO_MINT_PERMISSIION
+		} else {
+			addrsOfPhone = append(addrsOfPhone, req.UserAddress)
 		}
 	} else {
 		addrsOfPhone = append(addrsOfPhone, req.UserAddress)
