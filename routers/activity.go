@@ -356,7 +356,7 @@ func getMintCount(c *gin.Context) {
 	address := c.Param("address")
 	activityCode := c.Param(ACTIVITY_CODE_KEY)
 
-	var resp *int32
+	var resp int32
 	resp, err = activityService.GetMintCount(activityCode, address)
 	ginutils.RenderResp(c, resp, err)
 }

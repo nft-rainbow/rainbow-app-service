@@ -1,6 +1,7 @@
 package services
 
 import (
+	"math"
 	"sort"
 	"strings"
 	"sync"
@@ -398,68 +399,111 @@ func (a *ActivityService) H5Mint(req *MintReq) (*models.POAPResult, error) {
 	return result, nil
 }
 
-func (a *ActivityService) GetMintCount(activityID, address string) (*int32, error) {
-	config, err := models.FindActivityByCode(activityID)
-	if err != nil {
-		return nil, err
+func (a *ActivityService) getMintableCount(activity *models.Activity, address string) (int32, error) {
+
+	if address == "" {
+		return 0, nil
 	}
-	var count int32
 
-	// phone white list logic: if whiteList config opened and user not in whiteList then the mint count is 0
-	if config.IsPhoneWhiteListOpened {
-		users, err := models.FindWalletUserByAddress(address)
-		if err == nil { // TODO check the phone not found case
-			var isInWhiteList bool
-			for _, u := range users {
-				isInWhiteList = models.IsPhoneInWhiteList(activityID, u.Phone)
-				if isInWhiteList {
-					break
-				}
-			}
+	//TODO: is certi qulified
 
-			if !isInWhiteList {
-				count = 0
-				return &count, nil
-			}
+	var err error
+	addrsOfPhone := []string{address}
+	if activity.IsPhoneWhiteListOpened {
+		addrsOfPhone, err = models.FindRelatedAddressWithSamePhone(address)
+		if err != nil {
+			return 0, err
 		}
 	}
 
-	mintedCount, err := models.GetMintSumByAddresses(activityID, address)
+	mintedCount, err := models.GetMintSumByAddresses(activity.ActivityCode, addrsOfPhone...)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	var remainedMinted int32
-	if config.MaxMintCount == -1 {
-		remainedMinted = -1
-	} else {
-		remainedMinted = int32(int64(config.MaxMintCount) - mintedCount)
-	}
-	logrus.WithField("remain", remainedMinted).Info("get remain mint count")
-
-	if config.Amount == -1 {
-		count = remainedMinted
-	} else {
-		if remainedMinted == -1 {
-			count = config.Amount - int32(models.GetMintCountCache(activityID).GetCount()) // Amount - total minted count
-		} else {
-			if config.Amount-int32(mintedCount) < remainedMinted {
-				count = config.Amount - int32(mintedCount)
-			} else {
-				count = remainedMinted
-			}
+	if activity.Amount == -1 {
+		if activity.MaxMintCount == -1 {
+			return -1, nil
 		}
+		return activity.MaxMintCount - int32(mintedCount), nil
 	}
-	return &count, nil
+
+	totalRemain := int64(activity.Amount) - models.GetMintCountCache(activity.ActivityCode).GetCount()
+	if totalRemain <= 0 {
+		return 0, err
+	}
+	userRemain := math.Min(float64(totalRemain), float64(activity.Amount)-float64(mintedCount))
+	return int32(userRemain), nil
 }
 
-func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) error {
-	if err := config.VerifyMintable(); err != nil {
+func (a *ActivityService) GetMintCount(activityID, address string) (int32, error) {
+	activity, err := models.FindActivityByCode(activityID)
+	if err != nil {
+		return 0, err
+	}
+	return a.getMintableCount(activity, address)
+
+	// config, err := models.FindActivityByCode(activityID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// var count int32
+
+	// // phone white list logic: if whiteList config opened and user not in whiteList then the mint count is 0
+	// if config.IsPhoneWhiteListOpened {
+	// 	users, err := models.FindWalletUserByAddress(address)
+	// 	if err == nil { // TODO check the phone not found case
+	// 		var isInWhiteList bool
+	// 		for _, u := range users {
+	// 			isInWhiteList = models.IsPhoneInWhiteList(activityID, u.Phone)
+	// 			if isInWhiteList {
+	// 				break
+	// 			}
+	// 		}
+
+	// 		if !isInWhiteList {
+	// 			count = 0
+	// 			return &count, nil
+	// 		}
+	// 	}
+	// }
+
+	// mintedCount, err := models.GetMintSumByAddresses(activityID, address)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// var remainedMinted int32
+	// if config.MaxMintCount == -1 {
+	// 	remainedMinted = -1
+	// } else {
+	// 	remainedMinted = int32(int64(config.MaxMintCount) - mintedCount)
+	// }
+	// logrus.WithField("remain", remainedMinted).Info("get remain mint count")
+
+	// if config.Amount == -1 {
+	// 	count = remainedMinted
+	// } else {
+	// 	if remainedMinted == -1 {
+	// 		count = config.Amount - int32(models.GetMintCountCache(activityID).GetCount()) // Amount - total minted count
+	// 	} else {
+	// 		if config.Amount-int32(mintedCount) < remainedMinted {
+	// 			count = config.Amount - int32(mintedCount)
+	// 		} else {
+	// 			count = remainedMinted
+	// 		}
+	// 	}
+	// }
+	// return &count, nil
+}
+
+func (a *ActivityService) CheckMintable(activity *models.Activity, req *MintReq) error {
+	if err := activity.VerifyMintable(); err != nil {
 		return errors.WithStack(err)
 	}
 
 	addrsOfPhone := []string{req.UserAddress}
-	if config.IsPhoneWhiteListOpened {
+	if activity.IsPhoneWhiteListOpened {
 		users, err := models.FindWalletUserByAddress(req.UserAddress)
 
 		if err != nil {
@@ -485,11 +529,11 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 		addrsOfPhone = append(addrsOfPhone, addrs...)
 	}
 
-	if err := checkUserMintQuota(config.ActivityCode, addrsOfPhone, config.MaxMintCount); err != nil {
+	if err := checkUserMintQuota(activity.ActivityCode, addrsOfPhone, activity.MaxMintCount); err != nil {
 		return err
 	}
 
-	if req.Command != config.Command {
+	if req.Command != activity.Command {
 		return ERR_BUSINESS_VISPER_WRONG
 	}
 

@@ -14,13 +14,13 @@ type WalletUser struct {
 	Address       string           `gorm:"type:varchar(256);index" json:"address"`
 }
 
-func FindWalletUserByAddress(address string) ([]*WalletUser, error) {
-	var users []*WalletUser
-	err := GetDB().Where("address = ?", address).Find(&users).Error
+func FindWalletUserByAddress(address string) (*WalletUser, error) {
+	var user WalletUser
+	err := GetDB().Where("address = ?", address).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
-	return users, nil
+	return &user, nil
 }
 
 func FindWalletUser(wallet enums.WalletType, address string) (walletUser *WalletUser, err error) {
@@ -34,4 +34,12 @@ func FindWalletUser(wallet enums.WalletType, address string) (walletUser *Wallet
 func FindAllUserAddrsOfPhone(phone string) (addrs []string, err error) {
 	err = GetDB().Debug().Model(&WalletUser{}).Select("address").Distinct().Where("phone=?", phone).Distinct("address").Find(&addrs).Error
 	return
+}
+
+func FindRelatedAddressWithSamePhone(address string) (addrs []string, err error) {
+	user, err := FindWalletUserByAddress(address)
+	if err != nil {
+		return nil, err
+	}
+	return FindAllUserAddrsOfPhone(user.Phone)
 }
