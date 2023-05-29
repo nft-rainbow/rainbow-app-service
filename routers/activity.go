@@ -261,11 +261,6 @@ func deleteActivityNftConfig(c *gin.Context) {
 		NftConfigId uint `uri:"nft_config_id"`
 	}{}
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
-		return
-	}
-
 	if err := c.ShouldBindUri(&req); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
