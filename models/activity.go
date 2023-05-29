@@ -70,19 +70,19 @@ type (
 		ActivityUpdateBasePart
 		AppId          uint               `gorm:"index" json:"app_id" binding:"required"`
 		AppName        string             `gorm:"string" json:"app_name"`
-		ActivityType   enums.ActivityType `gorm:"type:uint" json:"activity_type" binding:"required"`
-		ChainOfGasless enums.Chain        `gorm:"type:uint" json:"chain_of_gasless" default:"2"`
+		ActivityType   enums.ActivityType `gorm:"type:uint" json:"activity_type" swaggertype:"string" binding:"required"`
+		ChainOfGasless enums.Chain        `gorm:"type:uint" json:"chain_of_gasless" swaggertype:"string" default:"2"` // default value: "conflux_test"
 	}
 
 	Activity struct {
 		BaseModel
 		ActivityInsertPart
-		ActivityCode      string          `gorm:"type:string;index" json:"activity_id"` //TODO: 与前端统一调整为activity_code
-		RainbowUserId     uint            `gorm:"type:integer" json:"rainbow_user_id"`
-		ActivityPosterURL string          `gorm:"type:string" json:"activity_poster_url"`
-		Contract          *Contract       `gorm:"-" json:"contract,omitempty"`
-		WhiteListInfos    []WhiteListInfo `json:"white_list_infos"`
-		NFTConfigs        []NFTConfig     `json:"nft_configs"`
+		ActivityCode          string      `gorm:"type:string;index" json:"activity_id"` //TODO: 与前端统一调整为activity_code
+		RainbowUserId         uint        `gorm:"type:integer" json:"rainbow_user_id"`
+		ActivityPosterURL     string      `gorm:"type:string" json:"activity_poster_url"`
+		Contract              *Contract   `gorm:"-" json:"contract,omitempty"`
+		NFTConfigs            []NFTConfig `json:"nft_configs"`
+		CertificateStratageId uint        `json:"certificate_stratage_id"`
 	}
 )
 
@@ -112,9 +112,9 @@ func (a *Activity) VerifyMintable() error {
 		return errors.Wrap(ERR_BUSNISS_ACTIVITY_CONFIG_WRONG, "not bind contract")
 	}
 	// FIXME: 设置了地址白名单后，只能空投，不能页面领; v2会变更逻辑
-	if len(a.WhiteListInfos) != 0 {
-		return errors.New("the activity has opened the white list, could not mint by user")
-	}
+	// if len(a.WhiteListInfos) != 0 {
+	// 	return errors.New("the activity has opened the white list, could not mint by user")
+	// }
 
 	if a.StartedTime != -1 && time.Now().Unix() < a.StartedTime {
 		return ERR_BUSINESS_TIME_EARLY
