@@ -521,6 +521,7 @@ func checkUserMintQuota(activityId string, userAddrs []string, max int32) error 
 		return err
 	}
 
+	logrus.WithField("user addresses", userAddrs).WithField("count", count).WithField("max", max).Info("check user mint quota exceeded")
 	if int32(count) >= max {
 		return ERR_BUSINESS_PERSONAL_MAX_AMOUNT_ARRIVED
 	}
