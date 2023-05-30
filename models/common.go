@@ -1,6 +1,8 @@
 package models
 
-import "github.com/nft-rainbow/rainbow-app-service/models/enums"
+import (
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+)
 
 type SocialUserConfig struct {
 	BaseModel
@@ -18,6 +20,14 @@ type CustomMintCount struct {
 
 func FindSocialUserConfig(userSocialId string, socialTool enums.SocialToolType) (*SocialUserConfig, error) {
 	result := SocialUserConfig{UserId: userSocialId, SocialTool: socialTool}
+	if err := db.Where(&result).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func FindSocialUserByAddress(address string) (*SocialUserConfig, error) {
+	result := SocialUserConfig{CFXAddress: address}
 	if err := db.Where(&result).First(&result).Error; err != nil {
 		return nil, err
 	}

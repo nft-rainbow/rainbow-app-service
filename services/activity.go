@@ -18,6 +18,7 @@ import (
 	. "github.com/nft-rainbow/rainbow-app-service/config"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/certificate"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	randutils "github.com/nft-rainbow/rainbow-app-service/utils/rand"
@@ -406,8 +407,20 @@ func (a *ActivityService) getMintableCount(activity *models.Activity, address st
 	}
 
 	//TODO: is certi qulified
+	var certi certificate.CertificateStrategy
+	if err := models.GetDB().First(&certi, activity.CertificateStratageId).Error; err != nil {
+		return 0, err
+	}
 
-	var err error
+	isQualified, err := certificate.GetCertiChecker(&certi).CheckQualified(address)
+	if err != nil {
+		return 0, err
+	}
+
+	if !isQualified {
+		return 0, nil
+	}
+
 	addrsOfPhone := []string{address}
 	if activity.IsPhoneWhiteListOpened {
 		addrsOfPhone, err = models.FindRelatedAddressWithSamePhone(address)
@@ -502,35 +515,36 @@ func (a *ActivityService) CheckMintable(activity *models.Activity, req *MintReq)
 		return errors.WithStack(err)
 	}
 
-	addrsOfPhone := []string{req.UserAddress}
-	if activity.IsPhoneWhiteListOpened {
-		users, err := models.FindWalletUserByAddress(req.UserAddress)
+	// addrsOfPhone := []string{req.UserAddress}
+	// if activity.IsPhoneWhiteListOpened {
+	// 	user, err := models.FindWalletUserByAddress(req.UserAddress)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		if err != nil {
-			return err
-		}
+	// 	isInWhiteList := models.IsPhoneInWhiteList(req.ActivityID, user.Phone)
+	// 	if !isInWhiteList {
+	// 		return ERR_BUSINESS_NO_MINT_PERMISSIION
+	// 	}
 
-		var isInWhiteList bool
-		for _, u := range users {
-			isInWhiteList = models.IsPhoneInWhiteList(req.ActivityID, u.Phone)
-			if isInWhiteList {
-				break
-			}
-		}
+	// 	addrs, err := models.FindAllUserAddrsOfPhone(user.Phone)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	addrsOfPhone = append(addrsOfPhone, addrs...)
+	// }
 
-		if !isInWhiteList {
-			return ERR_BUSINESS_NO_MINT_PERMISSIION
-		}
+	// if err := checkUserMintQuota(activity.ActivityCode, addrsOfPhone, activity.MaxMintCount); err != nil {
+	// 	return err
+	// }
 
-		addrs, err := models.FindAllUserAddrsOfPhone(users[0].Phone)
-		if err != nil {
-			return err
-		}
-		addrsOfPhone = append(addrsOfPhone, addrs...)
+	mintableCount, err := a.getMintableCount(activity, req.UserAddress)
+	if err != nil {
+		return err
 	}
 
-	if err := checkUserMintQuota(activity.ActivityCode, addrsOfPhone, activity.MaxMintCount); err != nil {
-		return err
+	if mintableCount == 0 {
+		return ERR_BUSINESS_PERSONAL_MAX_AMOUNT_ARRIVED
 	}
 
 	if req.Command != activity.Command {
@@ -621,21 +635,21 @@ func weightedRandomIndex(weights []float32) int {
 	return len(weights) - 1
 }
 
-func checkUserMintQuota(activityId string, userAddrs []string, max int32) error {
-	if max == -1 {
-		return nil
-	}
+// func checkUserMintQuota(activityId string, userAddrs []string, max int32) error {
+// 	if max == -1 {
+// 		return nil
+// 	}
 
-	count, err := models.GetMintSumByAddresses(activityId, userAddrs...)
-	if err != nil {
-		return err
-	}
+// 	count, err := models.GetMintSumByAddresses(activityId, userAddrs...)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if int32(count) >= max {
-		return ERR_BUSINESS_PERSONAL_MAX_AMOUNT_ARRIVED
-	}
-	return nil
-}
+// 	if int32(count) >= max {
+// 		return ERR_BUSINESS_PERSONAL_MAX_AMOUNT_ARRIVED
+// 	}
+// 	return nil
+// }
 
 func mint(activity *models.Activity, nftConfig *models.NFTConfig, to string, token string) (*openapiclient.ModelsMintTask, error) {
 	metadataURI, err := crateMetadata(activity, nftConfig, token)

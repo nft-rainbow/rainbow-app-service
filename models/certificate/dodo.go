@@ -6,22 +6,22 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/utils/gormutils"
 )
 
-type PhoneCertificate struct {
+type DodoCertificate struct {
 	models.BaseModel
-	Phone                 string `json:"phone"`
+	DodoSourceId          string `json:"dodo_source_id"`
 	CertificateStrategyID uint   `json:"certificate_strategy_id"`
 }
 
-type PhoneCertiChecker struct {
+type DodoCertiChecker struct {
 	Strategy *CertificateStrategy
 }
 
-func (a *PhoneCertiChecker) CheckQualified(userAddress string) (bool, error) {
-	if a.Strategy == nil || a.Strategy.CertificateType != enums.CERTIFICATE_PHONE {
+func (a *DodoCertiChecker) CheckQualified(userAddress string) (bool, error) {
+	if a.Strategy == nil || a.Strategy.CertificateType != enums.CERTIFICATE_DODO {
 		return false, nil
 	}
 
-	wu, err := models.FindWalletUserByAddress(userAddress)
+	su, err := models.FindSocialUserByAddress(userAddress)
 	if err != nil {
 		if gormutils.IsRecordNotFoundError(err) {
 			return false, nil
@@ -30,15 +30,15 @@ func (a *PhoneCertiChecker) CheckQualified(userAddress string) (bool, error) {
 	}
 
 	var count int64
-	if err := models.GetDB().Model(&PhoneCertificate{}).Find("phone = ? and certificate_strategy_id=?", wu.Phone, a.Strategy.ID).Count(&count).Error; err != nil {
+	if err := models.GetDB().Model(&DodoCertificate{}).Find("dodo_source_id = ? and certificate_strategy_id=?", su.UserId, a.Strategy.ID).Count(&count).Error; err != nil {
 		return false, err
 	}
 	return count > 0, nil
 }
 
-func (a *PhoneCertiChecker) GetCertificates(offset int, limit int) (*Certificates, error) {
+func (a *DodoCertiChecker) GetCertificates(offset int, limit int) (*Certificates, error) {
 	var certificates Certificates
-	err := models.GetDB().Model(&PhoneCertificate{}).
+	err := models.GetDB().Model(&DodoCertificate{}).
 		Where("certificate_strategy_id=?", a.Strategy.ID).
 		Count(&certificates.Count).Offset(offset).Limit(limit).Find(&certificates.Items).Error
 	if err != nil {
