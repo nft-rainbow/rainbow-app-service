@@ -14,6 +14,7 @@ import (
 	"time"
 
 	. "github.com/nft-rainbow/rainbow-app-service/appService-errors"
+	. "github.com/nft-rainbow/rainbow-app-service/config"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
@@ -50,26 +51,43 @@ func GetActivityService() *ActivityService {
 	return activityService
 }
 
-func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId uint) (*models.Activity, error) {
+func (a *ActivityService) InsertActivity(activityReq *models.ActivityInsertPart, userId uint) (*models.Activity, error) {
 	if err := activityReq.SetDefaults(); err != nil {
 		return nil, err
 	}
 
 	activityId := utils.GenerateIDByTimeHash("", 8)
-	posterUrl, err := generateActivityPoster(&activityReq.UpdateActivityReq, activityId)
+	posterUrl, err := generateActivityPoster(&activityReq.ActivityUpdateBasePart, activityId)
 	if err != nil {
 		logrus.Errorf("Failed to generate poster for activity %v:%v \n", activityId, err.Error())
 		return nil, errors.WithStack(err)
 	}
 
 	activity := models.Activity{
-		ActivityReq:       *activityReq,
-		RainbowUserId:     userId,
-		ActivityCode:      activityId,
-		ActivityPosterURL: posterUrl,
+		ActivityInsertPart: *activityReq,
+		RainbowUserId:      userId,
+		ActivityCode:       activityId,
+		ActivityPosterURL:  posterUrl,
 	}
 
-	if activityReq.ContractRawID != nil {
+	if activityReq.ActivityType == enums.ACTIVITY_GASLESS {
+		gasLess := GetConfig().Gasless
+
+		if activityReq.Amount > int32(gasLess.MaxAmount) {
+			return nil, errors.Errorf("exceed gasless max amount: %v", gasLess.MaxAmount)
+		}
+
+		contractRawId := gasLess.ContractRawID.Testnet
+		if activityReq.ChainOfGasless == enums.CHAIN_CONFLUX {
+			contractRawId = gasLess.ContractRawID.Mainnet
+		}
+		_contractRawId := int32(contractRawId)
+		activity.ContractRawID = &_contractRawId
+
+		if err := a.UpdateOrCreateContract(gasLess.UserID, gasLess.AppID, contractRawId); err != nil {
+			return nil, errors.WithStack(err)
+		}
+	} else if activityReq.ContractRawID != nil {
 		if err := a.UpdateOrCreateContract(userId, activityReq.AppId, uint(*activityReq.ContractRawID)); err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -84,6 +102,31 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityReq, userId
 		return nil, errors.WithStack(err)
 	}
 	return &activity, nil
+}
+
+func (a *ActivityService) AddActivityNftConfigs(activityCode string, nftConfigUpdateParts []*models.NftConfigUpdatePart, userId uint) ([]*models.NFTConfig, error) {
+	activity, err := models.FindActivityByCode(activityCode)
+	if err != nil {
+		return nil, err
+	}
+
+	if activity.RainbowUserId != userId {
+		return nil, errors.New("no permission")
+	}
+
+	var nftConfigs []*models.NFTConfig
+	for _, p := range nftConfigUpdateParts {
+		nftConfigs = append(nftConfigs, &models.NFTConfig{
+			NftConfigUpdatePart: *p,
+			ActivityID:          activity.ID,
+		})
+	}
+
+	if err := models.GetDB().Save(&nftConfigs).Error; err != nil {
+		return nil, err
+	}
+
+	return nftConfigs, nil
 }
 
 func (a *ActivityService) POAPH5Config(config *models.H5Config) (*models.H5Config, error) {
@@ -121,10 +164,14 @@ func (a *ActivityService) UpdateOrCreateContract(userId uint, appId uint, contra
 	return nil
 }
 
-func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateActivityReq) (*models.Activity, error) {
-	activity, err := models.FindActivityByCode(activityId)
+func (a *ActivityService) UpdateActivityBase(userId uint, activityCode string, req *models.ActivityUpdateBasePart) (*models.Activity, error) {
+	activity, err := models.FindActivityByCode(activityCode)
 	if err != nil {
 		return nil, err
+	}
+
+	if activity.RainbowUserId != userId {
+		return nil, errors.New("no permission")
 	}
 
 	if req.ContractRawID != nil {
@@ -134,12 +181,12 @@ func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateAc
 		activity.ContractRawID = req.ContractRawID
 	}
 
-	for _, nftConfig := range req.NFTConfigs {
-		nftConfig.ActivityID = activity.ID
-	}
+	// for _, nftConfig := range req.NFTConfigs {
+	// 	nftConfig.ActivityID = activity.ID
+	// }
 
 	req.SetDefaults()
-	activity.UpdateActivityReq = *req
+	activity.ActivityUpdateBasePart = *req
 	if err := models.GetDB().Session(&gorm.Session{FullSaveAssociations: true}).Updates(&activity).Error; err != nil {
 		return nil, err
 	}
@@ -148,6 +195,40 @@ func (a *ActivityService) UpdateActivity(activityId string, req *models.UpdateAc
 		return nil, err
 	}
 	return activity, nil
+}
+
+func (a *ActivityService) UpdateNftConfig(userId uint, nftConfigId uint, updateNftConfig *models.NftConfigUpdatePart) (*models.NFTConfig, error) {
+	nftConfig, err := models.FindNftConfigById(nftConfigId)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := models.CheckNftConfigBelongToUser(nftConfig, userId); err != nil {
+		return nil, err
+	}
+
+	nftConfig.NftConfigUpdatePart = *updateNftConfig
+	if err := models.GetDB().Save(nftConfig).Error; err != nil {
+		return nil, err
+	}
+
+	return nftConfig, nil
+}
+
+func (a *ActivityService) DeleteActivityNftConfig(userId uint, nftConfigId uint) error {
+	nftConfig, err := models.FindNftConfigById(nftConfigId)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	if err := models.CheckNftConfigBelongToUser(nftConfig, userId); err != nil {
+		return errors.WithStack(err)
+	}
+
+	if err := models.GetDB().Delete(&nftConfig).Error; err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
 }
 
 // func (a *ActivityService) UpdateActivity2(activityId string, req *models.UpdateActivityReq) (*models.Activity, error) {
@@ -296,7 +377,7 @@ func (a *ActivityService) H5Mint(req *MintReq) (*models.POAPResult, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	token, err := middlewares.GenerateRainbowOpenJWT(activity.RainbowUserId, activity.AppId)
+	token, err := getOpenApiToken(activity)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -606,6 +687,19 @@ func saveMintResult(activity *models.Activity, nftConfig *models.NFTConfig, resp
 	}
 	err := models.GetDB().Create(&item).Error
 	return item, err
+}
+
+func getOpenApiToken(activity *models.Activity) (string, error) {
+	userId, appId := activity.RainbowUserId, activity.AppId
+	if activity.ActivityType == enums.ACTIVITY_GASLESS {
+		gasless := GetConfig().Gasless
+		userId, appId = gasless.UserID, gasless.AppID
+	}
+	token, err := middlewares.GenerateRainbowOpenJWT(userId, appId)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	return token, err
 }
 
 // func getPOAPId(address string, name string) (string, error) {

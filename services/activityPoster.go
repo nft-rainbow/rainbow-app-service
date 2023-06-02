@@ -26,24 +26,28 @@ func drawPoster(templatePath string, fontPath string,
 	activityId string, activityPicUrl string,
 	name, description string, startTime, endTime int) (*bytes.Buffer, error) {
 	// now := time.Now()
-
+	logrus.Info("strat draw poster")
 	var dc *gg.Context
-	paintSig := make(chan interface{}, 2)
+	paintSig := make(chan bool, 2)
 
 	drawBackground := func() error {
+
 		templateImg, err := gg.LoadImage(templatePath)
 		if err != nil {
+			for i := 0; i < 2; i++ {
+				paintSig <- false
+			}
 			return err
 		}
 
 		dc = gg.NewContext(templateImg.Bounds().Dx(), templateImg.Bounds().Dy())
 		// fmt.Printf("0 %v\n", time.Since(now))
 		dc.DrawImage(templateImg, 0, 0)
+		logrus.Info("draw tempate done")
 		// fmt.Printf("1 %v\n", time.Since(now))
 		for i := 0; i < 2; i++ {
-			paintSig <- struct{}{}
+			paintSig <- true
 		}
-		// fmt.Println("loadTemplate done")
 		return nil
 	}
 
@@ -64,15 +68,22 @@ func drawPoster(templatePath string, fontPath string,
 			return err
 		}
 		img = imaging.Fill(img, 1260, 1260, 0, imaging.ResampleFilter{})
-		<-paintSig
+
+		isContinue := <-paintSig
+		if !isContinue {
+			return nil
+		}
+
 		dc.DrawImage(img, 120, 200)
-		// fmt.Printf("2 %v\n", time.Since(now))
-		// fmt.Println("drawBackground done")
+		logrus.Info("draw head done")
 		return nil
 	}
 
 	drawTexts := func() error {
-		<-paintSig
+		isContinue := <-paintSig
+		if !isContinue {
+			return nil
+		}
 		// 增加文字
 		err := dc.LoadFontFace(fontPath, 88)
 		if err != nil {
@@ -150,6 +161,7 @@ func drawPoster(templatePath string, fontPath string,
 		dc.DrawImage(qrImg, 1112, int(paintHeight))
 		// fmt.Printf("5 %v\n", time.Since(now))
 		// fmt.Println("drawTexts done")
+		logrus.Info("draw test done")
 		return nil
 	}
 
@@ -168,11 +180,12 @@ func drawPoster(templatePath string, fontPath string,
 		return nil, errors.WithStack(err)
 	}
 	// fmt.Printf("6 %v\n", time.Since(now))
+	logrus.Info("draw qucode done")
 
 	return buf, nil
 }
 
-func generateActivityPoster(config *models.UpdateActivityReq, activityId string) (string, error) {
+func generateActivityPoster(config *models.ActivityUpdateBasePart, activityId string) (string, error) {
 	buf, err := drawPoster("./assets/images/activityPoster.png",
 		"./assets/fonts/PingFang.ttf",
 		activityId,
