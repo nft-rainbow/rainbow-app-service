@@ -9,10 +9,14 @@ import (
 
 type ContractCertificate struct {
 	models.BaseModel
-	ContractAddress       string `json:"contract_address"`
-	SnapshotEpochNumber   uint64 `json:"snapshot_epoch_number"`
-	SnapshotTaskStatus    uint   `json:"snapshot_task_status"`
-	CertificateStrategyID uint   `json:"certificate_strategy_id"`
+	ContractAddress         string               `json:"contract_address"`
+	Chain                   enums.Chain          `json:"chain"`
+	ContractType            enums.ContractType   `json:"contract_type"`
+	SnapshotEpochNumber     uint64               `json:"snapshot_epoch_number"`
+	SnapshotTaskStatus      enums.SnapshotStatus `json:"snapshot_task_status" swaggertype:"string"`
+	SnapshotProcessingIndex int                  `json:"snapshot_processing_index"`
+	SnapshotProcessError    string               `json:"snapshot_processing_error"`
+	CertificateStrategyID   uint                 `json:"certificate_strategy_id"`
 }
 
 func FindContractCertificatesByStrategyId(id uint) (certis []*ContractCertificate, err error) {
@@ -20,16 +24,20 @@ func FindContractCertificatesByStrategyId(id uint) (certis []*ContractCertificat
 	return
 }
 
+func (c *ContractCertificate) FindContractSnapshots() (snapshots []*ContractSnapshot, err error) {
+	err = models.GetDB().Where("contract_certificate_id=?", c.ID).Find(&snapshots).Error
+	return
+}
+
 // TODO:
-// 1. gen snapshot task, 首次自动同步，
-// 2. gen snapshot api, 如果失败使用api重新获取
+// 2. snapshot api, 使用api获取快照
 // 3. query snapshot list
 
-type ContractCertiChecker struct {
+type ContractCertiOperator struct {
 	Strategy *CertificateStrategy
 }
 
-func (a *ContractCertiChecker) CheckQualified(userAddress string) (bool, error) {
+func (a *ContractCertiOperator) CheckQualified(userAddress string) (bool, error) {
 	if a.Strategy == nil || a.Strategy.CertificateType != enums.CERTIFICATE_CONTRACT {
 		return false, nil
 	}
@@ -60,7 +68,7 @@ func (a *ContractCertiChecker) CheckQualified(userAddress string) (bool, error) 
 	return false, nil
 }
 
-func (a *ContractCertiChecker) GetCertificates(offset int, limit int) (*Certificates, error) {
+func (a *ContractCertiOperator) GetCertificates(offset int, limit int) (*Certificates, error) {
 	var certificates Certificates
 	err := models.GetDB().Model(&ContractCertificate{}).
 		Where("certificate_strategy_id=?", a.Strategy.ID).

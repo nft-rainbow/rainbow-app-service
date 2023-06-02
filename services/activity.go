@@ -15,7 +15,7 @@ import (
 	"time"
 
 	. "github.com/nft-rainbow/rainbow-app-service/appService-errors"
-	. "github.com/nft-rainbow/rainbow-app-service/config"
+	"github.com/nft-rainbow/rainbow-app-service/config"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/certificate"
@@ -72,7 +72,7 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityInsertPart,
 	}
 
 	if activityReq.ActivityType == enums.ACTIVITY_GASLESS {
-		gasLess := GetConfig().Gasless
+		gasLess := config.GetConfig().Gasless
 
 		if activityReq.Amount > int32(gasLess.MaxAmount) {
 			return nil, errors.Errorf("exceed gasless max amount: %v", gasLess.MaxAmount)
@@ -412,7 +412,7 @@ func (a *ActivityService) getMintableCount(activity *models.Activity, address st
 		return 0, err
 	}
 
-	isQualified, err := certificate.GetCertiChecker(&certi).CheckQualified(address)
+	isQualified, err := certificate.GetCertiOperator(&certi).CheckQualified(address)
 	if err != nil {
 		return 0, err
 	}
@@ -732,7 +732,7 @@ func saveMintResult(activity *models.Activity, nftConfig *models.NFTConfig, resp
 func getOpenApiToken(activity *models.Activity) (string, error) {
 	userId, appId := activity.RainbowUserId, activity.AppId
 	if activity.ActivityType == enums.ACTIVITY_GASLESS {
-		gasless := GetConfig().Gasless
+		gasless := config.GetConfig().Gasless
 		userId, appId = gasless.UserID, gasless.AppID
 	}
 	token, err := middlewares.GenerateRainbowOpenJWT(userId, appId)

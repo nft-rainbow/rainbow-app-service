@@ -12,11 +12,11 @@ type DodoCertificate struct {
 	CertificateStrategyID uint   `json:"certificate_strategy_id"`
 }
 
-type DodoCertiChecker struct {
+type DodoCertiOperator struct {
 	Strategy *CertificateStrategy
 }
 
-func (a *DodoCertiChecker) CheckQualified(userAddress string) (bool, error) {
+func (a *DodoCertiOperator) CheckQualified(userAddress string) (bool, error) {
 	if a.Strategy == nil || a.Strategy.CertificateType != enums.CERTIFICATE_DODO {
 		return false, nil
 	}
@@ -36,7 +36,7 @@ func (a *DodoCertiChecker) CheckQualified(userAddress string) (bool, error) {
 	return count > 0, nil
 }
 
-func (a *DodoCertiChecker) GetCertificates(offset int, limit int) (*Certificates, error) {
+func (a *DodoCertiOperator) GetCertificates(offset int, limit int) (*Certificates, error) {
 	var certificates Certificates
 	err := models.GetDB().Model(&DodoCertificate{}).
 		Where("certificate_strategy_id=?", a.Strategy.ID).

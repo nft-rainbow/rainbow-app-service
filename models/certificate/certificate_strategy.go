@@ -26,18 +26,18 @@ type CertiOperator interface {
 	GetCertificates(offset int, limit int) (*Certificates, error)
 }
 
-func GetCertiChecker(cs *CertificateStrategy) CertiOperator {
+func GetCertiOperator(cs *CertificateStrategy) CertiOperator {
 	switch cs.CertificateType {
 	case enums.CERTIFICATE_ADDRESS:
-		return &AddressCertiChecker{cs}
+		return &AddressCertiOperator{cs}
 	}
 	return nil
 }
 
 func (cs *CertificateStrategy) CheckQualified(userAddress string) (bool, error) {
-	return GetCertiChecker(cs).CheckQualified(userAddress)
+	return GetCertiOperator(cs).CheckQualified(userAddress)
 }
 
 func (cs *CertificateStrategy) GetCertificates(offset int, limit int) (*Certificates, error) {
-	return GetCertiChecker(cs).GetCertificates(offset, limit)
+	return GetCertiOperator(cs).GetCertificates(offset, limit)
 }

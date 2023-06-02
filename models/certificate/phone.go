@@ -12,11 +12,11 @@ type PhoneCertificate struct {
 	CertificateStrategyID uint   `json:"certificate_strategy_id"`
 }
 
-type PhoneCertiChecker struct {
+type PhoneCertiOperator struct {
 	Strategy *CertificateStrategy
 }
 
-func (a *PhoneCertiChecker) CheckQualified(userAddress string) (bool, error) {
+func (a *PhoneCertiOperator) CheckQualified(userAddress string) (bool, error) {
 	if a.Strategy == nil || a.Strategy.CertificateType != enums.CERTIFICATE_PHONE {
 		return false, nil
 	}
@@ -36,7 +36,7 @@ func (a *PhoneCertiChecker) CheckQualified(userAddress string) (bool, error) {
 	return count > 0, nil
 }
 
-func (a *PhoneCertiChecker) GetCertificates(offset int, limit int) (*Certificates, error) {
+func (a *PhoneCertiOperator) GetCertificates(offset int, limit int) (*Certificates, error) {
 	var certificates Certificates
 	err := models.GetDB().Model(&PhoneCertificate{}).
 		Where("certificate_strategy_id=?", a.Strategy.ID).
