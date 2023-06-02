@@ -21,6 +21,7 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	randutils "github.com/nft-rainbow/rainbow-app-service/utils/rand"
 
+	. "github.com/ahmetalpbalkan/go-linq"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -425,6 +426,11 @@ func (a *ActivityService) GetMintCount(activityID, address string) (*int32, erro
 				return &count, nil
 			}
 		}
+	} else if config.IsAddressWhiteListOpened {
+		if !From(config.AddressWhitelist).Contains(address) {
+			count = 0
+			return &count, nil
+		}
 	}
 
 	mintedCount, err := models.GetMintSumByAddresses(activityID, address)
@@ -461,7 +467,7 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 		return errors.WithStack(err)
 	}
 
-	addrsOfPhone := []string{req.UserAddress}
+	var addrsOfPhone []string
 	if config.IsPhoneWhiteListOpened {
 		users, err := models.FindWalletUserByAddress(req.UserAddress)
 
@@ -486,6 +492,14 @@ func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) e
 			return err
 		}
 		addrsOfPhone = append(addrsOfPhone, addrs...)
+	} else if config.IsAddressWhiteListOpened {
+		if !From(config.AddressWhitelist).Contains(req.UserAddress) {
+			return ERR_BUSINESS_NO_MINT_PERMISSIION
+		} else {
+			addrsOfPhone = append(addrsOfPhone, req.UserAddress)
+		}
+	} else {
+		addrsOfPhone = append(addrsOfPhone, req.UserAddress)
 	}
 
 	if err := checkUserMintQuota(config.ActivityCode, addrsOfPhone, config.MaxMintCount); err != nil {
@@ -590,6 +604,7 @@ func checkUserMintQuota(activityId string, userAddrs []string, max int32) error 
 		return err
 	}
 
+	logrus.WithField("user addresses", userAddrs).WithField("count", count).WithField("max", max).Info("check user mint quota exceeded")
 	if int32(count) >= max {
 		return ERR_BUSINESS_PERSONAL_MAX_AMOUNT_ARRIVED
 	}

@@ -36,19 +36,20 @@ type (
 )
 
 type ActivityUpdateBasePart struct {
-	Amount                 int32                                 `gorm:"type:integer" json:"amount" binding:"required"`
-	Name                   string                                `gorm:"type:string" json:"name" binding:"required"`
-	Description            string                                `gorm:"type:string" json:"description" binding:"required"`
-	Command                string                                `gorm:"type:string" json:"command,omitempty"`
-	IsPhoneWhiteListOpened bool                                  `gorm:"type:bool;default:false" json:"is_phone_white_list_opened"`
-	IsTokenIdOrdered       *bool                                 `gorm:"type:bool" json:"is_token_id_ordered" default:"true"`
-	EndedTime              int64                                 `gorm:"type:integer" json:"end_time" default:"-1"`
-	StartedTime            int64                                 `gorm:"type:integer" json:"start_time" default:"-1"`
-	MaxMintCount           int32                                 `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
-	MetadataUri            string                                `gorm:"type:string" json:"metadata_uri"` //支持模版 如 http://xx/{id}.json, 铸造时 MetadataUri 优先，若为空则根据nftconfig创建metadata
-	ActivityPictureURL     string                                `gorm:"type:string" json:"activity_picture_url"`
-	ContractRawID          *int32                                `gorm:"type:string" json:"contract_id"`
-	SupportWallets         datatypes.JSONSlice[enums.WalletType] `json:"support_wallets,omitempty" swaggertype:"array,string"` //default value: ["anyweb","cellar"]
+	Amount                   int32                                 `gorm:"type:integer" json:"amount" binding:"required"`
+	Name                     string                                `gorm:"type:string" json:"name" binding:"required"`
+	Description              string                                `gorm:"type:string" json:"description" binding:"required"`
+	Command                  string                                `gorm:"type:string" json:"command,omitempty"`
+	IsPhoneWhiteListOpened   bool                                  `gorm:"type:bool;default:false" json:"is_phone_white_list_opened"`
+	IsAddressWhiteListOpened bool                                  `gorm:"type:bool;default:false" json:"is_address_white_list_opened"`
+	IsTokenIdOrdered         *bool                                 `gorm:"type:bool" json:"is_token_id_ordered" default:"true"`
+	EndedTime                int64                                 `gorm:"type:integer" json:"end_time" default:"-1"`
+	StartedTime              int64                                 `gorm:"type:integer" json:"start_time" default:"-1"`
+	MaxMintCount             int32                                 `gorm:"type:varchar(256)" json:"max_mint_count" binding:"required"`
+	MetadataUri              string                                `gorm:"type:string" json:"metadata_uri"` //支持模版 如 http://xx/{id}.json, 铸造时 MetadataUri 优先，若为空则根据nftconfig创建metadata
+	ActivityPictureURL       string                                `gorm:"type:string" json:"activity_picture_url"`
+	ContractRawID            *int32                                `gorm:"type:string" json:"contract_id"`
+	SupportWallets           datatypes.JSONSlice[enums.WalletType] `json:"support_wallets,omitempty" swaggertype:"array,string"` //default value: ["anyweb","cellar"]
 }
 
 func (u *ActivityUpdateBasePart) SetDefaults() error {
@@ -77,12 +78,13 @@ type (
 	Activity struct {
 		BaseModel
 		ActivityInsertPart
-		ActivityCode      string          `gorm:"type:string;index" json:"activity_id"` //TODO: 与前端统一调整为activity_code
-		RainbowUserId     uint            `gorm:"type:integer" json:"rainbow_user_id"`
-		ActivityPosterURL string          `gorm:"type:string" json:"activity_poster_url"`
-		Contract          *Contract       `gorm:"-" json:"contract,omitempty"`
-		WhiteListInfos    []WhiteListInfo `json:"white_list_infos"`
-		NFTConfigs        []NFTConfig     `json:"nft_configs"`
+		ActivityCode      string                      `gorm:"type:string;index" json:"activity_id"` //TODO: 与前端统一调整为activity_code
+		RainbowUserId     uint                        `gorm:"type:integer" json:"rainbow_user_id"`
+		ActivityPosterURL string                      `gorm:"type:string" json:"activity_poster_url"`
+		Contract          *Contract                   `gorm:"-" json:"contract,omitempty"`
+		AddressWhitelist  datatypes.JSONSlice[string] `gorm:"type:json" json:"address_white_list"`
+		WhiteListInfos    []WhiteListInfo             `json:"white_list_infos"`
+		NFTConfigs        []NFTConfig                 `json:"nft_configs"`
 	}
 )
 
@@ -140,6 +142,24 @@ func (a *Activity) VerifyMintable() error {
 
 	return nil
 }
+
+// func (a *Activity) IsAddressInWhiteList(address string) (bool, error) {
+
+// 	users, err := FindWalletUserByAddress(address)
+
+// 	if err != nil {
+// 		return false, err
+// 	}
+
+// 	var isInWhiteList bool
+// 	for _, u := range users {
+// 		isInWhiteList = IsPhoneInWhiteList(a.ActivityCode, u.Phone)
+// 		if isInWhiteList {
+// 			return true, nil
+// 		}
+// 	}
+// 	return false, nil
+// }
 
 func CompleteActivities(ps ...*Activity) error {
 	for _, p := range ps {
