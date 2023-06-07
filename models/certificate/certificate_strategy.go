@@ -21,18 +21,6 @@ func FindCertificateStrategyById(id uint) (*CertificateStrategy, error) {
 	return &cs, err
 }
 
-// func (cs *CertificateStrategy) Save() error {
-// 	tmp := CertificateStrategy{
-// 		CertificateType: cs.CertificateType,
-// 	}
-
-// 	models.GetDB().Transaction(func(tx *gorm.DB) error {
-// 		if err := tx.Save(tmp).Error; err != nil {
-// 			return err
-// 		}
-// 	})
-// }
-
 func (cs *CertificateStrategy) CheckQualified(userAddress string) (bool, error) {
 	return GetCertiOperator(cs).CheckQualified(userAddress)
 }
@@ -43,4 +31,8 @@ func (cs *CertificateStrategy) GetCertificates(offset int, limit int) (*Certific
 
 func (cs *CertificateStrategy) InsertCertificates(items []any) error {
 	return GetCertiOperator(cs).InsertCertificates(items)
+}
+
+func (cs *CertificateStrategy) DeleteCertificates(ids []uint) error {
+	return GetCertiOperator(cs).DeleteCertificates(ids)
 }

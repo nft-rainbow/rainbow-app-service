@@ -60,3 +60,7 @@ func (a *AddressCertiOperator) InsertCertificates(items []any) error {
 
 	return models.GetDB().Save(&results).Error
 }
+
+func (a *AddressCertiOperator) DeleteCertificates(ids []uint) error {
+	return models.GetDB().Where("certificate_strategy_id = ?", a.Strategy.ID).Where("id in (?)", ids).Delete(&AddressCertificate{}).Error
+}

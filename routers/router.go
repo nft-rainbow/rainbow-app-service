@@ -105,13 +105,13 @@ func SetupRoutes(router *gin.Engine) {
 	{
 		certiCtrl := NewCertiController()
 		certi.POST("/strategy/type/:certificate_type", certiCtrl.InsertCertificateStrategy)
+
 		certi.GET("/strategy/:id/certificates", certiCtrl.GetCertificates)
 		certi.POST("/strategy/:id/certificates", certiCtrl.InsertCertificates)
-		certi.DELETE("/strategy/:id/certificates", nil)
+		certi.DELETE("/strategy/:id/certificates", certiCtrl.DeleteCertificates)
+
 		certi.GET("contract_certificate/:certificate_id/snapshot", certiCtrl.GetSnapshots)
 		certi.POST("contract_certificate/:certificate_id/snapshot/run", certiCtrl.TriggerObtainSnapshot)
-		// certi.DELETE(":id", nil)
-		// certi.DELETE("/certificates/:certificate_id", nil)
 	}
 }
 

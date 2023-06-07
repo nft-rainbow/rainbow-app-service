@@ -104,6 +104,42 @@ func (ctrl *CertiController) InsertCertificates(c *gin.Context) {
 }
 
 //	@Tags			Certi
+//	@ID				DeleteCertificates
+//	@Summary		Delete Certificates
+//	@Description	Delete Certificates
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			id				path		int		true	"certificate_strategy_id"
+//	@Param			certificate_ids	body		[]uint	true	"certificate_ids"
+//	@Success		200				{object}	ginutils.CommonMessage
+//	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/certis/strategy/{id}/certificates [delete]
+func (ctrl *CertiController) DeleteCertificates(c *gin.Context) {
+	csIdStr := c.Param("id")
+	csId, err := strconv.Atoi(csIdStr)
+	if err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+
+	var certificateIds []uint
+	if err := c.ShouldBindJSON(&certificateIds); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_PAGINATION)
+		return
+	}
+
+	err = func() error {
+		cs, err := certificate.FindCertificateStrategyById(uint(csId))
+		if err != nil {
+			return err
+		}
+		return cs.DeleteCertificates(certificateIds)
+	}()
+	ginutils.RenderResp(c, ginutils.CommonSuccessMessage, err)
+}
+
+//	@Tags			Certi
 //	@ID				GetSnapshots
 //	@Summary		Get Snapshots
 //	@Description	Get Snapshots

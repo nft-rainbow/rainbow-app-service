@@ -69,3 +69,7 @@ func (a *DodoCertiOperator) InsertCertificates(items []any) error {
 
 	return models.GetDB().Save(&results).Error
 }
+
+func (a *DodoCertiOperator) DeleteCertificates(ids []uint) error {
+	return models.GetDB().Where("certificate_strategy_id = ?", a.Strategy.ID).Where("id in (?)", ids).Delete(&DodoCertificate{}).Error
+}

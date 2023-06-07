@@ -6,6 +6,7 @@ type CertiOperator interface {
 	CheckQualified(userAddress string) (bool, error)
 	GetCertificates(offset int, limit int) (*CertificatesQueryResult[any], error)
 	InsertCertificates([]any) error
+	DeleteCertificates([]uint) error
 }
 
 func GetCertiOperator(cs *CertificateStrategy) CertiOperator {

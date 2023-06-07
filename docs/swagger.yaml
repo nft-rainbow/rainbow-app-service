@@ -1238,6 +1238,43 @@ paths:
       tags:
       - Certi
   /certis/strategy/{id}/certificates:
+    delete:
+      description: Delete Certificates
+      operationId: DeleteCertificates
+      parameters:
+      - description: certificate_strategy_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: certificate_ids
+        in: body
+        name: certificate_ids
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ginutils.CommonMessage'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Certificates
+      tags:
+      - Certi
     get:
       description: Get Certificates
       operationId: GetCertificates
