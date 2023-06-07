@@ -51,7 +51,7 @@ func (ctrl *CertiController) InsertCertificateStrategy(c *gin.Context) {
 //	@security		ApiKeyAuth
 //	@Produce		json
 //	@Param			id	path		int	true	"certificate_strategy_id"
-//	@Success		200	{object}	[]any
+//	@Success		200	{object}	certificate.CertificatesQueryResult[CompositedCertificate]
 //	@Failure		400	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
 //	@Router			/certis/strategy/{id}/certificates [get]
@@ -73,8 +73,8 @@ func (ctrl *CertiController) GetCertificates(c *gin.Context) {
 //	@Description	Insert Certificates
 //	@security		ApiKeyAuth
 //	@Produce		json
-//	@Param			id				path		int		true	"certificate_strategy_id"
-//	@Param			certificates	body		[]any	true	"certificate"
+//	@Param			id				path		int						true	"certificate_strategy_id"
+//	@Param			certificates	body		[]CompositedCertificate	true	"certificate"
 //	@Success		200				{object}	ginutils.CommonMessage
 //	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
@@ -156,6 +156,14 @@ func (ctrl *CertiController) TriggerObtainSnapshot(c *gin.Context) {
 }
 
 // ============================= only for gen swagger =============================
+
+type CompositedCertificate struct {
+	certificate.AddressCertificateInsertPart
+	certificate.PhoneCertificateInsertPart
+	certificate.DodoCertificateInsertPart
+	certificate.ContractCertificateInsertPart
+	certificate.GaslessCertificateInsertPart
+}
 
 //	@Tags			Certi
 //	@ID				InsertAddressCertificateStrategy

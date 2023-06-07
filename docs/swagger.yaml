@@ -25,6 +25,17 @@ definitions:
       updated_at:
         type: string
     type: object
+  certificate.CertificatesQueryResult-routers_CompositedCertificate:
+    properties:
+      certificate_type:
+        type: string
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/routers.CompositedCertificate'
+        type: array
+    type: object
   certificate.ContractCertificateInsertPart:
     properties:
       activity_code:
@@ -647,6 +658,25 @@ definitions:
     - token_id_end
     - token_id_start
     type: object
+  routers.CompositedCertificate:
+    properties:
+      activity_code:
+        type: string
+      address:
+        type: string
+      chain:
+        $ref: '#/definitions/enums.Chain'
+      contract_address:
+        type: string
+      contract_type:
+        $ref: '#/definitions/enums.ContractType'
+      dodo_source_id:
+        type: string
+      phone:
+        type: string
+      snapshot_epoch_number:
+        type: integer
+    type: object
   services.AddWalletUserReq:
     properties:
       address:
@@ -1223,9 +1253,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              type: object
-            type: array
+            $ref: '#/definitions/certificate.CertificatesQueryResult-routers_CompositedCertificate'
         "400":
           description: Invalid request
           schema:
@@ -1254,7 +1282,7 @@ paths:
         required: true
         schema:
           items:
-            type: object
+            $ref: '#/definitions/routers.CompositedCertificate'
           type: array
       produces:
       - application/json

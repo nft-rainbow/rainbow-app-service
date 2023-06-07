@@ -1024,10 +1024,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "object"
-                            }
+                            "$ref": "#/definitions/certificate.CertificatesQueryResult-routers_CompositedCertificate"
                         }
                     },
                     "400": {
@@ -1075,7 +1072,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "object"
+                                "$ref": "#/definitions/routers.CompositedCertificate"
                             }
                         }
                     }
@@ -2029,6 +2026,23 @@ const docTemplate = `{
                 }
             }
         },
+        "certificate.CertificatesQueryResult-routers_CompositedCertificate": {
+            "type": "object",
+            "properties": {
+                "certificate_type": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/routers.CompositedCertificate"
+                    }
+                }
+            }
+        },
         "certificate.ContractCertificateInsertPart": {
             "type": "object",
             "properties": {
@@ -2929,6 +2943,35 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "routers.CompositedCertificate": {
+            "type": "object",
+            "properties": {
+                "activity_code": {
+                    "type": "string"
+                },
+                "address": {
+                    "type": "string"
+                },
+                "chain": {
+                    "$ref": "#/definitions/enums.Chain"
+                },
+                "contract_address": {
+                    "type": "string"
+                },
+                "contract_type": {
+                    "$ref": "#/definitions/enums.ContractType"
+                },
+                "dodo_source_id": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "snapshot_epoch_number": {
+                    "type": "integer"
                 }
             }
         },
