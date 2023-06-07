@@ -8,7 +8,7 @@ import (
 
 type InsertCertificateStrategyReq[T any] struct {
 	CertificateType enums.CertificateType `json:"certificate_type" swaggertype:"string"`
-	Items           []T                   `json:"items" swaggertype:"any"`
+	Items           []T                   `json:"items"`
 }
 
 func InsertCertificateStrategy(req *InsertCertificateStrategyReq[any]) (*certificate.CertificateStrategy, error) {

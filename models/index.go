@@ -39,7 +39,7 @@ func ConnectDB() {
 		&POAPResult{},
 		&H5Config{},
 		&NFTConfig{},
-		&WhiteListInfo{},
+		// &WhiteListInfo{},
 		&Activity{},
 		&Contract{},
 		&Statistic{},

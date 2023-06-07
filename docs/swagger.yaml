@@ -7,6 +7,79 @@ definitions:
       message:
         type: string
     type: object
+  certificate.AddressCertificateInsertPart:
+    properties:
+      address:
+        type: string
+    type: object
+  certificate.CertificateStrategy:
+    properties:
+      certificate_type:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  certificate.ContractCertificateInsertPart:
+    properties:
+      activity_code:
+        type: string
+      chain:
+        $ref: '#/definitions/enums.Chain'
+      contract_address:
+        type: string
+      contract_type:
+        $ref: '#/definitions/enums.ContractType'
+      snapshot_epoch_number:
+        type: integer
+    type: object
+  certificate.ContractSnapshot:
+    properties:
+      activity_code:
+        type: string
+      contract:
+        type: string
+      contract_certificate_id:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      owner:
+        type: string
+      snapshot_epoch_number:
+        type: integer
+      token_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  certificate.DodoCertificateInsertPart:
+    properties:
+      dodo_source_id:
+        type: string
+    type: object
+  certificate.GaslessCertificateInsertPart:
+    properties:
+      activity_code:
+        type: string
+      chain:
+        $ref: '#/definitions/enums.Chain'
+      snapshot_epoch_number:
+        type: integer
+    type: object
+  certificate.PhoneCertificateInsertPart:
+    properties:
+      phone:
+        type: string
+    type: object
   enums.ActivityStatus:
     enum:
     - 1
@@ -35,6 +108,26 @@ definitions:
     x-enum-varnames:
     - CHAIN_CONFLUX
     - CHAIN_CONFLUX_TEST
+  enums.ContractType:
+    enum:
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - ContractType_ERC721
+    - ContractType_ERC1155
+  enums.SnapshotStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-varnames:
+    - SNAPSHOT_STATUS_INIT
+    - SNAPSHOT_STATUS_PROCESSING
+    - SNAPSHOT_STATUS_SUCCESS
+    - SNAPSHOT_STATUS_FAILED
   enums.SocialToolType:
     enum:
     - 1
@@ -43,6 +136,16 @@ definitions:
     x-enum-varnames:
     - SOCIAL_TOOL_DISCORD
     - SOCIAL_TOOL_DODO
+  enums.TransactionStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - TRANSACTION_STATUS_INIT
+    - TRANSACTION_STATUS_SUCCESS
+    - TRANSACTION_STATUS_FAILED
   enums.WalletType:
     enum:
     - 1
@@ -74,17 +177,19 @@ definitions:
       activity_poster_url:
         type: string
       activity_type:
-        $ref: '#/definitions/enums.ActivityType'
+        type: string
       amount:
         type: integer
       app_id:
         type: integer
       app_name:
         type: string
+      certificate_stratage_id:
+        type: integer
       chain_of_gasless:
-        allOf:
-        - $ref: '#/definitions/enums.Chain'
-        default: 2
+        default: "2"
+        description: 'default value: "conflux_test"'
+        type: string
       command:
         type: string
       contract:
@@ -102,10 +207,10 @@ definitions:
         type: integer
       id:
         type: integer
-      is_phone_white_list_opened:
-        type: boolean
       is_token_id_ordered:
         default: true
+        description: IsPhoneWhiteListOpened bool                                  `gorm:"type:bool;default:false"
+          json:"is_phone_white_list_opened"`
         type: boolean
       max_mint_count:
         type: integer
@@ -130,10 +235,6 @@ definitions:
         type: array
       updated_at:
         type: string
-      white_list_infos:
-        items:
-          $ref: '#/definitions/models.WhiteListInfo'
-        type: array
     required:
     - activity_type
     - amount
@@ -147,17 +248,19 @@ definitions:
       activity_picture_url:
         type: string
       activity_type:
-        $ref: '#/definitions/enums.ActivityType'
+        type: string
       amount:
         type: integer
       app_id:
         type: integer
       app_name:
         type: string
+      certificate_stratage_id:
+        type: integer
       chain_of_gasless:
-        allOf:
-        - $ref: '#/definitions/enums.Chain'
-        default: 2
+        default: "2"
+        description: 'default value: "conflux_test"'
+        type: string
       command:
         type: string
       contract_id:
@@ -167,10 +270,10 @@ definitions:
       end_time:
         default: -1
         type: integer
-      is_phone_white_list_opened:
-        type: boolean
       is_token_id_ordered:
         default: true
+        description: IsPhoneWhiteListOpened bool                                  `gorm:"type:bool;default:false"
+          json:"is_phone_white_list_opened"`
         type: boolean
       max_mint_count:
         type: integer
@@ -210,6 +313,8 @@ definitions:
         type: string
       amount:
         type: integer
+      certificate_stratage_id:
+        type: integer
       command:
         type: string
       contract_id:
@@ -219,10 +324,10 @@ definitions:
       end_time:
         default: -1
         type: integer
-      is_phone_white_list_opened:
-        type: boolean
       is_token_id_ordered:
         default: true
+        description: IsPhoneWhiteListOpened bool                                  `gorm:"type:bool;default:false"
+          json:"is_phone_white_list_opened"`
         type: boolean
       max_mint_count:
         type: integer
@@ -474,7 +579,7 @@ definitions:
       social_type:
         type: integer
       status:
-        type: integer
+        $ref: '#/definitions/enums.TransactionStatus'
       token_id:
         type: string
       tx_id:
@@ -542,23 +647,6 @@ definitions:
     - token_id_end
     - token_id_start
     type: object
-  models.WhiteListInfo:
-    properties:
-      activityID:
-        type: integer
-      count:
-        type: integer
-      created_at:
-        type: string
-      deleted_at:
-        $ref: '#/definitions/gorm.DeletedAt'
-      id:
-        type: integer
-      updated_at:
-        type: string
-      user:
-        type: string
-    type: object
   services.AddWalletUserReq:
     properties:
       address:
@@ -578,6 +666,17 @@ definitions:
       channelName:
         description: 频道名称
         type: string
+    type: object
+  services.ContractSnapshotResp:
+    properties:
+      count:
+        type: integer
+      snapshotStatus:
+        $ref: '#/definitions/enums.SnapshotStatus'
+      snapshots:
+        items:
+          $ref: '#/definitions/certificate.ContractSnapshot'
+        type: array
     type: object
   services.InsertBotServerReq:
     properties:
@@ -646,121 +745,6 @@ info:
   title: Rainbow-APP-Service
   version: "1.0"
 paths:
-  /activity/{activity_code}/nftconfigs:
-    post:
-      description: Add Activity NFT configs
-      operationId: AddActivityNftConfigs
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: activity nft configs
-        in: body
-        name: nft_configs
-        required: true
-        schema:
-          items:
-            $ref: '#/definitions/models.NftConfigUpdatePart'
-          type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/models.NFTConfig'
-            type: array
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Add Activity NFT configs
-      tags:
-      - POAP
-  /activity/nftconfig/{nft_config_id}:
-    delete:
-      description: Delete Activity NFT Config
-      operationId: DeleteActivityNftConfig
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: nft_config_id
-        in: path
-        name: nft_config_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.NFTConfig'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Delete Activity NFT Config
-      tags:
-      - POAP
-    put:
-      description: Update Activity NFT Config
-      operationId: UpdateActivityNftConfig
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: nft_config_id
-        in: path
-        name: nft_config_id
-        required: true
-        type: integer
-      - description: update Nft config request
-        in: body
-        name: update_nft_config_request
-        required: true
-        schema:
-          $ref: '#/definitions/models.NftConfigUpdatePart'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.NFTConfig'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Update Activity NFT Config
-      tags:
-      - POAP
   /bot/invite_url:
     get:
       description: get invite url
@@ -1163,6 +1147,300 @@ paths:
       summary: get bot server roles
       tags:
       - Bot
+  /certis/contract_certificate/{certificate_id}/snapshot:
+    get:
+      description: Get Snapshots
+      operationId: GetSnapshots
+      parameters:
+      - description: certificate_id
+        in: path
+        name: certificate_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.ContractSnapshotResp'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Snapshots
+      tags:
+      - Certi
+  /certis/contract_certificate/{certificate_id}/snapshot/run:
+    post:
+      description: Trigger Obtain Snapshot
+      operationId: TriggerObtainSnapshot
+      parameters:
+      - description: certificate_id
+        in: path
+        name: certificate_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ginutils.CommonMessage'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Trigger Obtain Snapshot
+      tags:
+      - Certi
+  /certis/strategy/{id}/certificates:
+    get:
+      description: Get Certificates
+      operationId: GetCertificates
+      parameters:
+      - description: certificate_strategy_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Certificates
+      tags:
+      - Certi
+    post:
+      description: Insert Certificates
+      operationId: InsertCertificates
+      parameters:
+      - description: certificate_strategy_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: certificate
+        in: body
+        name: certificates
+        required: true
+        schema:
+          items:
+            type: object
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ginutils.CommonMessage'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Insert Certificates
+      tags:
+      - Certi
+  /certis/strategy/type/address:
+    post:
+      description: Insert address Certificate Strategy
+      operationId: InsertAddressCertificateStrategy
+      parameters:
+      - description: insert_certificate_strategy_req
+        in: body
+        name: insert_certificate_strategy_req
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/certificate.AddressCertificateInsertPart'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/certificate.CertificateStrategy'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Insert address Certificate Strategy
+      tags:
+      - Certi
+  /certis/strategy/type/contract:
+    post:
+      description: Insert contract Certificate Strategy
+      operationId: InsertContractCertificateStrategy
+      parameters:
+      - description: insert_certificate_strategy_req
+        in: body
+        name: insert_certificate_strategy_req
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/certificate.ContractCertificateInsertPart'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/certificate.CertificateStrategy'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Insert contract Certificate Strategy
+      tags:
+      - Certi
+  /certis/strategy/type/dodo:
+    post:
+      description: Insert dodo Certificate Strategy
+      operationId: InsertDodoCertificateStrategy
+      parameters:
+      - description: insert_certificate_strategy_req
+        in: body
+        name: insert_certificate_strategy_req
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/certificate.DodoCertificateInsertPart'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/certificate.CertificateStrategy'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Insert dodo Certificate Strategy
+      tags:
+      - Certi
+  /certis/strategy/type/gasless:
+    post:
+      description: Insert gasless Certificate Strategy
+      operationId: InsertGaslessCertificateStrategy
+      parameters:
+      - description: insert_certificate_strategy_req
+        in: body
+        name: insert_certificate_strategy_req
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/certificate.GaslessCertificateInsertPart'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/certificate.CertificateStrategy'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Insert gasless Certificate Strategy
+      tags:
+      - Certi
+  /certis/strategy/type/phone:
+    post:
+      description: Insert phone Certificate Strategy
+      operationId: InsertPhoneCertificateStrategy
+      parameters:
+      - description: insert_certificate_strategy_req
+        in: body
+        name: insert_certificate_strategy_req
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/certificate.PhoneCertificateInsertPart'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/certificate.CertificateStrategy'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Insert phone Certificate Strategy
+      tags:
+      - Certi
   /poap/activity:
     get:
       description: Get User Activity list
@@ -1336,6 +1614,46 @@ paths:
       summary: Update Activity
       tags:
       - POAP
+  /poap/activity/{activity_code}/nftconfigs:
+    post:
+      description: Add Activity NFT configs
+      operationId: AddActivityNftConfigs
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: activity nft configs
+        in: body
+        name: nft_configs
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.NftConfigUpdatePart'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.NFTConfig'
+            type: array
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Add Activity NFT configs
+      tags:
+      - POAP
   /poap/activity/h5:
     post:
       description: Set H5 Page Config
@@ -1388,6 +1706,16 @@ paths:
       - in: query
         name: address
         type: string
+      - collectionFormat: csv
+        in: query
+        items:
+          enum:
+          - 0
+          - 1
+          - 2
+          type: integer
+        name: statuses
+        type: array
       - description: activity_code
         in: path
         name: activity_code
@@ -1609,6 +1937,81 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Add user wallet profile, so backend can get user phone from anyweb
+      tags:
+      - POAP
+  /post/activity/nftconfig/{nft_config_id}:
+    delete:
+      description: Delete Activity NFT Config
+      operationId: DeleteActivityNftConfig
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: nft_config_id
+        in: path
+        name: nft_config_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.NFTConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Activity NFT Config
+      tags:
+      - POAP
+    put:
+      description: Update Activity NFT Config
+      operationId: UpdateActivityNftConfig
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: nft_config_id
+        in: path
+        name: nft_config_id
+        required: true
+        type: integer
+      - description: update Nft config request
+        in: body
+        name: update_nft_config_request
+        required: true
+        schema:
+          $ref: '#/definitions/models.NftConfigUpdatePart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.NFTConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Update Activity NFT Config
       tags:
       - POAP
 schemes:

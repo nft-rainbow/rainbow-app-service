@@ -6,18 +6,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+type ContractCertificateInsertPart struct {
+	GaslessCertificateInsertPart
+	ContractAddress string             `json:"contract_address"`
+	ContractType    enums.ContractType `json:"contract_type"`
+}
 type ContractCertificate struct {
 	models.BaseModel
-	ContractAddress         string               `json:"contract_address"`
-	Chain                   enums.Chain          `json:"chain"`
-	ContractType            enums.ContractType   `json:"contract_type"`
-	SnapshotEpochNumber     uint64               `json:"snapshot_epoch_number"`
+	ContractCertificateInsertPart
 	SnapshotTaskStatus      enums.SnapshotStatus `json:"snapshot_task_status" swaggertype:"string"`
 	RelatedTokenCount       uint                 `json:"related_token_count"`
 	SnapshotProcessingIndex int                  `gorm:"default:-1" json:"snapshot_processing_index"`
 	SnapshotProcessError    string               `json:"snapshot_processing_error"`
 	CertificateStrategyID   uint                 `json:"certificate_strategy_id"`
-	ActivityCode            string               `json:"activity_code"`
 }
 
 func FindContractCertificatesByStrategyId(id uint) (certis []*ContractCertificate, err error) {
@@ -38,10 +39,6 @@ func (c *ContractCertificate) FindSnapshots() (snapshots []*ContractSnapshot, er
 	err = models.GetDB().Where("contract_certificate_id=?", c.ID).Find(&snapshots).Error
 	return
 }
-
-// TODO:
-// 2. snapshot api, 使用api获取快照
-// 3. query snapshot list
 
 type ContractCertiOperator struct {
 	Strategy *CertificateStrategy

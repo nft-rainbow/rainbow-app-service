@@ -7,10 +7,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+type DodoCertificateInsertPart struct {
+	DodoSourceId string `json:"dodo_source_id"`
+}
 type DodoCertificate struct {
 	models.BaseModel
-	DodoSourceId          string `json:"dodo_source_id"`
-	CertificateStrategyID uint   `json:"certificate_strategy_id"`
+	DodoCertificateInsertPart
+	CertificateStrategyID uint `json:"certificate_strategy_id"`
 }
 
 type DodoCertiOperator struct {

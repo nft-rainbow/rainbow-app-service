@@ -419,12 +419,13 @@ func (a *ActivityService) getMintableCount(activity *models.Activity, address st
 	}
 
 	addrsOfPhone := []string{address}
-	if activity.IsPhoneWhiteListOpened {
+	if certi.CertificateType == enums.CERTIFICATE_PHONE {
 		addrsOfPhone, err = models.FindRelatedAddressWithSamePhone(address)
 		if err != nil {
 			return 0, err
 		}
 	}
+	// TODO: check dodo related address if in dodo certificate type
 
 	mintedCount, err := models.GetMintSumByAddresses(activity.ActivityCode, addrsOfPhone...)
 	if err != nil {

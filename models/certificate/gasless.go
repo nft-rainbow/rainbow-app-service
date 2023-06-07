@@ -7,6 +7,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+type GaslessCertificateInsertPart struct {
+	Chain               enums.Chain `json:"chain"`
+	SnapshotEpochNumber uint64      `json:"snapshot_epoch_number"`
+	ActivityCode        string      `json:"activity_code"`
+}
 type GaslessCertificate struct {
 	ContractCertificate
 }

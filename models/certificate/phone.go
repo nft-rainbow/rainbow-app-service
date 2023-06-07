@@ -7,10 +7,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+type PhoneCertificateInsertPart struct {
+	Phone string `json:"phone"`
+}
 type PhoneCertificate struct {
 	models.BaseModel
-	Phone                 string `json:"phone"`
-	CertificateStrategyID uint   `json:"certificate_strategy_id"`
+	PhoneCertificateInsertPart
+	CertificateStrategyID uint `json:"certificate_strategy_id"`
 }
 
 type PhoneCertiOperator struct {

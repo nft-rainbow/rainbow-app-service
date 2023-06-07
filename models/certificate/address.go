@@ -6,10 +6,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+type AddressCertificateInsertPart struct {
+	Address string `json:"address"`
+}
 type AddressCertificate struct {
 	models.BaseModel
-	Address               string `json:"address"`
-	CertificateStrategyID uint   `json:"certificate_strategy_id"`
+	AddressCertificateInsertPart
+	CertificateStrategyID uint `json:"certificate_strategy_id"`
 }
 
 type AddressCertiOperator struct {

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	appService_errors "github.com/nft-rainbow/rainbow-app-service/appService-errors"
 	"github.com/nft-rainbow/rainbow-app-service/models/certificate"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/nft-rainbow/rainbow-app-service/utils/ginutils"
 )
@@ -21,16 +22,39 @@ func NewCertiController() *CertiController {
 }
 
 func (ctrl *CertiController) InsertCertificateStrategy(c *gin.Context) {
-	var req services.InsertCertificateStrategyReq[any]
-	if err := c.ShouldBindJSON(&req); err != nil {
+	certiTypeInStr := c.Param("certificate_type")
+	certiType, err := enums.ParseCertificateType(certiTypeInStr)
+	if err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
 		return
+	}
+
+	var items []any
+	if err := c.ShouldBindJSON(&items); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
+
+	req := services.InsertCertificateStrategyReq[any]{
+		CertificateType: *certiType,
+		Items:           items,
 	}
 
 	cs, err := services.InsertCertificateStrategy(&req)
 	ginutils.RenderResp(c, cs, err)
 }
 
+//	@Tags			Certi
+//	@ID				GetCertificates
+//	@Summary		Get Certificates
+//	@Description	Get Certificates
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			id	path		int	true	"certificate_strategy_id"
+//	@Success		200	{object}	[]any
+//	@Failure		400	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/certis/strategy/{id}/certificates [get]
 func (ctrl *CertiController) GetCertificates(c *gin.Context) {
 	csIdStr := c.Param("id")
 	csId, err := strconv.Atoi(csIdStr)
@@ -43,6 +67,18 @@ func (ctrl *CertiController) GetCertificates(c *gin.Context) {
 	ginutils.RenderResp(c, certificateReuslus, err)
 }
 
+//	@Tags			Certi
+//	@ID				InsertCertificates
+//	@Summary		Insert Certificates
+//	@Description	Insert Certificates
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			id				path		int		true	"certificate_strategy_id"
+//	@Param			certificates	body		[]any	true	"certificate"
+//	@Success		200				{object}	ginutils.CommonMessage
+//	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/certis/strategy/{id}/certificates [post]
 func (ctrl *CertiController) InsertCertificates(c *gin.Context) {
 	csIdStr := c.Param("id")
 	csId, err := strconv.Atoi(csIdStr)
@@ -67,6 +103,17 @@ func (ctrl *CertiController) InsertCertificates(c *gin.Context) {
 	ginutils.RenderResp(c, ginutils.CommonSuccessMessage, err)
 }
 
+//	@Tags			Certi
+//	@ID				GetSnapshots
+//	@Summary		Get Snapshots
+//	@Description	Get Snapshots
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			certificate_id	path		int	true	"certificate_id"
+//	@Success		200				{object}	services.ContractSnapshotResp
+//	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/certis/contract_certificate/{certificate_id}/snapshot [get]
 func (ctrl *CertiController) GetSnapshots(c *gin.Context) {
 	cIdStr := c.Param("certificate_id")
 	cId, err := strconv.Atoi(cIdStr)
@@ -79,7 +126,18 @@ func (ctrl *CertiController) GetSnapshots(c *gin.Context) {
 	ginutils.RenderResp(c, resp, err)
 }
 
-func (ctrl *CertiController) TriggerRunSnapshot(c *gin.Context) {
+//	@Tags			Certi
+//	@ID				TriggerObtainSnapshot
+//	@Summary		Trigger Obtain Snapshot
+//	@Description	Trigger Obtain Snapshot
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			certificate_id	path		int	true	"certificate_id"
+//	@Success		200				{object}	ginutils.CommonMessage
+//	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/certis/contract_certificate/{certificate_id}/snapshot/run [post]
+func (ctrl *CertiController) TriggerObtainSnapshot(c *gin.Context) {
 	cIdStr := c.Param("certificate_id")
 	cId, err := strconv.Atoi(cIdStr)
 	if err != nil {
@@ -96,3 +154,70 @@ func (ctrl *CertiController) TriggerRunSnapshot(c *gin.Context) {
 	err = ctrl.snapshotService.Start(cc)
 	ginutils.RenderResp(c, ginutils.CommonSuccessMessage, err)
 }
+
+// ============================= only for gen swagger =============================
+
+//	@Tags			Certi
+//	@ID				InsertAddressCertificateStrategy
+//	@Summary		Insert address Certificate Strategy
+//	@Description	Insert address Certificate Strategy
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			insert_certificate_strategy_req	body		[]certificate.AddressCertificateInsertPart	true	"insert_certificate_strategy_req"
+//	@Success		200								{object}	certificate.CertificateStrategy
+//	@Failure		400								{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500								{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/certis/strategy/type/address [post]
+func (ctrl *CertiController) insertAddressCertificateStrategy(c *gin.Context) {}
+
+//	@Tags			Certi
+//	@ID				InsertPhoneCertificateStrategy
+//	@Summary		Insert phone Certificate Strategy
+//	@Description	Insert phone Certificate Strategy
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			insert_certificate_strategy_req	body		[]certificate.PhoneCertificateInsertPart	true	"insert_certificate_strategy_req"
+//	@Success		200								{object}	certificate.CertificateStrategy
+//	@Failure		400								{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500								{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/certis/strategy/type/phone [post]
+func (ctrl *CertiController) insertPhoneCertificateStrategy(c *gin.Context) {}
+
+//	@Tags			Certi
+//	@ID				InsertDodoCertificateStrategy
+//	@Summary		Insert dodo Certificate Strategy
+//	@Description	Insert dodo Certificate Strategy
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			insert_certificate_strategy_req	body		[]certificate.DodoCertificateInsertPart	true	"insert_certificate_strategy_req"
+//	@Success		200								{object}	certificate.CertificateStrategy
+//	@Failure		400								{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500								{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/certis/strategy/type/dodo [post]
+func (ctrl *CertiController) insertDodoCertificateStrategy(c *gin.Context) {}
+
+//	@Tags			Certi
+//	@ID				InsertContractCertificateStrategy
+//	@Summary		Insert contract Certificate Strategy
+//	@Description	Insert contract Certificate Strategy
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			insert_certificate_strategy_req	body		[]certificate.ContractCertificateInsertPart	true	"insert_certificate_strategy_req"
+//	@Success		200								{object}	certificate.CertificateStrategy
+//	@Failure		400								{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500								{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/certis/strategy/type/contract [post]
+func (ctrl *CertiController) insertContractCertificateStrategy(c *gin.Context) {}
+
+//	@Tags			Certi
+//	@ID				InsertGaslessCertificateStrategy
+//	@Summary		Insert gasless Certificate Strategy
+//	@Description	Insert gasless Certificate Strategy
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			insert_certificate_strategy_req	body		[]certificate.GaslessCertificateInsertPart	true	"insert_certificate_strategy_req"
+//	@Success		200								{object}	certificate.CertificateStrategy
+//	@Failure		400								{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500								{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/certis/strategy/type/gasless [post]
+func (ctrl *CertiController) insertGaslessCertificateStrategy(c *gin.Context) {}
