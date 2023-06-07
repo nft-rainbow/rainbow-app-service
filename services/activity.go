@@ -78,10 +78,7 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityInsertPart,
 			return nil, errors.Errorf("exceed gasless max amount: %v", gasLess.MaxAmount)
 		}
 
-		contractRawId := gasLess.ContractRawID.Testnet
-		if activityReq.ChainOfGasless == enums.CHAIN_CONFLUX {
-			contractRawId = gasLess.ContractRawID.Mainnet
-		}
+		contractRawId := config.GetGaslessContractIdByChain(activityReq.ChainOfGasless)
 		_contractRawId := int32(contractRawId)
 		activity.ContractRawID = &_contractRawId
 

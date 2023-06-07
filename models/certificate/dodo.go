@@ -4,6 +4,7 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils/gormutils"
+	"github.com/pkg/errors"
 )
 
 type DodoCertificate struct {
@@ -36,13 +37,32 @@ func (a *DodoCertiOperator) CheckQualified(userAddress string) (bool, error) {
 	return count > 0, nil
 }
 
-func (a *DodoCertiOperator) GetCertificates(offset int, limit int) (*Certificates, error) {
-	var certificates Certificates
+func (a *DodoCertiOperator) GetCertificates(offset int, limit int) (*CertificatesQueryResult[any], error) {
+	certificates := CertificatesQueryResult[*DodoCertificate]{
+		CertificateType: enums.CERTIFICATE_DODO,
+	}
+
 	err := models.GetDB().Model(&DodoCertificate{}).
 		Where("certificate_strategy_id=?", a.Strategy.ID).
 		Count(&certificates.Count).Offset(offset).Limit(limit).Find(&certificates.Items).Error
 	if err != nil {
 		return nil, err
 	}
-	return &certificates, nil
+	return certificates.ToAny(), nil
+}
+
+func (a *DodoCertiOperator) InsertCertificates(items []any) error {
+	results, err := new(CertificateConverter[*DodoCertificate]).ConvertSlice(items)
+	if err != nil {
+		return err
+	}
+
+	for i, c := range results {
+		if c.DodoSourceId == "" {
+			return errors.Errorf("item %v missing address (index from 1)", i+1)
+		}
+		c.CertificateStrategyID = a.Strategy.ID
+	}
+
+	return models.GetDB().Save(&results).Error
 }

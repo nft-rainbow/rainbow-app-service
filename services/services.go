@@ -2,6 +2,7 @@ package services
 
 import (
 	"log"
+	"os"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
@@ -18,7 +19,7 @@ func Init() {
 }
 
 func InitConfluxChainClient() {
-	option := sdk.ClientOption{}
+	option := sdk.ClientOption{Logger: os.Stdout}
 	var err error
 	cfxTestClient, err = sdk.NewClient(viper.GetString("rpcs.testnet"), option)
 	if err != nil {

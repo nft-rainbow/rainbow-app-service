@@ -8,36 +8,39 @@ import (
 type CertificateStrategy struct {
 	models.BaseModel
 	CertificateType enums.CertificateType `json:"certificate_type" swaggertype:"string"`
-	Addresses       []AddressCertificate  `json:"addresses,omitempty"`
-	Phones          []PhoneCertificate    `json:"phones,omitempty"`
-	Dodos           []DodoCertificate     `json:"dodos,omitempty"`
-	Contracts       []ContractCertificate `json:"contracts,omitempty"`
-	Gaslesses       []GaslessCertificate  `json:"gaslesses,omitempty"`
+	// Addresses       []AddressCertificate  `json:"addresses,omitempty"`
+	// Phones          []PhoneCertificate    `json:"phones,omitempty"`
+	// Dodos           []DodoCertificate     `json:"dodos,omitempty"`
+	// Contracts       []ContractCertificate `json:"contracts,omitempty"`
+	// Gaslesses       []GaslessCertificate  `json:"gaslesses,omitempty"`
 }
 
-type Certificates struct {
-	Items           []any                 `json:"items,omitempty"`
-	Count           int64                 `json:"count,omitempty"`
-	CertificateType enums.CertificateType `json:"certificate_type" swaggertype:"string"`
+func FindCertificateStrategyById(id uint) (*CertificateStrategy, error) {
+	var cs CertificateStrategy
+	err := models.GetDB().Where("id=?", id).First(&cs).Error
+	return &cs, err
 }
 
-type CertiOperator interface {
-	CheckQualified(userAddress string) (bool, error)
-	GetCertificates(offset int, limit int) (*Certificates, error)
-}
+// func (cs *CertificateStrategy) Save() error {
+// 	tmp := CertificateStrategy{
+// 		CertificateType: cs.CertificateType,
+// 	}
 
-func GetCertiOperator(cs *CertificateStrategy) CertiOperator {
-	switch cs.CertificateType {
-	case enums.CERTIFICATE_ADDRESS:
-		return &AddressCertiOperator{cs}
-	}
-	return nil
-}
+// 	models.GetDB().Transaction(func(tx *gorm.DB) error {
+// 		if err := tx.Save(tmp).Error; err != nil {
+// 			return err
+// 		}
+// 	})
+// }
 
 func (cs *CertificateStrategy) CheckQualified(userAddress string) (bool, error) {
 	return GetCertiOperator(cs).CheckQualified(userAddress)
 }
 
-func (cs *CertificateStrategy) GetCertificates(offset int, limit int) (*Certificates, error) {
+func (cs *CertificateStrategy) GetCertificates(offset int, limit int) (*CertificatesQueryResult[any], error) {
 	return GetCertiOperator(cs).GetCertificates(offset, limit)
+}
+
+func (cs *CertificateStrategy) InsertCertificates(items []any) error {
+	return GetCertiOperator(cs).InsertCertificates(items)
 }

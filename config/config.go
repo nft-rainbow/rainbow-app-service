@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/spf13/viper"
 )
 
@@ -104,4 +105,12 @@ type Config struct {
 
 func GetConfig() *Config {
 	return &_config
+}
+
+func GetGaslessContractIdByChain(chain enums.Chain) uint {
+	contractRawId := _config.Gasless.ContractRawID.Testnet
+	if chain == enums.CHAIN_CONFLUX {
+		contractRawId = _config.Gasless.ContractRawID.Mainnet
+	}
+	return contractRawId
 }

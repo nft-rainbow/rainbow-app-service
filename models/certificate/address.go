@@ -3,6 +3,7 @@ package certificate
 import (
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"github.com/pkg/errors"
 )
 
 type AddressCertificate struct {
@@ -26,13 +27,33 @@ func (a *AddressCertiOperator) CheckQualified(userAddress string) (bool, error) 
 	return count > 0, nil
 }
 
-func (a *AddressCertiOperator) GetCertificates(offset int, limit int) (*Certificates, error) {
-	var certificates Certificates
+func (a *AddressCertiOperator) GetCertificates(offset int, limit int) (*CertificatesQueryResult[any], error) {
+	certificates := CertificatesQueryResult[*AddressCertificate]{
+		CertificateType: enums.CERTIFICATE_ADDRESS,
+	}
+
 	err := models.GetDB().Model(&AddressCertificate{}).
 		Where("certificate_strategy_id=?", a.Strategy.ID).
 		Count(&certificates.Count).Offset(offset).Limit(limit).Find(&certificates.Items).Error
 	if err != nil {
 		return nil, err
 	}
-	return &certificates, nil
+
+	return certificates.ToAny(), nil
+}
+
+func (a *AddressCertiOperator) InsertCertificates(items []any) error {
+	results, err := new(CertificateConverter[*AddressCertificate]).ConvertSlice(items)
+	if err != nil {
+		return err
+	}
+
+	for i, c := range results {
+		if c.Address == "" {
+			return errors.Errorf("item %v missing address (index from 1)", i+1)
+		}
+		c.CertificateStrategyID = a.Strategy.ID
+	}
+
+	return models.GetDB().Save(&results).Error
 }
