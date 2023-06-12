@@ -195,7 +195,7 @@ func FindAndCountActivity(ranbowUserId uint, _cond ActivityFindCondition) (*Acti
 	cond.Name = _cond.Name
 	cond.ActivityCode = _cond.ActivityId
 
-	clause := db.Debug().Model(&Activity{}).Preload("WhiteListInfos").Preload("NFTConfigs").Where(cond)
+	clause := db.Debug().Model(&Activity{}).Preload("NFTConfigs").Where(cond)
 
 	if _cond.ExcludeNoContract {
 		clause = clause.Where("contract_raw_id is not null")
