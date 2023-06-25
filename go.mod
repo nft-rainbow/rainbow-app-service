@@ -35,6 +35,7 @@ require (
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
+	github.com/ahmetalpbalkan/go-linq v3.0.0+incompatible // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect

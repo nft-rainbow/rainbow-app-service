@@ -216,14 +216,17 @@ func (a *ActivityService) UpdateNftConfig(userId uint, nftConfigId uint, updateN
 func (a *ActivityService) DeleteActivityNftConfig(userId uint, nftConfigId uint) error {
 	nftConfig, err := models.FindNftConfigById(nftConfigId)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	if err := models.CheckNftConfigBelongToUser(nftConfig, userId); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
-	return models.GetDB().Delete(&nftConfig).Error
+	if err := models.GetDB().Delete(&nftConfig).Error; err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
 }
 
 // func (a *ActivityService) UpdateActivity2(activityId string, req *models.UpdateActivityReq) (*models.Activity, error) {

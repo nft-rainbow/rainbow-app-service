@@ -11,7 +11,6 @@ import (
 	"github.com/dodo-open/dodo-open-go/model"
 	"github.com/dodo-open/dodo-open-go/tools"
 	"github.com/dodo-open/dodo-open-go/websocket"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/sirupsen/logrus"
@@ -263,9 +262,9 @@ func (d *DodoBot) ListenWebsocket() {
 }
 
 func (d *DodoBot) dodoChannelMsgHandler(event *websocket.WSEventMessage, data *websocket.ChannelMessageEventBody) error {
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	j, _ := json.Marshal(data)
-	logrus.WithField("msg", string(j)).Info("got message")
+	// var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	// j, _ := json.Marshal(data)
+	// logrus.WithField("msg", string(j)).Info("got message")
 
 	if data.MessageType != model.TextMsg {
 		return nil

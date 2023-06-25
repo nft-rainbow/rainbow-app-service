@@ -1755,6 +1755,81 @@ paths:
       summary: Set H5 Config
       tags:
       - POAP
+  /poap/activity/nftconfig/{nft_config_id}:
+    delete:
+      description: Delete Activity NFT Config
+      operationId: DeleteActivityNftConfig
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: nft_config_id
+        in: path
+        name: nft_config_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.NFTConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Activity NFT Config
+      tags:
+      - POAP
+    put:
+      description: Update Activity NFT Config
+      operationId: UpdateActivityNftConfig
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: nft_config_id
+        in: path
+        name: nft_config_id
+        required: true
+        type: integer
+      - description: update Nft config request
+        in: body
+        name: update_nft_config_request
+        required: true
+        schema:
+          $ref: '#/definitions/models.NftConfigUpdatePart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.NFTConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Update Activity NFT Config
+      tags:
+      - POAP
   /poap/activity/result/{activity_code}:
     get:
       description: Get Mint Result list

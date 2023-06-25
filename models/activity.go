@@ -141,6 +141,24 @@ func (a *Activity) VerifyMintable() error {
 	return nil
 }
 
+// func (a *Activity) IsAddressInWhiteList(address string) (bool, error) {
+
+// 	users, err := FindWalletUserByAddress(address)
+
+// 	if err != nil {
+// 		return false, err
+// 	}
+
+// 	var isInWhiteList bool
+// 	for _, u := range users {
+// 		isInWhiteList = IsPhoneInWhiteList(a.ActivityCode, u.Phone)
+// 		if isInWhiteList {
+// 			return true, nil
+// 		}
+// 	}
+// 	return false, nil
+// }
+
 func CompleteActivities(ps ...*Activity) error {
 	for _, p := range ps {
 		if err := p.LoadBindedContract(); err != nil {
