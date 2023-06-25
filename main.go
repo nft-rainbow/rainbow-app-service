@@ -16,6 +16,7 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/logger"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/certificate"
 	"github.com/nft-rainbow/rainbow-app-service/routers"
 	"github.com/nft-rainbow/rainbow-app-service/services"
 	"github.com/sirupsen/logrus"
@@ -38,6 +39,7 @@ func startGin() {
 	engine.Use(cors.Default())
 	engine.Use(middlewares.Statistic())
 	engine.Use(middlewares.Recovery())
+	engine.Use(middlewares.Pagination())
 	routers.SetupRoutes(engine)
 
 	port := viper.GetString("port")
@@ -115,6 +117,7 @@ func initDiscordBot() {
 //	@schemes	http https
 func main() {
 	models.ConnectDB()
+	certificate.Init()
 	go services.SyncPOAPResultStatus()
 	// go initDoDoBot()
 	startGin()

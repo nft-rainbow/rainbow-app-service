@@ -641,6 +641,521 @@ const docTemplate = `{
                 }
             }
         },
+        "/certis/contract_certificate/{certificate_id}/snapshot": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Snapshots",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Get Snapshots",
+                "operationId": "GetSnapshots",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_id",
+                        "name": "certificate_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/services.ContractSnapshotResp"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/contract_certificate/{certificate_id}/snapshot/run": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Trigger Obtain Snapshot",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Trigger Obtain Snapshot",
+                "operationId": "TriggerObtainSnapshot",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_id",
+                        "name": "certificate_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ginutils.CommonMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/type/address": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert address Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert address Certificate Strategy",
+                "operationId": "InsertAddressCertificateStrategy",
+                "parameters": [
+                    {
+                        "description": "insert_certificate_strategy_req",
+                        "name": "insert_certificate_strategy_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/certificate.AddressCertificateInsertPart"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/type/contract": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert contract Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert contract Certificate Strategy",
+                "operationId": "InsertContractCertificateStrategy",
+                "parameters": [
+                    {
+                        "description": "insert_certificate_strategy_req",
+                        "name": "insert_certificate_strategy_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/certificate.ContractCertificateInsertPart"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/type/dodo": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert dodo Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert dodo Certificate Strategy",
+                "operationId": "InsertDodoCertificateStrategy",
+                "parameters": [
+                    {
+                        "description": "insert_certificate_strategy_req",
+                        "name": "insert_certificate_strategy_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/certificate.DodoCertificateInsertPart"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/type/gasless": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert gasless Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert gasless Certificate Strategy",
+                "operationId": "InsertGaslessCertificateStrategy",
+                "parameters": [
+                    {
+                        "description": "insert_certificate_strategy_req",
+                        "name": "insert_certificate_strategy_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/certificate.GaslessCertificateInsertPart"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/type/phone": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert phone Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert phone Certificate Strategy",
+                "operationId": "InsertPhoneCertificateStrategy",
+                "parameters": [
+                    {
+                        "description": "insert_certificate_strategy_req",
+                        "name": "insert_certificate_strategy_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/certificate.PhoneCertificateInsertPart"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/{id}/certificates": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Certificates",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Get Certificates",
+                "operationId": "GetCertificates",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_strategy_id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificatesQueryResult-routers_CompositedCertificate"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert Certificates",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert Certificates",
+                "operationId": "InsertCertificates",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_strategy_id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "certificate",
+                        "name": "certificates",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/routers.CompositedCertificate"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ginutils.CommonMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete Certificates",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Delete Certificates",
+                "operationId": "DeleteCertificates",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_strategy_id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "certificate_ids",
+                        "name": "certificate_ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ginutils.CommonMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/poap/activity": {
             "get": {
                 "security": [
@@ -1003,6 +1518,20 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "name": "address",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                0,
+                                1,
+                                2
+                            ],
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "statuses",
                         "in": "query"
                     },
                     {
@@ -1512,6 +2041,121 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/post/activity/nftconfig/{nft_config_id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update Activity NFT Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Update Activity NFT Config",
+                "operationId": "UpdateActivityNftConfig",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "nft_config_id",
+                        "name": "nft_config_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update Nft config request",
+                        "name": "update_nft_config_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NftConfigUpdatePart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NFTConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete Activity NFT Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Delete Activity NFT Config",
+                "operationId": "DeleteActivityNftConfig",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "nft_config_id",
+                        "name": "nft_config_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NFTConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1522,6 +2166,136 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "certificate.AddressCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                }
+            }
+        },
+        "certificate.CertificateStrategy": {
+            "type": "object",
+            "properties": {
+                "certificate_type": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "certificate.CertificatesQueryResult-routers_CompositedCertificate": {
+            "type": "object",
+            "properties": {
+                "certificate_type": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/routers.CompositedCertificate"
+                    }
+                }
+            }
+        },
+        "certificate.ContractCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "activity_code": {
+                    "type": "string"
+                },
+                "chain": {
+                    "$ref": "#/definitions/enums.Chain"
+                },
+                "contract_address": {
+                    "type": "string"
+                },
+                "contract_type": {
+                    "$ref": "#/definitions/enums.ContractType"
+                },
+                "snapshot_epoch_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "certificate.ContractSnapshot": {
+            "type": "object",
+            "properties": {
+                "activity_code": {
+                    "type": "string"
+                },
+                "contract": {
+                    "type": "string"
+                },
+                "contract_certificate_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "snapshot_epoch_number": {
+                    "type": "integer"
+                },
+                "token_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "certificate.DodoCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "dodo_source_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "certificate.GaslessCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "activity_code": {
+                    "type": "string"
+                },
+                "chain": {
+                    "$ref": "#/definitions/enums.Chain"
+                },
+                "snapshot_epoch_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "certificate.PhoneCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "phone": {
                     "type": "string"
                 }
             }
@@ -1563,6 +2337,32 @@ const docTemplate = `{
                 "CHAIN_CONFLUX_TEST"
             ]
         },
+        "enums.ContractType": {
+            "type": "integer",
+            "enum": [
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "ContractType_ERC721",
+                "ContractType_ERC1155"
+            ]
+        },
+        "enums.SnapshotStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "SNAPSHOT_STATUS_INIT",
+                "SNAPSHOT_STATUS_PROCESSING",
+                "SNAPSHOT_STATUS_SUCCESS",
+                "SNAPSHOT_STATUS_FAILED"
+            ]
+        },
         "enums.SocialToolType": {
             "type": "integer",
             "enum": [
@@ -1572,6 +2372,19 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "SOCIAL_TOOL_DISCORD",
                 "SOCIAL_TOOL_DODO"
+            ]
+        },
+        "enums.TransactionStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "TRANSACTION_STATUS_INIT",
+                "TRANSACTION_STATUS_SUCCESS",
+                "TRANSACTION_STATUS_FAILED"
             ]
         },
         "enums.WalletType": {
@@ -1627,7 +2440,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "activity_type": {
-                    "$ref": "#/definitions/enums.ActivityType"
+                    "type": "string"
                 },
                 "amount": {
                     "type": "integer"
@@ -1638,13 +2451,13 @@ const docTemplate = `{
                 "app_name": {
                     "type": "string"
                 },
+                "certificate_stratage_id": {
+                    "type": "integer"
+                },
                 "chain_of_gasless": {
-                    "default": 2,
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.Chain"
-                        }
-                    ]
+                    "description": "default value: \"conflux_test\"",
+                    "type": "string",
+                    "default": "2"
                 },
                 "command": {
                     "type": "string"
@@ -1671,10 +2484,8 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "is_phone_white_list_opened": {
-                    "type": "boolean"
-                },
                 "is_token_id_ordered": {
+                    "description": "IsPhoneWhiteListOpened bool                                  ` + "`" + `gorm:\"type:bool;default:false\" json:\"is_phone_white_list_opened\"` + "`" + `",
                     "type": "boolean",
                     "default": true
                 },
@@ -1710,12 +2521,6 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
-                },
-                "white_list_infos": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.WhiteListInfo"
-                    }
                 }
             }
         },
@@ -1734,7 +2539,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "activity_type": {
-                    "$ref": "#/definitions/enums.ActivityType"
+                    "type": "string"
                 },
                 "amount": {
                     "type": "integer"
@@ -1745,13 +2550,13 @@ const docTemplate = `{
                 "app_name": {
                     "type": "string"
                 },
+                "certificate_stratage_id": {
+                    "type": "integer"
+                },
                 "chain_of_gasless": {
-                    "default": 2,
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.Chain"
-                        }
-                    ]
+                    "description": "default value: \"conflux_test\"",
+                    "type": "string",
+                    "default": "2"
                 },
                 "command": {
                     "type": "string"
@@ -1766,10 +2571,8 @@ const docTemplate = `{
                     "type": "integer",
                     "default": -1
                 },
-                "is_phone_white_list_opened": {
-                    "type": "boolean"
-                },
                 "is_token_id_ordered": {
+                    "description": "IsPhoneWhiteListOpened bool                                  ` + "`" + `gorm:\"type:bool;default:false\" json:\"is_phone_white_list_opened\"` + "`" + `",
                     "type": "boolean",
                     "default": true
                 },
@@ -1825,6 +2628,9 @@ const docTemplate = `{
                 "amount": {
                     "type": "integer"
                 },
+                "certificate_stratage_id": {
+                    "type": "integer"
+                },
                 "command": {
                     "type": "string"
                 },
@@ -1838,10 +2644,8 @@ const docTemplate = `{
                     "type": "integer",
                     "default": -1
                 },
-                "is_phone_white_list_opened": {
-                    "type": "boolean"
-                },
                 "is_token_id_ordered": {
+                    "description": "IsPhoneWhiteListOpened bool                                  ` + "`" + `gorm:\"type:bool;default:false\" json:\"is_phone_white_list_opened\"` + "`" + `",
                     "type": "boolean",
                     "default": true
                 },
@@ -2215,7 +3019,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/enums.TransactionStatus"
                 },
                 "token_id": {
                     "type": "string"
@@ -2314,29 +3118,32 @@ const docTemplate = `{
                 }
             }
         },
-        "models.WhiteListInfo": {
+        "routers.CompositedCertificate": {
             "type": "object",
             "properties": {
-                "activityID": {
-                    "type": "integer"
-                },
-                "count": {
-                    "type": "integer"
-                },
-                "created_at": {
+                "activity_code": {
                     "type": "string"
                 },
-                "deleted_at": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
+                "address": {
+                    "type": "string"
                 },
-                "id": {
+                "chain": {
+                    "$ref": "#/definitions/enums.Chain"
+                },
+                "contract_address": {
+                    "type": "string"
+                },
+                "contract_type": {
+                    "$ref": "#/definitions/enums.ContractType"
+                },
+                "dodo_source_id": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "snapshot_epoch_number": {
                     "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "user": {
-                    "type": "string"
                 }
             }
         },
@@ -2367,6 +3174,23 @@ const docTemplate = `{
                 "channelName": {
                     "description": "频道名称",
                     "type": "string"
+                }
+            }
+        },
+        "services.ContractSnapshotResp": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "snapshotStatus": {
+                    "$ref": "#/definitions/enums.SnapshotStatus"
+                },
+                "snapshots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.ContractSnapshot"
+                    }
                 }
             }
         },

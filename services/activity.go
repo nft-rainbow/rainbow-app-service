@@ -1,6 +1,7 @@
 package services
 
 import (
+	"math"
 	"sort"
 	"strings"
 	"sync"
@@ -14,14 +15,14 @@ import (
 	"time"
 
 	. "github.com/nft-rainbow/rainbow-app-service/appService-errors"
-	. "github.com/nft-rainbow/rainbow-app-service/config"
+	"github.com/nft-rainbow/rainbow-app-service/config"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/models"
+	"github.com/nft-rainbow/rainbow-app-service/models/certificate"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	randutils "github.com/nft-rainbow/rainbow-app-service/utils/rand"
 
-	. "github.com/ahmetalpbalkan/go-linq"
 	openapiclient "github.com/nft-rainbow/rainbow-sdk-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -71,16 +72,13 @@ func (a *ActivityService) InsertActivity(activityReq *models.ActivityInsertPart,
 	}
 
 	if activityReq.ActivityType == enums.ACTIVITY_GASLESS {
-		gasLess := GetConfig().Gasless
+		gasLess := config.GetConfig().Gasless
 
 		if activityReq.Amount > int32(gasLess.MaxAmount) {
 			return nil, errors.Errorf("exceed gasless max amount: %v", gasLess.MaxAmount)
 		}
 
-		contractRawId := gasLess.ContractRawID.Testnet
-		if activityReq.ChainOfGasless == enums.CHAIN_CONFLUX {
-			contractRawId = gasLess.ContractRawID.Mainnet
-		}
+		contractRawId := config.GetGaslessContractIdByChain(activityReq.ChainOfGasless)
 		_contractRawId := int32(contractRawId)
 		activity.ContractRawID = &_contractRawId
 
@@ -402,111 +400,155 @@ func (a *ActivityService) H5Mint(req *MintReq) (*models.POAPResult, error) {
 	return result, nil
 }
 
-func (a *ActivityService) GetMintCount(activityID, address string) (*int32, error) {
-	config, err := models.FindActivityByCode(activityID)
+func (a *ActivityService) getMintableCount(activity *models.Activity, address string) (int32, error) {
+
+	if address == "" {
+		return 0, nil
+	}
+
+	//TODO: is certi qulified
+	var certi certificate.CertificateStrategy
+	if err := models.GetDB().First(&certi, activity.CertificateStratageId).Error; err != nil {
+		return 0, err
+	}
+
+	isQualified, err := certificate.GetCertiOperator(&certi).CheckQualified(address)
 	if err != nil {
-		return nil, err
-	}
-	var count int32
-
-	// phone white list logic: if whiteList config opened and user not in whiteList then the mint count is 0
-	if config.IsPhoneWhiteListOpened {
-		users, err := models.FindWalletUserByAddress(address)
-		if err == nil { // TODO check the phone not found case
-			var isInWhiteList bool
-			for _, u := range users {
-				isInWhiteList = models.IsPhoneInWhiteList(activityID, u.Phone)
-				if isInWhiteList {
-					break
-				}
-			}
-
-			if !isInWhiteList {
-				count = 0
-				return &count, nil
-			}
-		}
-	} else if config.IsAddressWhiteListOpened {
-		if !From(config.AddressWhitelist).Contains(address) {
-			count = 0
-			return &count, nil
-		}
+		return 0, err
 	}
 
-	mintedCount, err := models.GetMintSumByAddresses(activityID, address)
+	if !isQualified {
+		return 0, nil
+	}
+
+	addrsOfPhone := []string{address}
+	if certi.CertificateType == enums.CERTIFICATE_PHONE {
+		addrsOfPhone, err = models.FindRelatedAddressWithSamePhone(address)
+		if err != nil {
+			return 0, err
+		}
+	}
+	// TODO: check dodo related address if in dodo certificate type
+
+	mintedCount, err := models.GetMintSumByAddresses(activity.ActivityCode, addrsOfPhone...)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	var remainedMinted int32
-	if config.MaxMintCount == -1 {
-		remainedMinted = -1
-	} else {
-		remainedMinted = int32(int64(config.MaxMintCount) - mintedCount)
-	}
-	logrus.WithField("remain", remainedMinted).Info("get remain mint count")
-
-	if config.Amount == -1 {
-		count = remainedMinted
-	} else {
-		if remainedMinted == -1 {
-			count = config.Amount - int32(models.GetMintCountCache(activityID).GetCount()) // Amount - total minted count
-		} else {
-			if config.Amount-int32(mintedCount) < remainedMinted {
-				count = config.Amount - int32(mintedCount)
-			} else {
-				count = remainedMinted
-			}
+	if activity.Amount == -1 {
+		if activity.MaxMintCount == -1 {
+			return -1, nil
 		}
+		return activity.MaxMintCount - int32(mintedCount), nil
 	}
-	return &count, nil
+
+	totalRemain := int64(activity.Amount) - models.GetMintCountCache(activity.ActivityCode).GetCount()
+	if totalRemain <= 0 {
+		return 0, err
+	}
+	userRemain := math.Min(float64(totalRemain), float64(activity.Amount)-float64(mintedCount))
+	return int32(userRemain), nil
 }
 
-func (a *ActivityService) CheckMintable(config *models.Activity, req *MintReq) error {
-	if err := config.VerifyMintable(); err != nil {
+func (a *ActivityService) GetMintCount(activityID, address string) (int32, error) {
+	activity, err := models.FindActivityByCode(activityID)
+	if err != nil {
+		return 0, err
+	}
+	return a.getMintableCount(activity, address)
+
+	// config, err := models.FindActivityByCode(activityID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// var count int32
+
+	// // phone white list logic: if whiteList config opened and user not in whiteList then the mint count is 0
+	// if config.IsPhoneWhiteListOpened {
+	// 	users, err := models.FindWalletUserByAddress(address)
+	// 	if err == nil { // TODO check the phone not found case
+	// 		var isInWhiteList bool
+	// 		for _, u := range users {
+	// 			isInWhiteList = models.IsPhoneInWhiteList(activityID, u.Phone)
+	// 			if isInWhiteList {
+	// 				break
+	// 			}
+	// 		}
+
+	// 		if !isInWhiteList {
+	// 			count = 0
+	// 			return &count, nil
+	// 		}
+	// 	}
+	// }
+
+	// mintedCount, err := models.GetMintSumByAddresses(activityID, address)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// var remainedMinted int32
+	// if config.MaxMintCount == -1 {
+	// 	remainedMinted = -1
+	// } else {
+	// 	remainedMinted = int32(int64(config.MaxMintCount) - mintedCount)
+	// }
+	// logrus.WithField("remain", remainedMinted).Info("get remain mint count")
+
+	// if config.Amount == -1 {
+	// 	count = remainedMinted
+	// } else {
+	// 	if remainedMinted == -1 {
+	// 		count = config.Amount - int32(models.GetMintCountCache(activityID).GetCount()) // Amount - total minted count
+	// 	} else {
+	// 		if config.Amount-int32(mintedCount) < remainedMinted {
+	// 			count = config.Amount - int32(mintedCount)
+	// 		} else {
+	// 			count = remainedMinted
+	// 		}
+	// 	}
+	// }
+	// return &count, nil
+}
+
+func (a *ActivityService) CheckMintable(activity *models.Activity, req *MintReq) error {
+	if err := activity.VerifyMintable(); err != nil {
 		return errors.WithStack(err)
 	}
 
-	var addrsOfPhone []string
-	if config.IsPhoneWhiteListOpened {
-		users, err := models.FindWalletUserByAddress(req.UserAddress)
+	// addrsOfPhone := []string{req.UserAddress}
+	// if activity.IsPhoneWhiteListOpened {
+	// 	user, err := models.FindWalletUserByAddress(req.UserAddress)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		if err != nil {
-			return err
-		}
+	// 	isInWhiteList := models.IsPhoneInWhiteList(req.ActivityID, user.Phone)
+	// 	if !isInWhiteList {
+	// 		return ERR_BUSINESS_NO_MINT_PERMISSIION
+	// 	}
 
-		var isInWhiteList bool
-		for _, u := range users {
-			isInWhiteList = models.IsPhoneInWhiteList(req.ActivityID, u.Phone)
-			if isInWhiteList {
-				break
-			}
-		}
+	// 	addrs, err := models.FindAllUserAddrsOfPhone(user.Phone)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	addrsOfPhone = append(addrsOfPhone, addrs...)
+	// }
 
-		if !isInWhiteList {
-			return ERR_BUSINESS_NO_MINT_PERMISSIION
-		}
+	// if err := checkUserMintQuota(activity.ActivityCode, addrsOfPhone, activity.MaxMintCount); err != nil {
+	// 	return err
+	// }
 
-		addrs, err := models.FindAllUserAddrsOfPhone(users[0].Phone)
-		if err != nil {
-			return err
-		}
-		addrsOfPhone = append(addrsOfPhone, addrs...)
-	} else if config.IsAddressWhiteListOpened {
-		if !From(config.AddressWhitelist).Contains(req.UserAddress) {
-			return ERR_BUSINESS_NO_MINT_PERMISSIION
-		} else {
-			addrsOfPhone = append(addrsOfPhone, req.UserAddress)
-		}
-	} else {
-		addrsOfPhone = append(addrsOfPhone, req.UserAddress)
-	}
-
-	if err := checkUserMintQuota(config.ActivityCode, addrsOfPhone, config.MaxMintCount); err != nil {
+	mintableCount, err := a.getMintableCount(activity, req.UserAddress)
+	if err != nil {
 		return err
 	}
 
-	if req.Command != config.Command {
+	if mintableCount == 0 {
+		return ERR_BUSINESS_PERSONAL_MAX_AMOUNT_ARRIVED
+	}
+
+	if req.Command != activity.Command {
 		return ERR_BUSINESS_VISPER_WRONG
 	}
 
@@ -594,22 +636,21 @@ func weightedRandomIndex(weights []float32) int {
 	return len(weights) - 1
 }
 
-func checkUserMintQuota(activityId string, userAddrs []string, max int32) error {
-	if max == -1 {
-		return nil
-	}
+// func checkUserMintQuota(activityId string, userAddrs []string, max int32) error {
+// 	if max == -1 {
+// 		return nil
+// 	}
 
-	count, err := models.GetMintSumByAddresses(activityId, userAddrs...)
-	if err != nil {
-		return err
-	}
+// 	count, err := models.GetMintSumByAddresses(activityId, userAddrs...)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	logrus.WithField("user addresses", userAddrs).WithField("count", count).WithField("max", max).Info("check user mint quota exceeded")
-	if int32(count) >= max {
-		return ERR_BUSINESS_PERSONAL_MAX_AMOUNT_ARRIVED
-	}
-	return nil
-}
+// 	if int32(count) >= max {
+// 		return ERR_BUSINESS_PERSONAL_MAX_AMOUNT_ARRIVED
+// 	}
+// 	return nil
+// }
 
 func mint(activity *models.Activity, nftConfig *models.NFTConfig, to string, token string) (*openapiclient.ModelsMintTask, error) {
 	metadataURI, err := crateMetadata(activity, nftConfig, token)
@@ -692,7 +733,7 @@ func saveMintResult(activity *models.Activity, nftConfig *models.NFTConfig, resp
 func getOpenApiToken(activity *models.Activity) (string, error) {
 	userId, appId := activity.RainbowUserId, activity.AppId
 	if activity.ActivityType == enums.ACTIVITY_GASLESS {
-		gasless := GetConfig().Gasless
+		gasless := config.GetConfig().Gasless
 		userId, appId = gasless.UserID, gasless.AppID
 	}
 	token, err := middlewares.GenerateRainbowOpenJWT(userId, appId)

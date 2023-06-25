@@ -223,6 +223,7 @@ func updateActivityBase(c *gin.Context) {
 //	@Success		200							{object}	models.NFTConfig
 //	@Failure		400							{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500							{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/post/activity/nftconfig/{nft_config_id} [put]
 //	@Router			/poap/activity/nftconfig/{nft_config_id} [put]
 func updateActivityNftConfig(c *gin.Context) {
 	req := struct {
@@ -255,11 +256,17 @@ func updateActivityNftConfig(c *gin.Context) {
 //	@Success		200				{object}	models.NFTConfig
 //	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/post/activity/nftconfig/{nft_config_id} [delete]
 //	@Router			/poap/activity/nftconfig/{nft_config_id} [delete]
 func deleteActivityNftConfig(c *gin.Context) {
 	req := struct {
 		NftConfigId uint `uri:"nft_config_id"`
 	}{}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
+		return
+	}
 
 	if err := c.ShouldBindUri(&req); err != nil {
 		ginutils.RenderRespError(c, err, appService_errors.ERR_INVALID_REQUEST_COMMON)
@@ -351,7 +358,7 @@ func getMintCount(c *gin.Context) {
 	address := c.Param("address")
 	activityCode := c.Param(ACTIVITY_CODE_KEY)
 
-	var resp *int32
+	var resp int32
 	resp, err = activityService.GetMintCount(activityCode, address)
 	ginutils.RenderResp(c, resp, err)
 }

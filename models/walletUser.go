@@ -1,6 +1,9 @@
 package models
 
-import "github.com/nft-rainbow/rainbow-app-service/models/enums"
+import (
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"github.com/nft-rainbow/rainbow-app-service/utils/gormutils"
+)
 
 type WalletUser struct {
 	BaseModel
@@ -14,13 +17,14 @@ type WalletUser struct {
 	Address       string           `gorm:"type:varchar(256);index" json:"address"`
 }
 
-func FindWalletUserByAddress(address string) ([]*WalletUser, error) {
-	var users []*WalletUser
-	err := GetDB().Where("address = ?", address).Find(&users).Error
+// If record not found, return nil user and nil error
+func FindWalletUserByAddress(address string) (*WalletUser, error) {
+	var user WalletUser
+	err := GetDB().Where("address = ?", address).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
-	return users, nil
+	return &user, nil
 }
 
 func FindWalletUser(wallet enums.WalletType, address string) (walletUser *WalletUser, err error) {
@@ -34,4 +38,15 @@ func FindWalletUser(wallet enums.WalletType, address string) (walletUser *Wallet
 func FindAllUserAddrsOfPhone(phone string) (addrs []string, err error) {
 	err = GetDB().Debug().Model(&WalletUser{}).Select("address").Distinct().Where("phone=?", phone).Distinct("address").Find(&addrs).Error
 	return
+}
+
+func FindRelatedAddressWithSamePhone(address string) (addrs []string, err error) {
+	user, err := FindWalletUserByAddress(address)
+	if err != nil {
+		if gormutils.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return FindAllUserAddrsOfPhone(user.Phone)
 }

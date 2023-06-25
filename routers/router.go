@@ -89,16 +89,6 @@ func SetupRoutes(router *gin.Engine) {
 	poap.POST("/wallet/user", addWalletUser)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		// poap.POST("/activity/push", pushActivity)
-		// poap.POST("/activity/server", bindServerInfo)
-		// poap.GET("/activity/push/:bot", getPushes)
-		// poap.GET("/activity/servers/:bot", getServers)
-		// poap.GET("/activity/channels/discord/:guild_id", getDiscordChannels)
-		// poap.GET("/activity/channels/dodo/:island_id", getDoDoChannels)
-		// poap.GET("/activity/roles/discord/:guild_id", getDiscordRoles)
-		// poap.GET("/activity/roles/dodo/:island_id", getDoDoRoles)
-		// poap.POST("/csv", poapMintByCSV)
-
 		poap.POST("/activity", addActivity)
 		poap.POST("/activity/:activity_code/nftconfigs", addActivityNftConfigs)
 		poap.PUT("/activity/:activity_code/base", updateActivityBase)
@@ -109,6 +99,19 @@ func SetupRoutes(router *gin.Engine) {
 
 		poap.POST("/activity/token-reserve", addTokenReserves)
 		poap.GET("/activity/token-reserve/:activity_code", getTokenReserves)
+	}
+
+	certi := apps.Group("/certis")
+	{
+		certiCtrl := NewCertiController()
+		certi.POST("/strategy/type/:certificate_type", certiCtrl.InsertCertificateStrategy)
+
+		certi.GET("/strategy/:id/certificates", certiCtrl.GetCertificates)
+		certi.POST("/strategy/:id/certificates", certiCtrl.InsertCertificates)
+		certi.DELETE("/strategy/:id/certificates", certiCtrl.DeleteCertificates)
+
+		certi.GET("contract_certificate/:certificate_id/snapshot", certiCtrl.GetSnapshots)
+		certi.POST("contract_certificate/:certificate_id/snapshot/run", certiCtrl.TriggerObtainSnapshot)
 	}
 }
 

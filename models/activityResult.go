@@ -4,6 +4,8 @@ import (
 	"sync"
 
 	"github.com/mcuadros/go-defaults"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"gorm.io/gorm"
 )
 
 var (
@@ -12,24 +14,37 @@ var (
 
 type POAPResult struct {
 	BaseModel
-	Address       string `gorm:"type:string;index" json:"address" binding:"required"`
-	ConfigID      int32  `gorm:"type:integer" json:"config_id"`
-	ContractRawID int32  `gorm:"type:integer" json:"contract_id" binding:"required"`
-	TxID          int32  `gorm:"type:integer" json:"tx_id"`
-	TokenID       string `gorm:"type:varchar(256)" json:"token_id"`
-	Hash          string `gorm:"type:string" json:"hash"`
-	ActivityCode  string `gorm:"type:string;index" json:"activity_id"` //TODO:  与前端一起更新为activity_code
-	Status        int32  `gorm:"type:integer;index" json:"status"`
-	FileURL       string `gorm:"type:string" json:"file_url"`
-	ProjectorId   uint   `gorm:"type:integer" json:"projector_id"`
-	AppId         uint   `gorm:"type:integer" json:"app_id"`
-	SocialId      string `gorm:"type:string;index" json:"social_id"`
-	SocialType    uint   `gorm:"type:integer" json:"social_type"`
+	Address       string                  `gorm:"type:string;index" json:"address" binding:"required"`
+	ConfigID      int32                   `gorm:"type:integer" json:"config_id"`
+	ContractRawID int32                   `gorm:"type:integer" json:"contract_id" binding:"required"`
+	TxID          int32                   `gorm:"type:integer" json:"tx_id"`
+	TokenID       string                  `gorm:"type:varchar(256)" json:"token_id"`
+	Hash          string                  `gorm:"type:string" json:"hash"`
+	ActivityCode  string                  `gorm:"type:string;index" json:"activity_id"` //TODO:  与前端一起更新为activity_code
+	Status        enums.TransactionStatus `gorm:"type:integer;index" json:"status"`
+	FileURL       string                  `gorm:"type:string" json:"file_url"`
+	ProjectorId   uint                    `gorm:"type:integer" json:"projector_id"`
+	AppId         uint                    `gorm:"type:integer" json:"app_id"`
+	SocialId      string                  `gorm:"type:string;index" json:"social_id"`
+	SocialType    uint                    `gorm:"type:integer" json:"social_type"`
 }
 
 type POAPResultFilter struct {
-	Address string `form:"address" json:"address"`
+	Address  string                    `form:"address" json:"address"`
+	Statuses []enums.TransactionStatus `form:"statuses" json:"statuses"`
 }
+
+func (p *POAPResultFilter) ToWhere() *gorm.DB {
+	sql := db
+	if p.Address != "" {
+		sql = sql.Where("address = ?", p.Address)
+	}
+	if len(p.Statuses) > 0 {
+		sql = sql.Where("status in (?)", p.Statuses)
+	}
+	return sql
+}
+
 type POAPResultQueryResult struct {
 	Count int64         `json:"count"`
 	Items []*POAPResult `json:"items"`
@@ -39,17 +54,9 @@ func FindAndCountPOAPResult(poapId string, filter POAPResultFilter, pagination P
 	defaults.SetDefaults(&pagination)
 
 	var items []*POAPResult
-	cond := &POAPResult{}
-	cond.ActivityCode = poapId
-	cond.Address = filter.Address
-
 	var count int64
-	count, err := CountPOAPResult(poapId, &filter)
-	if err != nil {
-		return nil, err
-	}
 
-	if err := db.Model(&POAPResult{}).Where(cond).Order("id DESC").Offset(pagination.Offset()).Limit(pagination.Limit).Find(&items).Error; err != nil {
+	if err := db.Model(&POAPResult{}).Where("activity_code=?", poapId).Where(filter.ToWhere()).Count(&count).Order("id DESC").Offset(pagination.Offset()).Limit(pagination.Limit).Find(&items).Error; err != nil {
 		return nil, err
 	}
 
@@ -57,17 +64,12 @@ func FindAndCountPOAPResult(poapId string, filter POAPResultFilter, pagination P
 }
 
 func CountPOAPResult(poapId string, filter *POAPResultFilter) (int64, error) {
-	cond := &POAPResult{}
-	cond.ActivityCode = poapId
-
 	if filter == nil {
 		return GetMintCountCache(poapId).GetCount(), nil
 	}
 
-	cond.Address = filter.Address
-
 	var count int64
-	err := db.Model(&POAPResult{}).Where(cond).Order("id DESC").Count(&count).Error
+	err := db.Model(&POAPResult{}).Where("activity_code=?", poapId).Where(filter.ToWhere()).Order("id DESC").Count(&count).Error
 	return count, err
 }
 
@@ -105,23 +107,6 @@ func FindPOAPResultById(poapId string, id int) (*POAPResult, error) {
 	}
 
 	return resp, nil
-}
-
-func FindAndCountUnhandledPOAPResult(poapId string, offset, limit int, userAddress string) (*POAPResultQueryResult, error) {
-	var items []*POAPResult
-	cond := &POAPResult{}
-	cond.ActivityCode = poapId
-	cond.Address = userAddress
-
-	var count int64
-	if err := db.Model(&POAPResult{}).Where(cond).Count(&count).Error; err != nil {
-		return nil, err
-	}
-
-	if err := db.Model(&POAPResult{}).Where(cond).Offset(offset).Limit(limit).Find(&items).Error; err != nil {
-		return nil, err
-	}
-	return &POAPResultQueryResult{count, items}, nil
 }
 
 type POAPResultCountCache struct {
