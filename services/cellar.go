@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 
 	"io/ioutil"
 	"net/http"
@@ -60,9 +61,13 @@ type cellarUser struct {
 }
 
 func (a *Cellar) getUserInfoByToken(token string) (*cellarUser, error) {
-	url := "https://wallet.metacellar.art/web3/userAuth/getUserInfoByToken"
+	url := "https://wallet.metacellar.art/web3/userAuth/getUserInfoByToken" //PROD
+	// url := "https://wallet-pre.maytek.cn/web3/userAuth/getUserInfoByToken" //DEV
+
 	payload := map[string]string{"token": token}
 	payloadJ, _ := json.Marshal(payload)
+
+	fmt.Println(string(payloadJ))
 	resp, err := http.Post(url, "application/json", bytes.NewReader(payloadJ))
 	if err != nil {
 		return nil, err
