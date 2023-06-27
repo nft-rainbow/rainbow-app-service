@@ -82,7 +82,7 @@ func (b *BotServerController) insertBotServer(c *gin.Context) {
 		return
 	}
 
-	userId := GetIdFromJwtClaim(c)
+	userId := GetIdFromJwt(c)
 	botServer, err := b.botService.InsertBotServer(userId, req)
 	ginutils.RenderResp(c, botServer, err)
 }
@@ -106,7 +106,7 @@ func (b *BotServerController) GetBotServers(c *gin.Context) {
 		return
 	}
 
-	userId := GetIdFromJwtClaim(c)
+	userId := GetIdFromJwt(c)
 	p, err := b.botService.GetBotServers(userId, &queryParams)
 	ginutils.RenderResp(c, p, err)
 }
@@ -123,7 +123,7 @@ func (b *BotServerController) GetBotServers(c *gin.Context) {
 //	@Failure		500	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
 //	@Router			/bot/server/{id} [get]
 func (b *BotServerController) GetBotServer(c *gin.Context) {
-	userId := GetIdFromJwtClaim(c)
+	userId := GetIdFromJwt(c)
 
 	var req IdUintReq
 	if err := c.ShouldBindUri(&req); err != nil {
@@ -159,7 +159,7 @@ func (b *BotServerController) AddPushInfo(c *gin.Context) {
 		return
 	}
 
-	userId := GetIdFromJwtClaim(c)
+	userId := GetIdFromJwt(c)
 	res, err := b.botService.AddPushInfo(userId, uriParams.Id, req)
 	ginutils.RenderResp(c, res, err)
 }
@@ -183,7 +183,7 @@ func (b *BotServerController) Push(c *gin.Context) {
 	}
 
 	channelId := c.Query("channel")
-	userId := GetIdFromJwtClaim(c)
+	userId := GetIdFromJwt(c)
 	err := b.botService.Push(userId, channelId, uriParams.Id)
 	ginutils.RenderResp(c, ginutils.CommonSuccessMessage, err)
 }
@@ -212,7 +212,7 @@ func (b *BotServerController) UpdatePushInfo(c *gin.Context) {
 		return
 	}
 
-	userId := GetIdFromJwtClaim(c)
+	userId := GetIdFromJwt(c)
 	res, err := b.botService.UpdatePushInfo(userId, uriParams.Id, req)
 	ginutils.RenderResp(c, res, err)
 
@@ -240,7 +240,7 @@ func (b *BotServerController) GetActivitiesOfUserBotServers(c *gin.Context) {
 	}
 	defaults.SetDefaults(&req)
 
-	userId := GetIdFromJwtClaim(c)
+	userId := GetIdFromJwt(c)
 	result, err := b.botService.GetActivitiesOfBotServers(userId, &req)
 	ginutils.RenderResp(c, result, err)
 

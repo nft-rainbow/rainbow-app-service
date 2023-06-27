@@ -102,17 +102,34 @@ func SetupRoutes(router *gin.Engine) {
 	}
 
 	certi := apps.Group("/certis")
+	certi.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
 		certiCtrl := NewCertiController()
 		certi.POST("/strategy/type/:certificate_type", certiCtrl.InsertCertificateStrategy)
+		certi.GET("/strategy/list", certiCtrl.GetCertiStrategies)
 
-		certi.GET("/strategy/:id/certificates", certiCtrl.GetCertificates)
-		certi.POST("/strategy/:id/certificates", certiCtrl.InsertCertificates)
-		certi.DELETE("/strategy/:id/certificates", certiCtrl.DeleteCertificates)
+		certiStrategyOp := certi.Group("/strategy/:id")
+		certiStrategyOp.Use(certiCtrl.checkCertiStrategyAccessMiddleware)
+		{
+			certiStrategyOp.GET("/certificates", certiCtrl.GetCertificates)
+			certiStrategyOp.POST("/certificates", certiCtrl.InsertCertificates)
+			certiStrategyOp.DELETE("/certificates", certiCtrl.DeleteCertificates)
+		}
 
-		certi.GET("contract_certificate/:certificate_id/snapshot", certiCtrl.GetSnapshots)
-		certi.POST("contract_certificate/:certificate_id/snapshot/run", certiCtrl.TriggerObtainSnapshot)
+		contractCertis := certi.Group("/contract_certificate")
+		certiStrategyOp.Use(certiCtrl.checkContractCertiAccessMiddleware)
+		{
+			contractCertis.GET("/:certificate_id/snapshot", certiCtrl.GetSnapshots)
+			contractCertis.POST("/:certificate_id/snapshot/run", certiCtrl.TriggerObtainSnapshot)
+		}
 	}
+
+	internal := apps.Group("/internal")
+	{
+		internalCtrl := &InternalController{}
+		internal.GET("/user", middlewares.JwtAuthMiddleware.MiddlewareFunc(), internalCtrl.GetUserInfo)
+	}
+
 }
 
 func indexEndpoint(c *gin.Context) {
@@ -149,6 +166,6 @@ func indexEndpoint(c *gin.Context) {
 // 	return &pagination, nil
 // }
 
-func GetIdFromJwtClaim(c *gin.Context) uint {
+func GetIdFromJwt(c *gin.Context) uint {
 	return c.GetUint(middlewares.JwtIdentityKey)
 }

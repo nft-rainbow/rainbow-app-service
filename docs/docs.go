@@ -664,6 +664,20 @@ const docTemplate = `{
                         "name": "certificate_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -735,6 +749,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/certis/strategy/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get certificate strategies",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Get certificate strategies",
+                "operationId": "GetCertificateStrategies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "certificate_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name_like",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ItemsWithCount-certificate_CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/certis/strategy/type/address": {
             "post": {
                 "security": [
@@ -758,10 +834,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/certificate.AddressCertificateInsertPart"
-                            }
+                            "$ref": "#/definitions/services.InsertCertificateStrategyReq-certificate_AddressCertificateInsertPart"
                         }
                     }
                 ],
@@ -810,10 +883,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/certificate.ContractCertificateInsertPart"
-                            }
+                            "$ref": "#/definitions/services.InsertCertificateStrategyReq-certificate_ContractCertificateInsertPart"
                         }
                     }
                 ],
@@ -862,10 +932,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/certificate.DodoCertificateInsertPart"
-                            }
+                            "$ref": "#/definitions/services.InsertCertificateStrategyReq-certificate_DodoCertificateInsertPart"
                         }
                     }
                 ],
@@ -914,10 +981,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/certificate.GaslessCertificateInsertPart"
-                            }
+                            "$ref": "#/definitions/services.InsertCertificateStrategyReq-certificate_GaslessCertificateInsertPart"
                         }
                     }
                 ],
@@ -966,10 +1030,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/certificate.PhoneCertificateInsertPart"
-                            }
+                            "$ref": "#/definitions/services.InsertCertificateStrategyReq-certificate_PhoneCertificateInsertPart"
                         }
                     }
                 ],
@@ -1017,6 +1078,20 @@ const docTemplate = `{
                         "description": "certificate_strategy_id",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -1354,121 +1429,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.H5Config"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/poap/activity/nftconfig/{nft_config_id}": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Update Activity NFT Config",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Update Activity NFT Config",
-                "operationId": "UpdateActivityNftConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "nft_config_id",
-                        "name": "nft_config_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "update Nft config request",
-                        "name": "update_nft_config_request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.NftConfigUpdatePart"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.NFTConfig"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Delete Activity NFT Config",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Delete Activity NFT Config",
-                "operationId": "DeleteActivityNftConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "nft_config_id",
-                        "name": "nft_config_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.NFTConfig"
                         }
                     },
                     "400": {
@@ -2193,8 +2153,14 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "name": {
+                    "type": "string"
+                },
                 "updated_at": {
                     "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -2902,6 +2868,20 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ItemsWithCount-certificate_CertificateStrategy": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.CertificateStrategy"
+                    }
+                }
+            }
+        },
         "models.MetadataAttribute": {
             "type": "object",
             "properties": {
@@ -3217,6 +3197,76 @@ const docTemplate = `{
                         "dodo",
                         "discord"
                     ]
+                }
+            }
+        },
+        "services.InsertCertificateStrategyReq-certificate_AddressCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.AddressCertificateInsertPart"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.InsertCertificateStrategyReq-certificate_ContractCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.ContractCertificateInsertPart"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.InsertCertificateStrategyReq-certificate_DodoCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.DodoCertificateInsertPart"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.InsertCertificateStrategyReq-certificate_GaslessCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.GaslessCertificateInsertPart"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.InsertCertificateStrategyReq-certificate_PhoneCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.PhoneCertificateInsertPart"
+                    }
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },

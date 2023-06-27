@@ -22,8 +22,12 @@ definitions:
         $ref: '#/definitions/gorm.DeletedAt'
       id:
         type: integer
+      name:
+        type: string
       updated_at:
         type: string
+      user_id:
+        type: integer
     type: object
   certificate.CertificatesQueryResult-routers_CompositedCertificate:
     properties:
@@ -515,6 +519,15 @@ definitions:
     required:
     - link
     type: object
+  models.ItemsWithCount-certificate_CertificateStrategy:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/certificate.CertificateStrategy'
+        type: array
+    type: object
   models.MetadataAttribute:
     properties:
       display_type:
@@ -725,6 +738,51 @@ definitions:
     - auth_code
     - server_id
     - social_tool
+    type: object
+  services.InsertCertificateStrategyReq-certificate_AddressCertificateInsertPart:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/certificate.AddressCertificateInsertPart'
+        type: array
+      name:
+        type: string
+    type: object
+  services.InsertCertificateStrategyReq-certificate_ContractCertificateInsertPart:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/certificate.ContractCertificateInsertPart'
+        type: array
+      name:
+        type: string
+    type: object
+  services.InsertCertificateStrategyReq-certificate_DodoCertificateInsertPart:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/certificate.DodoCertificateInsertPart'
+        type: array
+      name:
+        type: string
+    type: object
+  services.InsertCertificateStrategyReq-certificate_GaslessCertificateInsertPart:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/certificate.GaslessCertificateInsertPart'
+        type: array
+      name:
+        type: string
+    type: object
+  services.InsertCertificateStrategyReq-certificate_PhoneCertificateInsertPart:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/certificate.PhoneCertificateInsertPart'
+        type: array
+      name:
+        type: string
     type: object
   services.MintReq:
     properties:
@@ -1187,6 +1245,16 @@ paths:
         name: certificate_id
         required: true
         type: integer
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -1284,6 +1352,16 @@ paths:
         name: id
         required: true
         type: integer
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -1341,6 +1419,45 @@ paths:
       summary: Insert Certificates
       tags:
       - Certi
+  /certis/strategy/list:
+    get:
+      description: Get certificate strategies
+      operationId: GetCertificateStrategies
+      parameters:
+      - in: query
+        name: certificate_type
+        type: string
+      - default: 10
+        in: query
+        name: limit
+        type: integer
+      - in: query
+        name: name_like
+        type: string
+      - default: 1
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ItemsWithCount-certificate_CertificateStrategy'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get certificate strategies
+      tags:
+      - Certi
   /certis/strategy/type/address:
     post:
       description: Insert address Certificate Strategy
@@ -1351,9 +1468,7 @@ paths:
         name: insert_certificate_strategy_req
         required: true
         schema:
-          items:
-            $ref: '#/definitions/certificate.AddressCertificateInsertPart'
-          type: array
+          $ref: '#/definitions/services.InsertCertificateStrategyReq-certificate_AddressCertificateInsertPart'
       produces:
       - application/json
       responses:
@@ -1384,9 +1499,7 @@ paths:
         name: insert_certificate_strategy_req
         required: true
         schema:
-          items:
-            $ref: '#/definitions/certificate.ContractCertificateInsertPart'
-          type: array
+          $ref: '#/definitions/services.InsertCertificateStrategyReq-certificate_ContractCertificateInsertPart'
       produces:
       - application/json
       responses:
@@ -1417,9 +1530,7 @@ paths:
         name: insert_certificate_strategy_req
         required: true
         schema:
-          items:
-            $ref: '#/definitions/certificate.DodoCertificateInsertPart'
-          type: array
+          $ref: '#/definitions/services.InsertCertificateStrategyReq-certificate_DodoCertificateInsertPart'
       produces:
       - application/json
       responses:
@@ -1450,9 +1561,7 @@ paths:
         name: insert_certificate_strategy_req
         required: true
         schema:
-          items:
-            $ref: '#/definitions/certificate.GaslessCertificateInsertPart'
-          type: array
+          $ref: '#/definitions/services.InsertCertificateStrategyReq-certificate_GaslessCertificateInsertPart'
       produces:
       - application/json
       responses:
@@ -1483,9 +1592,7 @@ paths:
         name: insert_certificate_strategy_req
         required: true
         schema:
-          items:
-            $ref: '#/definitions/certificate.PhoneCertificateInsertPart'
-          type: array
+          $ref: '#/definitions/services.InsertCertificateStrategyReq-certificate_PhoneCertificateInsertPart'
       produces:
       - application/json
       responses:
@@ -1753,81 +1860,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Set H5 Config
-      tags:
-      - POAP
-  /poap/activity/nftconfig/{nft_config_id}:
-    delete:
-      description: Delete Activity NFT Config
-      operationId: DeleteActivityNftConfig
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: nft_config_id
-        in: path
-        name: nft_config_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.NFTConfig'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Delete Activity NFT Config
-      tags:
-      - POAP
-    put:
-      description: Update Activity NFT Config
-      operationId: UpdateActivityNftConfig
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: nft_config_id
-        in: path
-        name: nft_config_id
-        required: true
-        type: integer
-      - description: update Nft config request
-        in: body
-        name: update_nft_config_request
-        required: true
-        schema:
-          $ref: '#/definitions/models.NftConfigUpdatePart'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.NFTConfig'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Update Activity NFT Config
       tags:
       - POAP
   /poap/activity/result/{activity_code}:
