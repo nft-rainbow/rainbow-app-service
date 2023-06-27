@@ -20,6 +20,11 @@ type BaseModel struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
 
+type ItemsWithCount[T any] struct {
+	Count int `json:"count"`
+	Items []T `json:"items"`
+}
+
 func ConnectDB() {
 	// refer https://github.com/go-sql-driver/mysql#dsn-data-source-name for details
 	var err error
