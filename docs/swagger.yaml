@@ -1245,15 +1245,15 @@ paths:
         name: certificate_id
         required: true
         type: integer
-      - description: page
+      - default: 1
+        description: page
         in: query
         name: page
-        required: true
         type: integer
-      - description: limit
+      - default: 10
+        description: limit
         in: query
         name: limit
-        required: true
         type: integer
       produces:
       - application/json
@@ -1352,15 +1352,15 @@ paths:
         name: id
         required: true
         type: integer
-      - description: page
+      - default: 1
+        description: page
         in: query
         name: page
-        required: true
         type: integer
-      - description: limit
+      - default: 10
+        description: limit
         in: query
         name: limit
-        required: true
         type: integer
       produces:
       - application/json

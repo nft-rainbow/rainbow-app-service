@@ -73,8 +73,8 @@ func (ctrl *CertiController) InsertCertificateStrategy(c *gin.Context) {
 //	@security		ApiKeyAuth
 //	@Produce		json
 //	@Param			id		path		int	true	"certificate_strategy_id"
-//	@Param			page	query		int	true	"page"
-//	@Param			limit	query		int	true	"limit"
+//	@Param			page	query		int	false	"page"	default(1)
+//	@Param			limit	query		int	false	"limit"	default(10)
 //	@Success		200		{object}	certificate.CertificatesQueryResult[CompositedCertificate]
 //	@Failure		400		{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500		{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
@@ -156,8 +156,8 @@ func (ctrl *CertiController) DeleteCertificates(c *gin.Context) {
 //	@security		ApiKeyAuth
 //	@Produce		json
 //	@Param			certificate_id	path		int	true	"certificate_id"
-//	@Param			page			query		int	true	"page"
-//	@Param			limit			query		int	true	"limit"
+//	@Param			page			query		int	false	"page"	default(1)
+//	@Param			limit			query		int	false	"limit"	default(10)
 //	@Success		200				{object}	services.ContractSnapshotResp
 //	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
