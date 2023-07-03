@@ -10,6 +10,7 @@ type CertificateStrategy struct {
 	models.BaseModel
 	CertificateType enums.CertificateType `json:"certificate_type" swaggertype:"string"`
 	Name            string                `gorm:"type:varchar(255)" json:"name"`
+	Description     string                `json:"description"`
 	UserId          uint                  `json:"user_id"`
 	// Addresses       []AddressCertificate  `json:"addresses,omitempty"`
 	// Phones          []PhoneCertificate    `json:"phones,omitempty"`

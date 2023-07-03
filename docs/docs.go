@@ -2150,6 +2150,9 @@ const docTemplate = `{
                 "deleted_at": {
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
