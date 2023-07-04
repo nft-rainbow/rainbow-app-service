@@ -71,5 +71,5 @@ func (a *PhoneCertiOperator) InsertCertificates(items []any) error {
 }
 
 func (a *PhoneCertiOperator) DeleteCertificates(ids []uint) error {
-	return models.GetDB().Where("certificate_strategy_id = ?", a.Strategy.ID).Where("id in (?)", ids).Delete(&PhoneCertiOperator{}).Error
+	return models.GetDB().Where("certificate_strategy_id = ?", a.Strategy.ID).Where("id in (?)", ids).Delete(&PhoneCertificate{}).Error
 }
