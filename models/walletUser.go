@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils/gormutils"
 )
@@ -33,6 +35,28 @@ func FindWalletUser(wallet enums.WalletType, address string) (walletUser *Wallet
 		return nil, err
 	}
 	return
+}
+
+func FindTopWalletUsersByPhones(wallet enums.WalletType, phones []string) (map[string]string, error) {
+	type phoneXaddr struct {
+		Phone   string `json:"phone"`
+		Address string `json:"address"`
+	}
+
+	var phoneXaddrs []phoneXaddr
+	// select phone,address from wallet_users where id in (select min(id) from wallet_users group by phone)
+	getIdsSql := GetDB().Table("wallet_users").Select("min(id)").Group("phone").Where("wallet=? and phone in ?", enums.WALLET_CELLAR, phones)
+	if err := GetDB().Debug().Table("wallet_users").Select("phone,address").Where("id in (?)", getIdsSql).Find(&phoneXaddrs).Error; err != nil {
+		return nil, err
+	}
+	fmt.Println("find phone with address, len: ", len(phoneXaddrs))
+
+	result := make(map[string]string)
+	for _, pxa := range phoneXaddrs {
+
+		result[pxa.Phone] = pxa.Address
+	}
+	return result, nil
 }
 
 func FindAllUserAddrsOfPhone(phone string) (addrs []string, err error) {

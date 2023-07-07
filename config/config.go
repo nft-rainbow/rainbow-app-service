@@ -83,10 +83,15 @@ type Config struct {
 		Activity string `yaml:"activity"`
 	} `yaml:"url"`
 	IPLimitEveryday int `yaml:"ipLimitEveryday"`
-	Anyweb          struct {
-		Appid  string `yaml:"appid"`
-		Secret string `yaml:"secret"`
-	} `yaml:"anyweb"`
+	Wallet          struct {
+		Anyweb struct {
+			Appid  string `yaml:"appid"`
+			Secret string `yaml:"secret"`
+		} `yaml:"anyweb"`
+		Cellar struct {
+			Appid string `yaml:"appid"`
+		}
+	} `yaml:"wallet"`
 	Log struct {
 		Level  string `yaml:"level"`
 		Folder string `yaml:"folder"`
