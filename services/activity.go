@@ -406,31 +406,34 @@ func (a *ActivityService) getMintableCount(activity *models.Activity, address st
 		return 0, nil
 	}
 
-	//TODO: is certi qulified
-	var certi certificate.CertificateStrategy
-	if err := models.GetDB().First(&certi, activity.CertificateStratageId).Error; err != nil {
-		return 0, err
-	}
+	relatedAddress := []string{address}
+	if activity.CertificateStratageId > 0 {
+		var certi certificate.CertificateStrategy
+		if err := models.GetDB().First(&certi, activity.CertificateStratageId).Error; err != nil {
+			return 0, err
+		}
 
-	isQualified, err := certificate.GetCertiOperator(&certi).CheckQualified(address)
-	if err != nil {
-		return 0, err
-	}
-
-	if !isQualified {
-		return 0, nil
-	}
-
-	addrsOfPhone := []string{address}
-	if certi.CertificateType == enums.CERTIFICATE_PHONE {
-		addrsOfPhone, err = models.FindRelatedAddressWithSamePhone(address)
+		isQualified, err := certificate.GetCertiOperator(&certi).CheckQualified(address)
 		if err != nil {
 			return 0, err
 		}
-	}
-	// TODO: check dodo related address if in dodo certificate type
 
-	mintedCount, err := models.GetMintSumByAddresses(activity.ActivityCode, addrsOfPhone...)
+		if !isQualified {
+			return 0, nil
+		}
+
+		switch certi.CertificateType {
+		case enums.CERTIFICATE_PHONE:
+			relatedAddress, err = models.FindRelatedAddressWithSamePhone(address)
+			if err != nil {
+				return 0, err
+			}
+		default:
+			return 0, errors.Errorf("unsupport certi type %v", certi.CertificateType)
+		}
+	}
+
+	mintedCount, err := models.GetMintSumByAddresses(activity.ActivityCode, relatedAddress...)
 	if err != nil {
 		return 0, err
 	}
@@ -446,7 +449,9 @@ func (a *ActivityService) getMintableCount(activity *models.Activity, address st
 	if totalRemain <= 0 {
 		return 0, err
 	}
+
 	userRemain := math.Min(float64(totalRemain), float64(activity.Amount)-float64(mintedCount))
+	userRemain = math.Max(0, userRemain)
 	return int32(userRemain), nil
 }
 
