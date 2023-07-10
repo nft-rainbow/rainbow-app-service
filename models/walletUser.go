@@ -10,6 +10,7 @@ import (
 type WalletUser struct {
 	BaseModel
 	Wallet        enums.WalletType `gorm:"type:varchar(256);index:idx_wallet_phone,priority:2" json:"wallet"`
+	Chain         enums.Chain      `gorm:"type:uint" json:"chain"`
 	UnionId       string           `gorm:"type:varchar(256);index" json:"unionid"`
 	AccessToken   string           `gorm:"type:text" json:"access_token"`
 	Expire        int64            `gorm:"type:integer" json:"expire"` // access token expire time in timestamp
@@ -37,7 +38,7 @@ func FindWalletUser(wallet enums.WalletType, address string) (walletUser *Wallet
 	return
 }
 
-func FindTopWalletUsersByPhones(wallet enums.WalletType, phones []string) (map[string]string, error) {
+func FindTopWalletUsersByPhones(wallet enums.WalletType, chain enums.Chain, phones []string) (map[string]string, error) {
 	type phoneXaddr struct {
 		Phone   string `json:"phone"`
 		Address string `json:"address"`
@@ -45,7 +46,7 @@ func FindTopWalletUsersByPhones(wallet enums.WalletType, phones []string) (map[s
 
 	var phoneXaddrs []phoneXaddr
 	// select phone,address from wallet_users where id in (select min(id) from wallet_users group by phone)
-	getIdsSql := GetDB().Table("wallet_users").Select("min(id)").Group("phone").Where("wallet=? and phone in ?", enums.WALLET_CELLAR, phones)
+	getIdsSql := GetDB().Table("wallet_users").Select("min(id)").Group("phone").Where("wallet=? and chain=? and phone in ?", enums.WALLET_CELLAR, chain, phones)
 	if err := GetDB().Debug().Table("wallet_users").Select("phone,address").Where("id in (?)", getIdsSql).Find(&phoneXaddrs).Error; err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ type AddressFinder struct {
 	SourceType enums.SourceType
 }
 
-func (a *AddressFinder) Find(sources []string) (exists map[string]string, unexists []string, err error) {
+func (a *AddressFinder) Find(chain enums.Chain, sources []string) (exists map[string]string, unexists []string, err error) {
 	switch a.SourceType {
 	case enums.SOURCE_TYPE_ADDRESS:
 		result := make(map[string]string)
@@ -21,7 +21,7 @@ func (a *AddressFinder) Find(sources []string) (exists map[string]string, unexis
 		return result, nil, nil
 
 	case enums.SOURCE_TYPE_PHONE:
-		exists, err = models.FindTopWalletUsersByPhones(enums.WALLET_CELLAR, sources)
+		exists, err = models.FindTopWalletUsersByPhones(enums.WALLET_CELLAR, chain, sources)
 		if err != nil {
 			return nil, nil, err
 		}

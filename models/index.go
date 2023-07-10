@@ -44,7 +44,7 @@ func ConnectDB() {
 		&POAPResult{},
 		&H5Config{},
 		&NFTConfig{},
-		// &WhiteListInfo{},
+
 		&Activity{},
 		&Contract{},
 		&Statistic{},
@@ -54,6 +54,8 @@ func ConnectDB() {
 		&WalletUser{},
 		&PhoneWhiteList{},
 		&TokenReserve{},
+
+		&BatchMintTask{},
 	); err != nil {
 		panic(err)
 	}
