@@ -14,7 +14,10 @@ var (
 )
 
 func Init() {
-	initViper()
+	viper.SetConfigName("config") // name of config file (without extension)
+	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
+	viper.AddConfigPath(".")      // optionally look for config in the working directory
+	viper.AddConfigPath("..")     // optionally look for config in the working directory
 	if err := viper.Unmarshal(&_config, func(d *mapstructure.DecoderConfig) {
 		d.ErrorUnset = true
 	}); err != nil {
@@ -22,16 +25,34 @@ func Init() {
 	}
 }
 
-func initViper() {
-	viper.SetConfigName("config") // name of config file (without extension)
-	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
-	viper.AddConfigPath(".")      // optionally look for config in the working directory
-	viper.AddConfigPath("..")     // optionally look for config in the working directory
-	err := viper.ReadInConfig()   // Find and read the config file
-	if err != nil {               // Handle errors reading the config file
+func InitByFile(configPath string) {
+	viper.SetConfigFile(configPath)
+	loadViper()
+}
+
+func loadViper() {
+	err := viper.ReadInConfig() // Find and read the config file
+	if err != nil {             // Handle errors reading the config file
 		log.Fatalln(fmt.Errorf("fatal error config file: %w", err))
 	}
+	fmt.Printf("viper user config file: %v\n", viper.ConfigFileUsed())
+	if err := viper.Unmarshal(&_config, func(dc *mapstructure.DecoderConfig) {
+		dc.ErrorUnset = true
+	}); err != nil {
+		panic(err)
+	}
 }
+
+// func initViper() {
+// 	viper.SetConfigName("config") // name of config file (without extension)
+// 	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
+// 	viper.AddConfigPath(".")      // optionally look for config in the working directory
+// 	viper.AddConfigPath("..")     // optionally look for config in the working directory
+// 	err := viper.ReadInConfig()   // Find and read the config file
+// 	if err != nil {               // Handle errors reading the config file
+// 		log.Fatalln(fmt.Errorf("fatal error config file: %w", err))
+// 	}
+// }
 
 type Config struct {
 	Port  int `yaml:"port"`
@@ -79,14 +100,23 @@ type Config struct {
 		AccessKeySecret string `yaml:"accessKeySecret"`
 		BucketName      string `yaml:"bucketName"`
 	} `yaml:"oss"`
+	Storage struct {
+		Base              string `yaml:"base"`
+		BatchMintRequests string `yaml:"batchMintRequests"`
+	} `yaml:"storage"`
 	URL struct {
 		Activity string `yaml:"activity"`
 	} `yaml:"url"`
 	IPLimitEveryday int `yaml:"ipLimitEveryday"`
-	Anyweb          struct {
-		Appid  string `yaml:"appid"`
-		Secret string `yaml:"secret"`
-	} `yaml:"anyweb"`
+	Wallet          struct {
+		Anyweb struct {
+			Appid  string `yaml:"appid"`
+			Secret string `yaml:"secret"`
+		} `yaml:"anyweb"`
+		Cellar struct {
+			Appid string `yaml:"appid"`
+		}
+	} `yaml:"wallet"`
 	Log struct {
 		Level  string `yaml:"level"`
 		Folder string `yaml:"folder"`
