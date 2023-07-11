@@ -59,7 +59,7 @@ func TestCellarAutoGenAccount(t *testing.T) {
 	)
 
 	initConfig()
-	ConnectDB()
+	connectDB()
 	getOrCreateCellarAccount := func(phone string) (*LoginResp, error) {
 		j, _ := json.Marshal(LoginReq{
 			UserPhone: phone,
@@ -141,7 +141,7 @@ func TestCellarAutoGenAccount(t *testing.T) {
 
 func TestFindWalletAddress(t *testing.T) {
 	initConfig()
-	ConnectDB()
+	connectDB()
 
 	phones := []string{"13801002119", "15000213993"}
 	notSetted := []string{}

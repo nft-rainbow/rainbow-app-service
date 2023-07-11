@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -16,6 +17,8 @@ var (
 
 func Init() {
 	InitConfluxChainClient()
+	RunBatchMintTaskOnInit()
+	logrus.Info("init services done")
 }
 
 func InitConfluxChainClient() {

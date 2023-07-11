@@ -11,7 +11,7 @@ import (
 
 func TestFindAddressByPhones(t *testing.T) {
 	initConfig()
-	models.ConnectDB()
+	models.Init()
 
 	af := AddressFinder{SourceType: enums.SOURCE_TYPE_PHONE}
 	exists, unexist, err := af.Find(enums.CHAIN_CONFLUX_TEST, []string{"17011112223", "18656303977"})

@@ -15,7 +15,7 @@ import (
 
 func init() {
 	initConfig()
-	models.ConnectDB()
+	models.Init()
 }
 
 func initConfig() {

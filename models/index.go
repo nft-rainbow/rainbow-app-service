@@ -20,12 +20,18 @@ type BaseModel struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
 
+func (b BaseModel) GetID() uint { return b.ID }
+
 type ItemsWithCount[T any] struct {
 	Count int `json:"count"`
 	Items []T `json:"items"`
 }
 
-func ConnectDB() {
+func Init() {
+	connectDB()
+}
+
+func connectDB() {
 	// refer https://github.com/go-sql-driver/mysql#dsn-data-source-name for details
 	var err error
 	dbConfig := viper.GetStringMapString("mysql")

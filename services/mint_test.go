@@ -17,7 +17,7 @@ import (
 func TestMintBatch(t *testing.T) {
 	config.Init()
 	logger.Init()
-	models.ConnectDB()
+	models.Init()
 	middlewares.InitDashboardJwtMiddleware()
 
 	table := []struct {

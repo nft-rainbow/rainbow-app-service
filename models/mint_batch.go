@@ -19,7 +19,6 @@ type BatchMintTask struct {
 	Message         string                    `json:"message,omitempty"`
 	MintTaskIds     datatypes.JSONSlice[uint] `json:"mint_task_ids"`
 	// SourceAddresses map[string]string     `gorm:"-" json:"sourceAddresses"`
-
 }
 
 func (t *BatchMintTask) IsFinalized() bool {
@@ -51,4 +50,15 @@ func (t *BatchMintTask) SetMessage(msg string) {
 	t.Message = msg
 	t.Save()
 
+}
+
+func FindUnfinalizedBatchMintTasks() ([]*BatchMintTask, error) {
+	var tasks []*BatchMintTask
+	err := GetDB().Model(&BatchMintTask{}).
+		Where("status not in (?)", []enums.BatchMintStatus{enums.BATCH_MINT_STATUS_MINT, enums.BATCH_MINT_STATUS_FAIL}).
+		Find(&tasks).Error
+	if err != nil {
+		return nil, err
+	}
+	return tasks, nil
 }
