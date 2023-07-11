@@ -77,27 +77,25 @@ func (s *MintService) MintBatchByMetaUri(userId, appId uint, req *MintBatchDto) 
 		return nil, err
 	}
 
-	go func() {
-		if err := s.runBatchMintTask(&task, req); err != nil {
-			task.SetError(err)
-		}
-	}()
+	go s.runBatchMintTask(&task, req)
 	return &task, nil
 }
 
-func (s *MintService) runBatchMintTask(task *models.BatchMintTask, req *MintBatchDto) error {
+func (s *MintService) runBatchMintTask(task *models.BatchMintTask, req *MintBatchDto) {
 	if task.IsFinalized() {
-		return nil
+		return
 	}
 
 	// read req if req is nil
 	if req == nil {
 		b, err := ioutil.ReadFile(task.RequestFilePath)
 		if err != nil {
-			return errors.WithMessage(err, "failed to read request from cached file")
+			task.SetError(errors.WithMessage(err, "failed to read request from cached file"))
+			return
 		}
 		if err = json.Unmarshal(b, &req); err != nil {
-			return errors.WithMessage(err, "failed to json unmarshal to request")
+			task.SetError(errors.WithMessage(err, "failed to json unmarshal to request"))
+			return
 		}
 	}
 
@@ -108,29 +106,31 @@ func (s *MintService) runBatchMintTask(task *models.BatchMintTask, req *MintBatc
 
 	exists, unexist, err := (&AddressFinder{req.SourceType}).Find(req.Chain, sources)
 	if err != nil {
-		return err
+		task.SetError(err)
+		return
 	}
 
 	if len(unexist) == 0 {
 		taskIds, err := s.MintBatchViaRainbowApi(task.UserId, task.AppId, req, exists)
 		if err != nil {
-			return err
+			task.SetError(err)
+			return
 		}
 
 		task.Status = enums.BATCH_MINT_STATUS_MINT
 		task.MintTaskIds = taskIds
 		if err := task.Save(); err != nil {
-			return err
+			task.SetError(err)
 		}
 
-		return nil
+		return
 	}
 
 	s.createWalletAccounts(task, req.Chain, unexist)
 	if task.Status == enums.BATCH_MINT_STATUS_CREATE_WALLET_DONE {
-		return s.runBatchMintTask(task, req)
+		s.runBatchMintTask(task, req)
+		return
 	}
-	return nil
 }
 
 func (s *MintService) createWalletAccounts(task *models.BatchMintTask, chain enums.Chain, unexists []string) {
@@ -180,4 +180,20 @@ func (s *MintService) MintBatchViaRainbowApi(userId, appId uint, req *MintBatchD
 		return nil, err
 	}
 	return taskIds, nil
+}
+
+func RunBatchMintTaskOnInit() {
+	tasks, err := models.FindUnfinalizedBatchMintTasks()
+	if err != nil {
+		panic(err)
+	}
+
+	logrus.WithField("batch ming tasks", models.GetIds(tasks)).Info("find unfinalized batch mint tasks")
+
+	go func() {
+		for _, task := range tasks {
+			(&MintService{}).runBatchMintTask(task, nil)
+			logrus.WithField("task id", task.ID).Info("batch mint task completed")
+		}
+	}()
 }

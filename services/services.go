@@ -16,6 +16,7 @@ var (
 
 func Init() {
 	InitConfluxChainClient()
+	RunBatchMintTaskOnInit()
 }
 
 func InitConfluxChainClient() {

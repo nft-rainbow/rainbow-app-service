@@ -20,6 +20,8 @@ type BaseModel struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
 
+func (b BaseModel) GetID() uint { return b.ID }
+
 type ItemsWithCount[T any] struct {
 	Count int `json:"count"`
 	Items []T `json:"items"`
