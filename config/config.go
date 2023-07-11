@@ -18,11 +18,7 @@ func Init() {
 	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
 	viper.AddConfigPath(".")      // optionally look for config in the working directory
 	viper.AddConfigPath("..")     // optionally look for config in the working directory
-	if err := viper.Unmarshal(&_config, func(d *mapstructure.DecoderConfig) {
-		d.ErrorUnset = true
-	}); err != nil {
-		panic(err)
-	}
+	loadViper()
 }
 
 func InitByFile(configPath string) {

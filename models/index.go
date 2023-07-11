@@ -27,7 +27,11 @@ type ItemsWithCount[T any] struct {
 	Items []T `json:"items"`
 }
 
-func ConnectDB() {
+func Init() {
+	connectDB()
+}
+
+func connectDB() {
 	// refer https://github.com/go-sql-driver/mysql#dsn-data-source-name for details
 	var err error
 	dbConfig := viper.GetStringMapString("mysql")

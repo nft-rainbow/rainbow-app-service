@@ -26,9 +26,10 @@ import (
 func init() {
 	config.Init()
 	logger.Init()
+	models.Init()
 	middlewares.InitRainbowJwtMiddleware()
 	middlewares.InitDashboardJwtMiddleware()
-	services.InitConfluxChainClient()
+	services.Init()
 	routers.Init()
 }
 
@@ -116,7 +117,7 @@ func initDiscordBot() {
 //	@BasePath	/apps
 //	@schemes	http https
 func main() {
-	models.ConnectDB()
+
 	certificate.Init()
 	go services.SyncPOAPResultStatus()
 	// go initDoDoBot()

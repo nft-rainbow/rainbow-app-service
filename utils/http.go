@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 func SendHttp[TPayload any, TResp any](method string, url string, payload TPayload, headers map[string]string) (*TResp, error) {
@@ -49,8 +49,7 @@ func SendHttp[TPayload any, TResp any](method string, url string, payload TPaylo
 	if err != nil {
 		return nil, err
 	}
-	// logrus.WithField("resp.Body", string(body)).Trace("Received HTTP response")
-	fmt.Printf("Received HTTP response \n%s\n", string(body))
+	logrus.WithField("resp.Body", string(body)).Trace("Received HTTP response")
 
 	var cr TResp
 	if err := json.Unmarshal(body, &cr); err != nil {
