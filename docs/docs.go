@@ -3430,20 +3430,18 @@ const docTemplate = `{
         "services.MintBatchDto": {
             "type": "object",
             "required": [
+                "app_id",
                 "chain",
                 "contract_address",
-                "mint_items"
+                "mint_items",
+                "source_type"
             ],
             "properties": {
-                "appId": {
+                "app_id": {
                     "type": "integer"
                 },
                 "chain": {
-                    "type": "string",
-                    "enum": [
-                        "conflux",
-                        "conflux_test"
-                    ]
+                    "type": "string"
                 },
                 "contract_address": {
                     "type": "string"
