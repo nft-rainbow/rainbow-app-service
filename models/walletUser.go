@@ -5,6 +5,7 @@ import (
 
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils/gormutils"
+	"gorm.io/gorm"
 )
 
 type WalletUser struct {
@@ -30,8 +31,32 @@ func FindWalletUserByAddress(address string) (*WalletUser, error) {
 	return &user, nil
 }
 
-func FindWalletUser(wallet enums.WalletType, address string) (walletUser *WalletUser, err error) {
-	err = GetDB().Where("wallet=? and address=?", wallet, address).First(&walletUser).Error
+type WalletUserFilter struct {
+	Wallet  enums.WalletType
+	Chain   enums.Chain
+	Phone   string
+	Address string
+}
+
+func (w *WalletUserFilter) where() *gorm.DB {
+	tx := GetDB()
+	if int(w.Wallet) > 0 {
+		tx = tx.Where("wallet=?", w.Wallet)
+	}
+	if int(w.Chain) > 0 {
+		tx = tx.Where("chain=?", w.Chain)
+	}
+	if w.Phone != "" {
+		tx = tx.Where("phone=?", w.Phone)
+	}
+	if w.Address != "" {
+		tx = tx.Where("address=?", w.Address)
+	}
+	return tx
+}
+
+func FindWalletUser(filter WalletUserFilter) (walletUser *WalletUser, err error) {
+	err = GetDB().Where(filter.where()).First(&walletUser).Error
 	if err != nil {
 		return nil, err
 	}

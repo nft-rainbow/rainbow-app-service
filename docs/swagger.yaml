@@ -367,6 +367,33 @@ definitions:
     - max_mint_count
     - name
     type: object
+  models.BatchMintTask:
+    properties:
+      app_id:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      error:
+        type: string
+      id:
+        type: integer
+      message:
+        type: string
+      mint_task_ids:
+        items:
+          type: integer
+        type: array
+      source_type:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
   models.BotServer:
     properties:
       created_at:
@@ -696,6 +723,8 @@ definitions:
     properties:
       address:
         type: string
+      chain:
+        $ref: '#/definitions/enums.Chain'
       code:
         type: string
       phone:
@@ -786,6 +815,41 @@ definitions:
       name:
         type: string
     type: object
+  services.MintBatchDto:
+    properties:
+      appId:
+        type: integer
+      chain:
+        enum:
+        - conflux
+        - conflux_test
+        type: string
+      contract_address:
+        type: string
+      mint_items:
+        items:
+          $ref: '#/definitions/services.MintItemDto'
+        type: array
+      source_type:
+        type: string
+    required:
+    - chain
+    - contract_address
+    - mint_items
+    type: object
+  services.MintItemDto:
+    properties:
+      amount:
+        type: integer
+      metadata_uri:
+        type: string
+      mint_to:
+        type: string
+      token_id:
+        type: string
+    required:
+    - mint_to
+    type: object
   services.MintReq:
     properties:
       activity_id:
@@ -835,6 +899,77 @@ info:
   title: Rainbow-APP-Service
   version: "1.0"
 paths:
+  /batch/{id}:
+    post:
+      description: Get Batch mint task
+      operationId: GetBatchMintTask
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: task_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BatchMintTask'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Batch mint task
+      tags:
+      - Mints
+  /batch/by-meta-uri:
+    post:
+      description: Batch mint by metadata uri
+      operationId: MintBatchByMetaUri
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: mint_batch_dto
+        in: body
+        name: mint_batch_dto
+        required: true
+        schema:
+          $ref: '#/definitions/services.MintBatchDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BatchMintTask'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Batch mint by metadata uri
+      tags:
+      - Mints
   /bot/invite_url:
     get:
       description: get invite url

@@ -13,7 +13,6 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/config"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
-	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -26,9 +25,10 @@ type MintItemDto struct {
 }
 
 type MintBatchDto struct {
-	SourceType enums.SourceType
+	AppId      uint             `json:"app_id" binding:"required"`
+	SourceType enums.SourceType `swaggertype:"string" json:"source_type" binding:"required"`
 	rainbow.ContractInfoDtoWithoutType
-	MintItems []*MintItemDto `form:"mint_items" json:"mint_items" binding:"required,dive"`
+	MintItems []*MintItemDto `json:"mint_items" binding:"required,dive"`
 }
 
 func (m *MintBatchDto) ToCustomMintBatchDto(source2Addr map[string]string) (*rainbow.CustomMintBatchDto, error) {
@@ -53,14 +53,15 @@ func (m *MintBatchDto) ToCustomMintBatchDto(source2Addr map[string]string) (*rai
 }
 
 type MintService struct {
+	cellar Cellar
 }
 
 // 1. map source to address
 // 2. call rainbow-api
-func (s *MintService) MintBatchByMetaUri(userId, appId uint, req *MintBatchDto) (*models.BatchMintTask, error) {
+func (s *MintService) MintBatchByMetaUri(userId uint, req *MintBatchDto) (*models.BatchMintTask, error) {
 	task := models.BatchMintTask{
 		UserId:     userId,
-		AppId:      appId,
+		AppId:      req.AppId,
 		SourceType: req.SourceType,
 		Status:     enums.BATCH_MINT_STATUS_INIT,
 	}
@@ -106,62 +107,56 @@ func (s *MintService) runBatchMintTask(task *models.BatchMintTask, req *MintBatc
 
 	exists, unexist, err := (&AddressFinder{req.SourceType}).Find(req.Chain, sources)
 	if err != nil {
-		task.SetError(err)
+		task.SetError(errors.WithMessage(err, "failed to find address"))
 		return
 	}
 
 	if len(unexist) == 0 {
 		taskIds, err := s.MintBatchViaRainbowApi(task.UserId, task.AppId, req, exists)
 		if err != nil {
-			task.SetError(err)
+			task.SetError(errors.WithMessage(err, "failed to batch mint via rainbow-api"))
 			return
 		}
 
 		task.Status = enums.BATCH_MINT_STATUS_MINT
 		task.MintTaskIds = taskIds
 		if err := task.Save(); err != nil {
-			task.SetError(err)
+			task.SetError(errors.WithMessage(err, "failed to save task"))
 		}
 
 		return
 	}
 
 	s.createWalletAccounts(task, req.Chain, unexist)
-	if task.Status == enums.BATCH_MINT_STATUS_CREATE_WALLET_DONE {
-		s.runBatchMintTask(task, req)
-		return
+	if !task.IsFinalized() {
+		if task.Status == enums.BATCH_MINT_STATUS_CREATE_WALLET_DONE {
+			s.runBatchMintTask(task, req)
+			return
+		}
+		panic(fmt.Sprintf("unexpected task status %v", task.Status))
 	}
+
 }
 
 func (s *MintService) createWalletAccounts(task *models.BatchMintTask, chain enums.Chain, unexists []string) {
 	logrus.WithField("phones", unexists).WithField("chain", chain).Info("create wallet by phones")
 	switch task.SourceType {
 	case enums.SOURCE_TYPE_PHONE:
-		c := NewCellarClient(chain)
-		task.Status = enums.BATCH_MINT_STATUS_CREATING_WALLET
+		task.SetStatus(enums.BATCH_MINT_STATUS_CREATING_WALLET)
 		for i, p := range unexists {
-			func() {
-				defer task.Save()
-
-				err := utils.Retry(3, time.Second, func() error {
-					_, err := c.getOrCreateAccount(p)
-					return err
-				})
-
-				if err != nil {
-					task.SetError(errors.WithMessage(err, "failed to create wallet"))
-					return
-				}
-
-				task.SetMessage(fmt.Sprintf("total %d account need create, the %dth created", len(unexists), i))
-			}()
-
-			if task.IsFinalized() {
+			if _, err := s.cellar.GetOrCreateAccount(chain, p); err != nil {
+				task.SetError(errors.WithMessage(err, "failed to create wallet"))
 				return
 			}
+
+			task.SetMessage(fmt.Sprintf("total %d account need create, the %dth created", len(unexists), i))
 		}
+		task.SetStatus(enums.BATCH_MINT_STATUS_CREATE_WALLET_DONE)
+		return
+
 	default:
 		task.SetError(errors.New("not support source type"))
+		return
 	}
 }
 
@@ -180,6 +175,17 @@ func (s *MintService) MintBatchViaRainbowApi(userId, appId uint, req *MintBatchD
 		return nil, err
 	}
 	return taskIds, nil
+}
+
+func (s *MintService) GetBatchMintTask(userId uint, taskId uint) (*models.BatchMintTask, error) {
+	task, err := models.FindBatchMintTaskById(taskId)
+	if err != nil {
+		return nil, err
+	}
+	if task.UserId != userId {
+		return nil, errors.New("no permission to access this task")
+	}
+	return task, nil
 }
 
 func RunBatchMintTaskOnInit() {

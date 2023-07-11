@@ -22,12 +22,12 @@ func TestMintBatch(t *testing.T) {
 
 	table := []struct {
 		UserId            uint
-		AppId             uint
 		MintBatchDto      *MintBatchDto
 		ExpectTaskSuccess bool
 	}{
-		{1, 5, &MintBatchDto{
+		{1, &MintBatchDto{
 			SourceType: enums.SOURCE_TYPE_ADDRESS,
+			AppId:      5,
 			ContractInfoDtoWithoutType: rainbow.ContractInfoDtoWithoutType{
 				Chain:           enums.CHAIN_CONFLUX_TEST,
 				ContractAddress: "cfxtest:acbwua8x80xfr5nf9g60xgn3b4m0we7ddu01n695wn",
@@ -39,8 +39,9 @@ func TestMintBatch(t *testing.T) {
 				},
 			},
 		}, true},
-		{1, 5, &MintBatchDto{
+		{1, &MintBatchDto{
 			SourceType: enums.SOURCE_TYPE_PHONE,
+			AppId:      5,
 			ContractInfoDtoWithoutType: rainbow.ContractInfoDtoWithoutType{
 				Chain:           enums.CHAIN_CONFLUX_TEST,
 				ContractAddress: "cfxtest:acbwua8x80xfr5nf9g60xgn3b4m0we7ddu01n695wn",
@@ -52,8 +53,9 @@ func TestMintBatch(t *testing.T) {
 				},
 			},
 		}, true},
-		{1, 6, &MintBatchDto{
+		{1, &MintBatchDto{
 			SourceType: enums.SOURCE_TYPE_ADDRESS,
+			AppId:      6,
 			ContractInfoDtoWithoutType: rainbow.ContractInfoDtoWithoutType{
 				Chain:           enums.CHAIN_CONFLUX_TEST,
 				ContractAddress: "cfxtest:acbwua8x80xfr5nf9g60xgn3b4m0we7ddu01n695wn",
@@ -69,7 +71,7 @@ func TestMintBatch(t *testing.T) {
 
 	ms := &MintService{}
 	for _, input := range table {
-		bmTask, err := ms.MintBatchByMetaUri(input.UserId, input.AppId, input.MintBatchDto)
+		bmTask, err := ms.MintBatchByMetaUri(input.UserId, input.MintBatchDto)
 		assert.NoError(t, err)
 		assert.NotNil(t, bmTask)
 

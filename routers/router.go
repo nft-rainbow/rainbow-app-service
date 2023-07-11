@@ -125,10 +125,12 @@ func SetupRoutes(router *gin.Engine) {
 	}
 
 	mint := apps.Group("/mints")
-	certi.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	mint.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
+		var ctrl MintController
 		mint.POST("/batch/by-meta-parts", nil)
-		mint.POST("/batch/by-meta-uri", nil)
+		mint.POST("/batch/by-meta-uri", ctrl.MintBatchByMetaUri)
+		mint.GET("/batch/:id", ctrl.GetBatchMintTask)
 	}
 
 	internal := apps.Group("/internal")

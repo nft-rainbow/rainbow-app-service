@@ -110,7 +110,8 @@ type Config struct {
 			Secret string `yaml:"secret"`
 		} `yaml:"anyweb"`
 		Cellar struct {
-			Appid string `yaml:"appid"`
+			Mainnet Cellar `yaml:"mainnet"`
+			Testnet Cellar `yaml:"testnet"`
 		}
 	} `yaml:"wallet"`
 	Log struct {
@@ -129,6 +130,11 @@ type Config struct {
 	} `yaml:"gasless"`
 }
 
+type Cellar struct {
+	Appid string `yaml:"appid"`
+	Host  string `yaml:"host"`
+}
+
 func GetConfig() *Config {
 	return &_config
 }
@@ -139,4 +145,13 @@ func GetGaslessContractIdByChain(chain enums.Chain) uint {
 		contractRawId = _config.Gasless.ContractRawID.Mainnet
 	}
 	return contractRawId
+}
+
+func GetCellarByChain(chain enums.Chain) Cellar {
+	cellar := _config.Wallet.Cellar.Testnet
+	if chain == enums.CHAIN_CONFLUX {
+		cellar = _config.Wallet.Cellar.Mainnet
+	}
+	return cellar
+
 }
