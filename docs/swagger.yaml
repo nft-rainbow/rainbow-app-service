@@ -817,12 +817,9 @@ definitions:
     type: object
   services.MintBatchDto:
     properties:
-      appId:
+      app_id:
         type: integer
       chain:
-        enum:
-        - conflux
-        - conflux_test
         type: string
       contract_address:
         type: string
@@ -833,9 +830,11 @@ definitions:
       source_type:
         type: string
     required:
+    - app_id
     - chain
     - contract_address
     - mint_items
+    - source_type
     type: object
   services.MintItemDto:
     properties:
