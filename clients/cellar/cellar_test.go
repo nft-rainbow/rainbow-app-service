@@ -1,4 +1,4 @@
-package services
+package cellar
 
 import (
 	"testing"
@@ -9,14 +9,14 @@ import (
 
 func TestGetAccount(t *testing.T) {
 	c := NewCellarClient(enums.CHAIN_CONFLUX)
-	resp, err := c.getAccount("13983211056")
+	resp, err := c.GetAccount("13983211056")
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 }
 
 func TestGetOrCreateAccount(t *testing.T) {
 	c := NewCellarClient(enums.CHAIN_CONFLUX)
-	resp, err := c.getOrCreateAccount("13983211056")
+	resp, err := c.GetOrCreateAccount("13983211056")
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 }

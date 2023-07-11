@@ -12,10 +12,10 @@ type BatchMintTask struct {
 	BaseModel
 	UserId          uint                      `json:"user_id"`
 	AppId           uint                      `json:"app_id"`
-	SourceType      enums.SourceType          `json:"source_type"`
+	SourceType      enums.SourceType          `json:"source_type" swaggertype:"string"`
 	RequestFilePath string                    `json:"-"`
-	Status          enums.BatchMintStatus     `json:"status"`
-	Error           string                    `json:"error,omitempty"`
+	Status          enums.BatchMintStatus     `json:"status" swaggertype:"string"`
+	Error           string                    `json:"error"`
 	Message         string                    `json:"message,omitempty"`
 	MintTaskIds     datatypes.JSONSlice[uint] `json:"mint_task_ids"`
 	// SourceAddresses map[string]string     `gorm:"-" json:"sourceAddresses"`
@@ -40,16 +40,19 @@ func (t *BatchMintTask) Save() error {
 	})
 }
 
-func (t *BatchMintTask) SetError(err error) {
-	t.Status = enums.BATCH_MINT_STATUS_FAIL
-	t.Error = err.Error()
+func (t *BatchMintTask) SetStatus(status enums.BatchMintStatus) {
+	t.Status = status
 	t.Save()
+}
+
+func (t *BatchMintTask) SetError(err error) {
+	t.Error = err.Error()
+	t.SetStatus(enums.BATCH_MINT_STATUS_FAIL)
 }
 
 func (t *BatchMintTask) SetMessage(msg string) {
 	t.Message = msg
 	t.Save()
-
 }
 
 func FindUnfinalizedBatchMintTasks() ([]*BatchMintTask, error) {
@@ -61,4 +64,15 @@ func FindUnfinalizedBatchMintTasks() ([]*BatchMintTask, error) {
 		return nil, err
 	}
 	return tasks, nil
+}
+
+func FindBatchMintTaskById(id uint) (*BatchMintTask, error) {
+	var task BatchMintTask
+	err := GetDB().Model(&BatchMintTask{}).
+		Where("id = ?", id).
+		First(&task).Error
+	if err != nil {
+		return nil, err
+	}
+	return &task, nil
 }

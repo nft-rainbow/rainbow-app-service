@@ -25,7 +25,7 @@ func NewRainbowApiDashboardClient(baseUri ...string) *RainbowApiDashboardClient 
 
 type (
 	ContractInfoDtoWithoutType struct {
-		Chain           enums.Chain `form:"chain" json:"chain" binding:"required,oneof=conflux conflux_test"`
+		Chain           enums.Chain `form:"chain" swaggertype:"string" json:"chain" binding:"required"`
 		ContractAddress string      `form:"contract_address" json:"contract_address" binding:"required"`
 	}
 

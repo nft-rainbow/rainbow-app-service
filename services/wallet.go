@@ -7,6 +7,7 @@ import (
 )
 
 type AddWalletUserReq struct {
+	Chain   enums.Chain      `json:"chain`
 	Wallet  enums.WalletType `json:"wallet"`
 	Code    string           `json:"code"`
 	Phone   string           `json:"phone"`
