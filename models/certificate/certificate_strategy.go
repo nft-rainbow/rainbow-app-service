@@ -42,7 +42,7 @@ func FindCertificateStrategies(filter CertiStrategyFilter, userId uint) (*models
 
 	var result models.ItemsWithCount[CertificateStrategy]
 	var count int64
-	if err := sql.Count(&count).Offset(filter.Offset()).Limit(filter.Limit).Find(&result.Items).Error; err != nil {
+	if err := sql.Count(&count).Order("id desc").Offset(filter.Offset()).Limit(filter.Limit).Find(&result.Items).Error; err != nil {
 		return nil, err
 	}
 
