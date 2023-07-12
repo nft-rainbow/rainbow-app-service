@@ -81,6 +81,7 @@ func (a *ContractCertiOperator) GetCertificates(offset int, limit int) (*Certifi
 	}
 	err := models.GetDB().Model(&ContractCertificate{}).
 		Where("certificate_strategy_id=?", a.Strategy.ID).
+		Order("id desc").
 		Count(&certificates.Count).Offset(offset).Limit(limit).Find(&certificates.Items).Error
 	if err != nil {
 		return nil, err
