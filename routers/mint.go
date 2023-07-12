@@ -22,7 +22,7 @@ type MintController struct {
 //	@Success		200				{object}	models.BatchMintTask
 //	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
-//	@Router			/batch/by-meta-uri [post]
+//	@Router			/mints/batch/by-meta-uri [post]
 func (m *MintController) MintBatchByMetaUri(c *gin.Context) {
 	var req services.MintBatchDto
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -52,7 +52,7 @@ func (m *MintController) MintBatchByMetaUri(c *gin.Context) {
 //	@Success		200				{object}	models.BatchMintTask
 //	@Failure		400				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500				{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
-//	@Router			/batch/{id} [post]
+//	@Router			/mints/batch/{id} [post]
 func (m *MintController) GetBatchMintTask(c *gin.Context) {
 	var id UriId
 	if err := c.ShouldBindUri(&id); err != nil {
