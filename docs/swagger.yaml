@@ -898,77 +898,6 @@ info:
   title: Rainbow-APP-Service
   version: "1.0"
 paths:
-  /batch/{id}:
-    post:
-      description: Get Batch mint task
-      operationId: GetBatchMintTask
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: task_id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.BatchMintTask'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Get Batch mint task
-      tags:
-      - Mints
-  /batch/by-meta-uri:
-    post:
-      description: Batch mint by metadata uri
-      operationId: MintBatchByMetaUri
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: mint_batch_dto
-        in: body
-        name: mint_batch_dto
-        required: true
-        schema:
-          $ref: '#/definitions/services.MintBatchDto'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.BatchMintTask'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Batch mint by metadata uri
-      tags:
-      - Mints
   /bot/invite_url:
     get:
       description: get invite url
@@ -1749,6 +1678,77 @@ paths:
       summary: Insert phone Certificate Strategy
       tags:
       - Certi
+  /mints/batch/{id}:
+    post:
+      description: Get Batch mint task
+      operationId: GetBatchMintTask
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: task_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BatchMintTask'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Batch mint task
+      tags:
+      - Mints
+  /mints/batch/by-meta-uri:
+    post:
+      description: Batch mint by metadata uri
+      operationId: MintBatchByMetaUri
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: mint_batch_dto
+        in: body
+        name: mint_batch_dto
+        required: true
+        schema:
+          $ref: '#/definitions/services.MintBatchDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BatchMintTask'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Batch mint by metadata uri
+      tags:
+      - Mints
   /poap/activity:
     get:
       description: Get User Activity list

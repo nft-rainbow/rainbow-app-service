@@ -17,116 +17,6 @@
     "host": "console.nftrainbow.cn",
     "basePath": "/apps",
     "paths": {
-        "/batch/by-meta-uri": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Batch mint by metadata uri",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Mints"
-                ],
-                "summary": "Batch mint by metadata uri",
-                "operationId": "MintBatchByMetaUri",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "mint_batch_dto",
-                        "name": "mint_batch_dto",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/services.MintBatchDto"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.BatchMintTask"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
-        "/batch/{id}": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get Batch mint task",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Mints"
-                ],
-                "summary": "Get Batch mint task",
-                "operationId": "GetBatchMintTask",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "task_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.BatchMintTask"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
         "/bot/invite_url": {
             "get": {
                 "security": [
@@ -1321,6 +1211,116 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ginutils.CommonMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/mints/batch/by-meta-uri": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Batch mint by metadata uri",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mints"
+                ],
+                "summary": "Batch mint by metadata uri",
+                "operationId": "MintBatchByMetaUri",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "mint_batch_dto",
+                        "name": "mint_batch_dto",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.MintBatchDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BatchMintTask"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/mints/batch/{id}": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Batch mint task",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mints"
+                ],
+                "summary": "Get Batch mint task",
+                "operationId": "GetBatchMintTask",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "task_id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BatchMintTask"
                         }
                     },
                     "400": {
