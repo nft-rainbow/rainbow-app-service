@@ -1,6 +1,8 @@
 package certificate
 
 import (
+	"fmt"
+
 	"github.com/mcuadros/go-defaults"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
@@ -28,9 +30,9 @@ type CertiStrategyFilter struct {
 func FindCertificateStrategies(filter CertiStrategyFilter, userId uint) (*models.ItemsWithCount[CertificateStrategy], error) {
 	defaults.SetDefaults(&filter)
 
-	sql := models.GetDB().Model(&CertificateStrategy{}).Where("user_id=?", userId)
+	sql := models.GetDB().Debug().Model(&CertificateStrategy{}).Where("user_id=?", userId)
 	if filter.NameLike != "" {
-		sql = sql.Where("name like %%?%%", filter.NameLike)
+		sql = sql.Where("name like ?", fmt.Sprintf("%%%s%%", filter.NameLike))
 	}
 	if filter.CertificateType != "" {
 		certiType, err := enums.ParseCertificateType(filter.CertificateType)
