@@ -201,7 +201,7 @@ definitions:
         type: integer
       app_name:
         type: string
-      certificate_stratage_id:
+      certificate_strategy_id:
         type: integer
       chain_of_gasless:
         default: "2"
@@ -272,7 +272,7 @@ definitions:
         type: integer
       app_name:
         type: string
-      certificate_stratage_id:
+      certificate_strategy_id:
         type: integer
       chain_of_gasless:
         default: "2"
@@ -330,7 +330,7 @@ definitions:
         type: string
       amount:
         type: integer
-      certificate_stratage_id:
+      certificate_strategy_id:
         type: integer
       command:
         type: string

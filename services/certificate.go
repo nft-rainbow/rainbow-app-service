@@ -41,8 +41,8 @@ func InsertCertificateStrategy(req *InsertCertificateStrategyReq[any], userId ui
 	return &cs, nil
 }
 
-func GetCertificates(certificateStratageId uint, offset, limit int) (*certificate.CertificatesQueryResult[any], error) {
-	cs, err := certificate.FindCertificateStrategyById(certificateStratageId)
+func GetCertificates(certificateStrategyId uint, offset, limit int) (*certificate.CertificatesQueryResult[any], error) {
+	cs, err := certificate.FindCertificateStrategyById(certificateStrategyId)
 	if err != nil {
 		return nil, err
 	}

@@ -407,9 +407,9 @@ func (a *ActivityService) getMintableCount(activity *models.Activity, address st
 	}
 
 	relatedAddress := []string{address}
-	if activity.CertificateStratageId > 0 {
+	if activity.CertificateStrategyId > 0 {
 		var certi certificate.CertificateStrategy
-		if err := models.GetDB().First(&certi, activity.CertificateStratageId).Error; err != nil {
+		if err := models.GetDB().First(&certi, activity.CertificateStrategyId).Error; err != nil {
 			return 0, err
 		}
 

@@ -2530,7 +2530,7 @@ const docTemplate = `{
                 "app_name": {
                     "type": "string"
                 },
-                "certificate_stratage_id": {
+                "certificate_strategy_id": {
                     "type": "integer"
                 },
                 "chain_of_gasless": {
@@ -2629,7 +2629,7 @@ const docTemplate = `{
                 "app_name": {
                     "type": "string"
                 },
-                "certificate_stratage_id": {
+                "certificate_strategy_id": {
                     "type": "integer"
                 },
                 "chain_of_gasless": {
@@ -2707,7 +2707,7 @@ const docTemplate = `{
                 "amount": {
                     "type": "integer"
                 },
-                "certificate_stratage_id": {
+                "certificate_strategy_id": {
                     "type": "integer"
                 },
                 "command": {

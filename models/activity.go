@@ -49,7 +49,7 @@ type ActivityUpdateBasePart struct {
 	ActivityPictureURL    string                                `gorm:"type:string" json:"activity_picture_url"`
 	ContractRawID         *int32                                `gorm:"type:string" json:"contract_id"`
 	SupportWallets        datatypes.JSONSlice[enums.WalletType] `json:"support_wallets,omitempty" swaggertype:"array,string"` //default value: ["anyweb","cellar"]
-	CertificateStratageId uint                                  `json:"certificate_stratage_id"`
+	CertificateStrategyId uint                                  `json:"certificate_strategy_id"`
 }
 
 func (u *ActivityUpdateBasePart) SetDefaults() error {
