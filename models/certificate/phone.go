@@ -47,6 +47,7 @@ func (a *PhoneCertiOperator) GetCertificates(offset int, limit int) (*Certificat
 
 	err := models.GetDB().Model(&PhoneCertificate{}).
 		Where("certificate_strategy_id=?", a.Strategy.ID).
+		Order("id desc").
 		Count(&certificates.Count).Offset(offset).Limit(limit).Find(&certificates.Items).Error
 	if err != nil {
 		return nil, err
