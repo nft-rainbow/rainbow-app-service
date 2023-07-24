@@ -5,6 +5,7 @@ import (
 
 	"github.com/mcuadros/go-defaults"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -91,7 +92,7 @@ func GetMintSumByAddresses(poapId string, addresses ...string) (int64, error) {
 
 	var count int64
 	if err := db.Model(&POAPResult{}).Where(cond).Where("address in ?", addresses).Count(&count).Error; err != nil {
-		return 0, err
+		return 0, errors.WithStack(err)
 	}
 
 	return count, nil

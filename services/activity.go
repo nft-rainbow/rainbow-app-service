@@ -410,12 +410,12 @@ func (a *ActivityService) getMintableCount(activity *models.Activity, address st
 	if activity.CertificateStrategyId > 0 {
 		var certi certificate.CertificateStrategy
 		if err := models.GetDB().First(&certi, activity.CertificateStrategyId).Error; err != nil {
-			return 0, err
+			return 0, errors.WithStack(err)
 		}
 
 		isQualified, err := certificate.GetCertiOperator(&certi).CheckQualified(address)
 		if err != nil {
-			return 0, err
+			return 0, errors.WithStack(err)
 		}
 
 		if !isQualified {
@@ -426,7 +426,7 @@ func (a *ActivityService) getMintableCount(activity *models.Activity, address st
 		case enums.CERTIFICATE_PHONE:
 			relatedAddress, err = models.FindRelatedAddressWithSamePhone(address)
 			if err != nil {
-				return 0, err
+				return 0, errors.WithStack(err)
 			}
 		default:
 			return 0, errors.Errorf("unsupport certi type %v", certi.CertificateType)
@@ -447,7 +447,7 @@ func (a *ActivityService) getMintableCount(activity *models.Activity, address st
 
 	totalRemain := int64(activity.Amount) - models.GetMintCountCache(activity.ActivityCode).GetCount()
 	if totalRemain <= 0 {
-		return 0, err
+		return 0, nil
 	}
 
 	userRemain := math.Min(float64(totalRemain), float64(activity.Amount)-float64(mintedCount))

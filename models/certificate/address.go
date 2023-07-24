@@ -24,7 +24,9 @@ func (a *AddressCertiOperator) CheckQualified(userAddress string) (bool, error) 
 		return false, nil
 	}
 	var count int64
-	if err := models.GetDB().Find("address=? and certificate_strategy_id=?", userAddress, a.Strategy.ID).Count(&count).Error; err != nil {
+	if err := models.GetDB().Model(&AddressCertificate{}).
+		Where("address=? and certificate_strategy_id=?", userAddress, a.Strategy.ID).
+		Count(&count).Error; err != nil {
 		return false, err
 	}
 	return count > 0, nil
