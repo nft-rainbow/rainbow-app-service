@@ -34,7 +34,7 @@ func (a *PhoneCertiOperator) CheckQualified(userAddress string) (bool, error) {
 	}
 
 	var count int64
-	if err := models.GetDB().Model(&PhoneCertificate{}).Find("phone = ? and certificate_strategy_id=?", wu.Phone, a.Strategy.ID).Count(&count).Error; err != nil {
+	if err := models.GetDB().Model(&PhoneCertificate{}).Where("phone = ? and certificate_strategy_id=?", wu.Phone, a.Strategy.ID).Count(&count).Error; err != nil {
 		return false, err
 	}
 	return count > 0, nil
