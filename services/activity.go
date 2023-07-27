@@ -454,6 +454,7 @@ func (a *ActivityService) getMintableCount(activity *models.Activity, address st
 
 	userRemain := math.Min(float64(totalRemain), float64(activity.Amount)-float64(mintedCount))
 	userRemain = math.Max(0, userRemain)
+	logrus.WithField("total remain", totalRemain).WithField("user max amount", activity.Amount).WithField("minted", mintedCount).Info("calc user mintable count")
 	return int32(userRemain), nil
 }
 
