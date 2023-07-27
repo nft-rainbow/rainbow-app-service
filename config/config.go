@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/spf13/viper"
 )
 
@@ -13,24 +14,41 @@ var (
 )
 
 func Init() {
-	initViper()
-	if err := viper.Unmarshal(&_config, func(d *mapstructure.DecoderConfig) {
-		d.ErrorUnset = true
+	viper.SetConfigName("config") // name of config file (without extension)
+	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
+	viper.AddConfigPath(".")      // optionally look for config in the working directory
+	viper.AddConfigPath("..")     // optionally look for config in the working directory
+	loadViper()
+}
+
+func InitByFile(configPath string) {
+	viper.SetConfigFile(configPath)
+	loadViper()
+}
+
+func loadViper() {
+	err := viper.ReadInConfig() // Find and read the config file
+	if err != nil {             // Handle errors reading the config file
+		log.Fatalln(fmt.Errorf("fatal error config file: %w", err))
+	}
+	fmt.Printf("viper user config file: %v\n", viper.ConfigFileUsed())
+	if err := viper.Unmarshal(&_config, func(dc *mapstructure.DecoderConfig) {
+		dc.ErrorUnset = true
 	}); err != nil {
 		panic(err)
 	}
 }
 
-func initViper() {
-	viper.SetConfigName("config") // name of config file (without extension)
-	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
-	viper.AddConfigPath(".")      // optionally look for config in the working directory
-	viper.AddConfigPath("..")     // optionally look for config in the working directory
-	err := viper.ReadInConfig()   // Find and read the config file
-	if err != nil {               // Handle errors reading the config file
-		log.Fatalln(fmt.Errorf("fatal error config file: %w", err))
-	}
-}
+// func initViper() {
+// 	viper.SetConfigName("config") // name of config file (without extension)
+// 	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
+// 	viper.AddConfigPath(".")      // optionally look for config in the working directory
+// 	viper.AddConfigPath("..")     // optionally look for config in the working directory
+// 	err := viper.ReadInConfig()   // Find and read the config file
+// 	if err != nil {               // Handle errors reading the config file
+// 		log.Fatalln(fmt.Errorf("fatal error config file: %w", err))
+// 	}
+// }
 
 type Config struct {
 	Port  int `yaml:"port"`
@@ -78,14 +96,24 @@ type Config struct {
 		AccessKeySecret string `yaml:"accessKeySecret"`
 		BucketName      string `yaml:"bucketName"`
 	} `yaml:"oss"`
+	Storage struct {
+		Base              string `yaml:"base"`
+		BatchMintRequests string `yaml:"batchMintRequests"`
+	} `yaml:"storage"`
 	URL struct {
 		Activity string `yaml:"activity"`
 	} `yaml:"url"`
 	IPLimitEveryday int `yaml:"ipLimitEveryday"`
-	Anyweb          struct {
-		Appid  string `yaml:"appid"`
-		Secret string `yaml:"secret"`
-	} `yaml:"anyweb"`
+	Wallet          struct {
+		Anyweb struct {
+			Appid  string `yaml:"appid"`
+			Secret string `yaml:"secret"`
+		} `yaml:"anyweb"`
+		Cellar struct {
+			Mainnet Cellar `yaml:"mainnet"`
+			Testnet Cellar `yaml:"testnet"`
+		}
+	} `yaml:"wallet"`
 	Log struct {
 		Level  string `yaml:"level"`
 		Folder string `yaml:"folder"`
@@ -102,6 +130,28 @@ type Config struct {
 	} `yaml:"gasless"`
 }
 
+type Cellar struct {
+	Appid string `yaml:"appid"`
+	Host  string `yaml:"host"`
+}
+
 func GetConfig() *Config {
 	return &_config
+}
+
+func GetGaslessContractIdByChain(chain enums.Chain) uint {
+	contractRawId := _config.Gasless.ContractRawID.Testnet
+	if chain == enums.CHAIN_CONFLUX {
+		contractRawId = _config.Gasless.ContractRawID.Mainnet
+	}
+	return contractRawId
+}
+
+func GetCellarByChain(chain enums.Chain) Cellar {
+	cellar := _config.Wallet.Cellar.Testnet
+	if chain == enums.CHAIN_CONFLUX {
+		cellar = _config.Wallet.Cellar.Mainnet
+	}
+	return cellar
+
 }

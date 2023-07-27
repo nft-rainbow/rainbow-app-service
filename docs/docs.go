@@ -641,6 +641,753 @@ const docTemplate = `{
                 }
             }
         },
+        "/certis/contract_certificate/{certificate_id}/snapshot": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Snapshots",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Get Snapshots",
+                "operationId": "GetSnapshots",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_id",
+                        "name": "certificate_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/services.ContractSnapshotResp"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/contract_certificate/{certificate_id}/snapshot/run": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Trigger Obtain Snapshot",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Trigger Obtain Snapshot",
+                "operationId": "TriggerObtainSnapshot",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_id",
+                        "name": "certificate_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ginutils.CommonMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get certificate strategies",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Get certificate strategies",
+                "operationId": "GetCertificateStrategies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "certificate_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name_like",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ItemsWithCount-certificate_CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/type/address": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert address Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert address Certificate Strategy",
+                "operationId": "InsertAddressCertificateStrategy",
+                "parameters": [
+                    {
+                        "description": "insert_certificate_strategy_req",
+                        "name": "insert_certificate_strategy_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.InsertCertificateStrategyReq-certificate_AddressCertificateInsertPart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/type/contract": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert contract Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert contract Certificate Strategy",
+                "operationId": "InsertContractCertificateStrategy",
+                "parameters": [
+                    {
+                        "description": "insert_certificate_strategy_req",
+                        "name": "insert_certificate_strategy_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.InsertCertificateStrategyReq-certificate_ContractCertificateInsertPart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/type/dodo": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert dodo Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert dodo Certificate Strategy",
+                "operationId": "InsertDodoCertificateStrategy",
+                "parameters": [
+                    {
+                        "description": "insert_certificate_strategy_req",
+                        "name": "insert_certificate_strategy_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.InsertCertificateStrategyReq-certificate_DodoCertificateInsertPart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/type/gasless": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert gasless Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert gasless Certificate Strategy",
+                "operationId": "InsertGaslessCertificateStrategy",
+                "parameters": [
+                    {
+                        "description": "insert_certificate_strategy_req",
+                        "name": "insert_certificate_strategy_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.InsertCertificateStrategyReq-certificate_GaslessCertificateInsertPart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/type/phone": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert phone Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert phone Certificate Strategy",
+                "operationId": "InsertPhoneCertificateStrategy",
+                "parameters": [
+                    {
+                        "description": "insert_certificate_strategy_req",
+                        "name": "insert_certificate_strategy_req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.InsertCertificateStrategyReq-certificate_PhoneCertificateInsertPart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategy"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Get Certificate Strategy",
+                "operationId": "GetCertificateStrategy",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_strategy_id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategyCore"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/certis/strategy/{id}/certificates": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Certificates",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Get Certificates",
+                "operationId": "GetCertificates",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_strategy_id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificatesQueryResult-routers_CompositedCertificate"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Insert Certificates",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Insert Certificates",
+                "operationId": "InsertCertificates",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_strategy_id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "certificate",
+                        "name": "certificates",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/routers.CompositedCertificate"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ginutils.CommonMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete Certificates",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Delete Certificates",
+                "operationId": "DeleteCertificates",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_strategy_id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "certificate_ids",
+                        "name": "certificate_ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ginutils.CommonMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/mints/batch/by-meta-uri": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Batch mint by metadata uri",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mints"
+                ],
+                "summary": "Batch mint by metadata uri",
+                "operationId": "MintBatchByMetaUri",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "mint_batch_dto",
+                        "name": "mint_batch_dto",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.MintBatchDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BatchMintTask"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/mints/batch/{id}": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Batch mint task",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mints"
+                ],
+                "summary": "Get Batch mint task",
+                "operationId": "GetBatchMintTask",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "task_id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BatchMintTask"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/poap/activity": {
             "get": {
                 "security": [
@@ -856,121 +1603,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/poap/activity/nftconfig/{nft_config_id}": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Update Activity NFT Config",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Update Activity NFT Config",
-                "operationId": "UpdateActivityNftConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "nft_config_id",
-                        "name": "nft_config_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "update Nft config request",
-                        "name": "update_nft_config_request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.NftConfigUpdatePart"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.NFTConfig"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Delete Activity NFT Config",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "POAP"
-                ],
-                "summary": "Delete Activity NFT Config",
-                "operationId": "DeleteActivityNftConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "nft_config_id",
-                        "name": "nft_config_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.NFTConfig"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server error",
-                        "schema": {
-                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
-                        }
-                    }
-                }
-            }
-        },
         "/poap/activity/result/{activity_code}": {
             "get": {
                 "security": [
@@ -1003,6 +1635,20 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "name": "address",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                0,
+                                1,
+                                2
+                            ],
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "statuses",
                         "in": "query"
                     },
                     {
@@ -1512,6 +2158,121 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/post/activity/nftconfig/{nft_config_id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update Activity NFT Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Update Activity NFT Config",
+                "operationId": "UpdateActivityNftConfig",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "nft_config_id",
+                        "name": "nft_config_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update Nft config request",
+                        "name": "update_nft_config_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NftConfigUpdatePart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NFTConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete Activity NFT Config",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "POAP"
+                ],
+                "summary": "Delete Activity NFT Config",
+                "operationId": "DeleteActivityNftConfig",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "nft_config_id",
+                        "name": "nft_config_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NFTConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1522,6 +2283,162 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "certificate.AddressCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                }
+            }
+        },
+        "certificate.CertificateStrategy": {
+            "type": "object",
+            "properties": {
+                "certificate_type": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "certificate.CertificateStrategyCore": {
+            "type": "object",
+            "properties": {
+                "certificate_type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "certificate.CertificatesQueryResult-routers_CompositedCertificate": {
+            "type": "object",
+            "properties": {
+                "certificate_type": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/routers.CompositedCertificate"
+                    }
+                }
+            }
+        },
+        "certificate.ContractCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "activity_code": {
+                    "type": "string"
+                },
+                "chain": {
+                    "$ref": "#/definitions/enums.Chain"
+                },
+                "contract_address": {
+                    "type": "string"
+                },
+                "contract_type": {
+                    "$ref": "#/definitions/enums.ContractType"
+                },
+                "snapshot_epoch_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "certificate.ContractSnapshot": {
+            "type": "object",
+            "properties": {
+                "activity_code": {
+                    "type": "string"
+                },
+                "contract": {
+                    "type": "string"
+                },
+                "contract_certificate_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "snapshot_epoch_number": {
+                    "type": "integer"
+                },
+                "token_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "certificate.DodoCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "dodo_source_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "certificate.GaslessCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "activity_code": {
+                    "type": "string"
+                },
+                "chain": {
+                    "$ref": "#/definitions/enums.Chain"
+                },
+                "snapshot_epoch_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "certificate.PhoneCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "phone": {
                     "type": "string"
                 }
             }
@@ -1563,6 +2480,32 @@ const docTemplate = `{
                 "CHAIN_CONFLUX_TEST"
             ]
         },
+        "enums.ContractType": {
+            "type": "integer",
+            "enum": [
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "ContractType_ERC721",
+                "ContractType_ERC1155"
+            ]
+        },
+        "enums.SnapshotStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "SNAPSHOT_STATUS_INIT",
+                "SNAPSHOT_STATUS_PROCESSING",
+                "SNAPSHOT_STATUS_SUCCESS",
+                "SNAPSHOT_STATUS_FAILED"
+            ]
+        },
         "enums.SocialToolType": {
             "type": "integer",
             "enum": [
@@ -1572,6 +2515,19 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "SOCIAL_TOOL_DISCORD",
                 "SOCIAL_TOOL_DODO"
+            ]
+        },
+        "enums.TransactionStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "TRANSACTION_STATUS_INIT",
+                "TRANSACTION_STATUS_SUCCESS",
+                "TRANSACTION_STATUS_FAILED"
             ]
         },
         "enums.WalletType": {
@@ -1627,7 +2583,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "activity_type": {
-                    "$ref": "#/definitions/enums.ActivityType"
+                    "type": "string"
                 },
                 "amount": {
                     "type": "integer"
@@ -1638,13 +2594,13 @@ const docTemplate = `{
                 "app_name": {
                     "type": "string"
                 },
+                "certificate_strategy_id": {
+                    "type": "integer"
+                },
                 "chain_of_gasless": {
-                    "default": 2,
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.Chain"
-                        }
-                    ]
+                    "description": "default value: \"conflux_test\"",
+                    "type": "string",
+                    "default": "2"
                 },
                 "command": {
                     "type": "string"
@@ -1671,10 +2627,8 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "is_phone_white_list_opened": {
-                    "type": "boolean"
-                },
                 "is_token_id_ordered": {
+                    "description": "IsPhoneWhiteListOpened bool                                  ` + "`" + `gorm:\"type:bool;default:false\" json:\"is_phone_white_list_opened\"` + "`" + `",
                     "type": "boolean",
                     "default": true
                 },
@@ -1710,12 +2664,6 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
-                },
-                "white_list_infos": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.WhiteListInfo"
-                    }
                 }
             }
         },
@@ -1734,7 +2682,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "activity_type": {
-                    "$ref": "#/definitions/enums.ActivityType"
+                    "type": "string"
                 },
                 "amount": {
                     "type": "integer"
@@ -1745,13 +2693,13 @@ const docTemplate = `{
                 "app_name": {
                     "type": "string"
                 },
+                "certificate_strategy_id": {
+                    "type": "integer"
+                },
                 "chain_of_gasless": {
-                    "default": 2,
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enums.Chain"
-                        }
-                    ]
+                    "description": "default value: \"conflux_test\"",
+                    "type": "string",
+                    "default": "2"
                 },
                 "command": {
                     "type": "string"
@@ -1766,10 +2714,8 @@ const docTemplate = `{
                     "type": "integer",
                     "default": -1
                 },
-                "is_phone_white_list_opened": {
-                    "type": "boolean"
-                },
                 "is_token_id_ordered": {
+                    "description": "IsPhoneWhiteListOpened bool                                  ` + "`" + `gorm:\"type:bool;default:false\" json:\"is_phone_white_list_opened\"` + "`" + `",
                     "type": "boolean",
                     "default": true
                 },
@@ -1825,6 +2771,9 @@ const docTemplate = `{
                 "amount": {
                     "type": "integer"
                 },
+                "certificate_strategy_id": {
+                    "type": "integer"
+                },
                 "command": {
                     "type": "string"
                 },
@@ -1838,10 +2787,8 @@ const docTemplate = `{
                     "type": "integer",
                     "default": -1
                 },
-                "is_phone_white_list_opened": {
-                    "type": "boolean"
-                },
                 "is_token_id_ordered": {
+                    "description": "IsPhoneWhiteListOpened bool                                  ` + "`" + `gorm:\"type:bool;default:false\" json:\"is_phone_white_list_opened\"` + "`" + `",
                     "type": "boolean",
                     "default": true
                 },
@@ -1865,6 +2812,47 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "models.BatchMintTask": {
+            "type": "object",
+            "properties": {
+                "app_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "mint_task_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "source_type": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -2098,6 +3086,20 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ItemsWithCount-certificate_CertificateStrategy": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.CertificateStrategy"
+                    }
+                }
+            }
+        },
         "models.MetadataAttribute": {
             "type": "object",
             "properties": {
@@ -2215,7 +3217,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/enums.TransactionStatus"
                 },
                 "token_id": {
                     "type": "string"
@@ -2314,29 +3316,32 @@ const docTemplate = `{
                 }
             }
         },
-        "models.WhiteListInfo": {
+        "routers.CompositedCertificate": {
             "type": "object",
             "properties": {
-                "activityID": {
-                    "type": "integer"
-                },
-                "count": {
-                    "type": "integer"
-                },
-                "created_at": {
+                "activity_code": {
                     "type": "string"
                 },
-                "deleted_at": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
+                "address": {
+                    "type": "string"
                 },
-                "id": {
+                "chain": {
+                    "$ref": "#/definitions/enums.Chain"
+                },
+                "contract_address": {
+                    "type": "string"
+                },
+                "contract_type": {
+                    "$ref": "#/definitions/enums.ContractType"
+                },
+                "dodo_source_id": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "snapshot_epoch_number": {
                     "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "user": {
-                    "type": "string"
                 }
             }
         },
@@ -2345,6 +3350,9 @@ const docTemplate = `{
             "properties": {
                 "address": {
                     "type": "string"
+                },
+                "chain": {
+                    "$ref": "#/definitions/enums.Chain"
                 },
                 "code": {
                     "type": "string"
@@ -2367,6 +3375,23 @@ const docTemplate = `{
                 "channelName": {
                     "description": "频道名称",
                     "type": "string"
+                }
+            }
+        },
+        "services.ContractSnapshotResp": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "snapshotStatus": {
+                    "$ref": "#/definitions/enums.SnapshotStatus"
+                },
+                "snapshots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.ContractSnapshot"
+                    }
                 }
             }
         },
@@ -2393,6 +3418,126 @@ const docTemplate = `{
                         "dodo",
                         "discord"
                     ]
+                }
+            }
+        },
+        "services.InsertCertificateStrategyReq-certificate_AddressCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.AddressCertificateInsertPart"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.InsertCertificateStrategyReq-certificate_ContractCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.ContractCertificateInsertPart"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.InsertCertificateStrategyReq-certificate_DodoCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.DodoCertificateInsertPart"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.InsertCertificateStrategyReq-certificate_GaslessCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.GaslessCertificateInsertPart"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.InsertCertificateStrategyReq-certificate_PhoneCertificateInsertPart": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/certificate.PhoneCertificateInsertPart"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.MintBatchDto": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "chain",
+                "contract_address",
+                "mint_items",
+                "source_type"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "integer"
+                },
+                "chain": {
+                    "type": "string"
+                },
+                "contract_address": {
+                    "type": "string"
+                },
+                "mint_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.MintItemDto"
+                    }
+                },
+                "source_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.MintItemDto": {
+            "type": "object",
+            "required": [
+                "mint_to"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "metadata_uri": {
+                    "type": "string"
+                },
+                "mint_to": {
+                    "type": "string"
+                },
+                "token_id": {
+                    "type": "string"
                 }
             }
         },

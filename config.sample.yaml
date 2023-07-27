@@ -34,12 +34,23 @@ oss:
   accessKeyId:
   accessKeySecret:
   bucketName: nft-
+storage:
+  base: /root/tmp/nft-rainbow/storage
+  batchMintRequests: batch_mint_requests
 url:
   activity: https://apps.nftrainbow.cn/
 ipLimitEveryday: 100
-anyweb:
-  appid: 
-  secret: 
+wallet:
+  anyweb:
+    appid: 0100ec60-fb4d-4956-9827-3fdccebad751
+    secret: 63c1147b-35ca-4e3d-a674-6756c8aa9fec
+  cellar:
+    mainnet:
+      appid: 3e438a5834cb43159fa45aad62671333
+      host: wallet.metacellar.art
+    testnet:
+      appid: b2f2d2cb1c0c412f9e8d90520609729d
+      host: wallet-pre.maytek.cn
 gasless:
   userId: 10
   appId: 10

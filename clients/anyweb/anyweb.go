@@ -1,10 +1,10 @@
-package clients
+package anyweb
 
 import (
 	"fmt"
 
 	"github.com/imroc/req/v3"
-	"github.com/spf13/viper"
+	"github.com/nft-rainbow/rainbow-app-service/config"
 )
 
 var client = req.C() //.DevMode() // http request client
@@ -76,7 +76,7 @@ func GetAnywebAccessToken(code string) (*AnywebAccessTokenMeta, error) {
 	var result AnywebAccessTokenResponse
 
 	resp, err := client.R().
-		SetBody(&AnywebAccessTokenReq{Appid: viper.GetString("anyweb.appid"), Secret: viper.GetString("anyweb.secret"), Code: code}).
+		SetBody(&AnywebAccessTokenReq{Appid: config.GetConfig().Wallet.Anyweb.Appid, Secret: config.GetConfig().Wallet.Anyweb.Secret, Code: code}).
 		SetSuccessResult(&result).
 		Post("https://api.anyweb.cc/oauth/accessToken")
 
@@ -116,7 +116,7 @@ func GetAnywebUserInfo(accessToken string, unionid string, scopes []string) (*An
 	var result AnywebUserInfoResponse
 
 	resp, err := client.R().
-		SetBody(&AnywebUserInfoReq{Appid: viper.GetString("anyweb.appid"), Secret: viper.GetString("anyweb.secret"), AccessToken: accessToken, UnionId: unionid, Scopes: scopes}).
+		SetBody(&AnywebUserInfoReq{Appid: config.GetConfig().Wallet.Anyweb.Appid, Secret: config.GetConfig().Wallet.Anyweb.Secret, AccessToken: accessToken, UnionId: unionid, Scopes: scopes}).
 		SetSuccessResult(&result).
 		Post("https://api.anyweb.cc/oauth/userInfo")
 

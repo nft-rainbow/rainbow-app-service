@@ -13,12 +13,6 @@ var (
 	db *gorm.DB
 )
 
-const (
-	STATUS_INIT = iota
-	STATUS_SUCCESS
-	STATUS_FAIL
-)
-
 type BaseModel struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
@@ -26,7 +20,18 @@ type BaseModel struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
 
-func ConnectDB() {
+func (b BaseModel) GetID() uint { return b.ID }
+
+type ItemsWithCount[T any] struct {
+	Count int `json:"count"`
+	Items []T `json:"items"`
+}
+
+func Init() {
+	connectDB()
+}
+
+func connectDB() {
 	// refer https://github.com/go-sql-driver/mysql#dsn-data-source-name for details
 	var err error
 	dbConfig := viper.GetStringMapString("mysql")
@@ -45,7 +50,7 @@ func ConnectDB() {
 		&POAPResult{},
 		&H5Config{},
 		&NFTConfig{},
-		&WhiteListInfo{},
+
 		&Activity{},
 		&Contract{},
 		&Statistic{},
@@ -55,6 +60,8 @@ func ConnectDB() {
 		&WalletUser{},
 		&PhoneWhiteList{},
 		&TokenReserve{},
+
+		&BatchMintTask{},
 	); err != nil {
 		panic(err)
 	}

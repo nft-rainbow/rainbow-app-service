@@ -138,3 +138,15 @@ func Bool2Int(val bool) int {
 	}
 	return 0
 }
+
+func MapSlice[T any, R any](items []T, mapFunc func(item T) (R, error)) ([]R, error) {
+	var result []R
+	for _, item := range items {
+		r, err := mapFunc(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, r)
+	}
+	return result, nil
+}

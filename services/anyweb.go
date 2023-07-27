@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/nft-rainbow/rainbow-app-service/clients"
+	"github.com/nft-rainbow/rainbow-app-service/clients/anyweb"
 	"github.com/nft-rainbow/rainbow-app-service/models"
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 )
@@ -17,20 +17,19 @@ func (a *Anyweb) InsertUser(userReq AddWalletUserReq) error {
 		return errors.New("not anyweb wallet")
 	}
 	// check exist in db first if have directly return
-	user, err := models.FindWalletUser(userReq.Wallet, userReq.Address)
+	user, err := models.FindWalletUser(models.WalletUserFilter{Wallet: enums.WALLET_ANYWEB, Address: userReq.Address})
 	if err == nil && user != nil {
-		// user exist
 		return nil
 	}
 
 	// retrieve accessToken through code
-	tokenInfo, err := clients.GetAnywebAccessToken(userReq.Code)
+	tokenInfo, err := anyweb.GetAnywebAccessToken(userReq.Code)
 	if err != nil {
 		return err
 	}
 
 	// get userInfo through accessToken
-	userInfo, err := clients.GetAnywebUserInfo(tokenInfo.AccessToken, tokenInfo.UnionId, []string{"baseInfo"})
+	userInfo, err := anyweb.GetAnywebUserInfo(tokenInfo.AccessToken, tokenInfo.UnionId, []string{"baseInfo"})
 	if err != nil {
 		return err
 	}

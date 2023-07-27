@@ -89,16 +89,6 @@ func SetupRoutes(router *gin.Engine) {
 	poap.POST("/wallet/user", addWalletUser)
 	poap.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
 	{
-		// poap.POST("/activity/push", pushActivity)
-		// poap.POST("/activity/server", bindServerInfo)
-		// poap.GET("/activity/push/:bot", getPushes)
-		// poap.GET("/activity/servers/:bot", getServers)
-		// poap.GET("/activity/channels/discord/:guild_id", getDiscordChannels)
-		// poap.GET("/activity/channels/dodo/:island_id", getDoDoChannels)
-		// poap.GET("/activity/roles/discord/:guild_id", getDiscordRoles)
-		// poap.GET("/activity/roles/dodo/:island_id", getDoDoRoles)
-		// poap.POST("/csv", poapMintByCSV)
-
 		poap.POST("/activity", addActivity)
 		poap.POST("/activity/:activity_code/nftconfigs", addActivityNftConfigs)
 		poap.PUT("/activity/:activity_code/base", updateActivityBase)
@@ -110,6 +100,46 @@ func SetupRoutes(router *gin.Engine) {
 		poap.POST("/activity/token-reserve", addTokenReserves)
 		poap.GET("/activity/token-reserve/:activity_code", getTokenReserves)
 	}
+
+	certi := apps.Group("/certis")
+	certi.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	{
+		certiCtrl := NewCertiController()
+		certi.POST("/strategy/type/:certificate_type", certiCtrl.InsertCertificateStrategy)
+		certi.GET("/strategy/list", certiCtrl.GetCertiStrategies)
+
+		certiStrategyOp := certi.Group("/strategy/:id")
+		certiStrategyOp.Use(certiCtrl.checkCertiStrategyAccessMiddleware)
+		{
+			certiStrategyOp.GET("", certiCtrl.GetCertificateStrategy)
+			certiStrategyOp.GET("/certificates", certiCtrl.GetCertificates)
+			certiStrategyOp.POST("/certificates", certiCtrl.InsertCertificates)
+			certiStrategyOp.DELETE("/certificates", certiCtrl.DeleteCertificates)
+		}
+
+		contractCertis := certi.Group("/contract_certificate")
+		certiStrategyOp.Use(certiCtrl.checkContractCertiAccessMiddleware)
+		{
+			contractCertis.GET("/:certificate_id/snapshot", certiCtrl.GetSnapshots)
+			contractCertis.POST("/:certificate_id/snapshot/run", certiCtrl.TriggerObtainSnapshot)
+		}
+	}
+
+	mint := apps.Group("/mints")
+	mint.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+	{
+		var ctrl MintController
+		mint.POST("/batch/by-meta-parts", nil)
+		mint.POST("/batch/by-meta-uri", ctrl.MintBatchByMetaUri)
+		mint.GET("/batch/:id", ctrl.GetBatchMintTask)
+	}
+
+	internal := apps.Group("/internal")
+	{
+		internalCtrl := &InternalController{}
+		internal.GET("/user", middlewares.JwtAuthMiddleware.MiddlewareFunc(), internalCtrl.GetUserInfo)
+	}
+
 }
 
 func indexEndpoint(c *gin.Context) {
@@ -146,6 +176,6 @@ func indexEndpoint(c *gin.Context) {
 // 	return &pagination, nil
 // }
 
-func GetIdFromJwtClaim(c *gin.Context) uint {
+func GetIdFromJwt(c *gin.Context) uint {
 	return c.GetUint(middlewares.JwtIdentityKey)
 }

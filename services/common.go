@@ -291,7 +291,7 @@ func SyncPOAPResultStatus() {
 	logrus.Info("start task for syncing poap result status")
 	for {
 		var results []*models.POAPResult = make([]*models.POAPResult, 0)
-		models.GetDB().Where("status = ?", models.STATUS_INIT).Limit(100).Find(&results)
+		models.GetDB().Where("status = ?", enums.TRANSACTION_STATUS_INIT).Limit(100).Find(&results)
 		if len(results) == 0 {
 			time.Sleep(time.Second * 5)
 			continue
@@ -303,12 +303,12 @@ func SyncPOAPResultStatus() {
 				continue
 			}
 			tokenId, hash, status, err := utils.GetMintDetail(v.TxID, jwtToken)
-			if status == models.STATUS_INIT || err != nil {
+			if status == int32(enums.TRANSACTION_STATUS_INIT) || err != nil {
 				continue
 			}
 			v.TokenID = tokenId
 			v.Hash = hash
-			v.Status = status
+			v.Status = enums.TransactionStatus(status)
 			models.GetDB().Save(&v)
 			//config, _ := models.FindPOAPActivityConfigById(v.ActivityID)
 			//group := new(errgroup.Group)
