@@ -10,15 +10,14 @@ import (
 
 type CertificateStrategy struct {
 	models.BaseModel
+	CertificateStrategyCore
+}
+
+type CertificateStrategyCore struct {
 	CertificateType enums.CertificateType `json:"certificate_type" swaggertype:"string"`
 	Name            string                `gorm:"type:varchar(255)" json:"name"`
 	Description     string                `json:"description"`
 	UserId          uint                  `json:"user_id"`
-	// Addresses       []AddressCertificate  `json:"addresses,omitempty"`
-	// Phones          []PhoneCertificate    `json:"phones,omitempty"`
-	// Dodos           []DodoCertificate     `json:"dodos,omitempty"`
-	// Contracts       []ContractCertificate `json:"contracts,omitempty"`
-	// Gaslesses       []GaslessCertificate  `json:"gaslesses,omitempty"`
 }
 
 type CertiStrategyFilter struct {

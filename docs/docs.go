@@ -1056,6 +1056,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/certis/strategy/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Certificate Strategy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Certi"
+                ],
+                "summary": "Get Certificate Strategy",
+                "operationId": "GetCertificateStrategy",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "certificate_strategy_id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/certificate.CertificateStrategyCore"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server error",
+                        "schema": {
+                            "$ref": "#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo"
+                        }
+                    }
+                }
+            }
+        },
         "/certis/strategy/{id}/certificates": {
             "get": {
                 "security": [
@@ -2270,6 +2317,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "certificate.CertificateStrategyCore": {
+            "type": "object",
+            "properties": {
+                "certificate_type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 },
                 "user_id": {

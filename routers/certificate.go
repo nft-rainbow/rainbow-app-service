@@ -86,8 +86,8 @@ func (ctrl *CertiController) GetCertificates(c *gin.Context) {
 		return
 	}
 
-	certificateReuslus, err := services.GetCertificates(cs.ID, c.GetInt("offset"), c.GetInt("limit"))
-	ginutils.RenderResp(c, certificateReuslus, err)
+	certificateResults, err := services.GetCertificates(cs.ID, c.GetInt("offset"), c.GetInt("limit"))
+	ginutils.RenderResp(c, certificateResults, err)
 }
 
 //	@Tags			Certi
@@ -193,6 +193,22 @@ func (ctrl *CertiController) TriggerObtainSnapshot(c *gin.Context) {
 
 	err = ctrl.snapshotService.Start(cc)
 	ginutils.RenderResp(c, ginutils.CommonSuccessMessage, err)
+}
+
+//	@Tags			Certi
+//	@ID				GetCertificateStrategy
+//	@Summary		Get Certificate Strategy
+//	@Description	Get Certificate Strategy
+//	@security		ApiKeyAuth
+//	@Produce		json
+//	@Param			id	path		int	true	"certificate_strategy_id"
+//	@Success		200	{object}	certificate.CertificateStrategyCore
+//	@Failure		400	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
+//	@Failure		500	{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
+//	@Router			/certis/strategy/{id} [get]
+func (ctrl *CertiController) GetCertificateStrategy(c *gin.Context) {
+	cs, err := ctrl.getCertificateStrategy(c)
+	ginutils.RenderResp(c, cs.CertificateStrategyCore, err)
 }
 
 func (ctrl *CertiController) getCertificateStrategy(c *gin.Context) (*certificate.CertificateStrategy, error) {

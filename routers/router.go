@@ -111,6 +111,7 @@ func SetupRoutes(router *gin.Engine) {
 		certiStrategyOp := certi.Group("/strategy/:id")
 		certiStrategyOp.Use(certiCtrl.checkCertiStrategyAccessMiddleware)
 		{
+			certiStrategyOp.GET("", certiCtrl.GetCertificateStrategy)
 			certiStrategyOp.GET("/certificates", certiCtrl.GetCertificates)
 			certiStrategyOp.POST("/certificates", certiCtrl.InsertCertificates)
 			certiStrategyOp.DELETE("/certificates", certiCtrl.DeleteCertificates)
