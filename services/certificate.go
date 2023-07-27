@@ -10,6 +10,7 @@ import (
 type InsertCertificateStrategyReq[T any] struct {
 	CertificateType enums.CertificateType `json:"certificate_type" swaggertype:"string" swaggerignore:"true"`
 	Name            string                `json:"name"`
+	Description     string                `json:"description"`
 	Items           []T                   `json:"items"`
 }
 
@@ -31,6 +32,7 @@ func InsertCertificateStrategy(req *InsertCertificateStrategyReq[any], userId ui
 			CertificateType: req.CertificateType,
 			UserId:          userId,
 			Name:            req.Name,
+			Description:     req.Description,
 		},
 	}
 	if err := models.GetDB().Save(&cs).Error; err != nil {
