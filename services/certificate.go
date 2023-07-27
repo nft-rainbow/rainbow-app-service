@@ -27,9 +27,11 @@ func InsertCertificateStrategy(req *InsertCertificateStrategyReq[any], userId ui
 	}
 
 	cs := certificate.CertificateStrategy{
-		CertificateType: req.CertificateType,
-		UserId:          userId,
-		Name:            req.Name,
+		CertificateStrategyCore: certificate.CertificateStrategyCore{
+			CertificateType: req.CertificateType,
+			UserId:          userId,
+			Name:            req.Name,
+		},
 	}
 	if err := models.GetDB().Save(&cs).Error; err != nil {
 		return nil, err

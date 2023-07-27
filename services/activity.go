@@ -423,13 +423,15 @@ func (a *ActivityService) getMintableCount(activity *models.Activity, address st
 		}
 
 		switch certi.CertificateType {
+		case enums.CERTIFICATE_ADDRESS:
+			break
 		case enums.CERTIFICATE_PHONE:
 			relatedAddress, err = models.FindRelatedAddressWithSamePhone(address)
 			if err != nil {
 				return 0, errors.WithStack(err)
 			}
 		default:
-			return 0, errors.Errorf("unsupport certi type %v", certi.CertificateType)
+			return 0, errors.WithStack(errors.Errorf("unsupport certi type %v", certi.CertificateType))
 		}
 	}
 

@@ -31,6 +31,17 @@ definitions:
       user_id:
         type: integer
     type: object
+  certificate.CertificateStrategyCore:
+    properties:
+      certificate_type:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      user_id:
+        type: integer
+    type: object
   certificate.CertificatesQueryResult-routers_CompositedCertificate:
     properties:
       certificate_type:
@@ -1368,6 +1379,36 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Trigger Obtain Snapshot
+      tags:
+      - Certi
+  /certis/strategy/{id}:
+    get:
+      description: Get Certificate Strategy
+      operationId: GetCertificateStrategy
+      parameters:
+      - description: certificate_strategy_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/certificate.CertificateStrategyCore'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Certificate Strategy
       tags:
       - Certi
   /certis/strategy/{id}/certificates:
