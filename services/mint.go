@@ -67,7 +67,13 @@ func (s *MintService) MintBatchByMetaUri(userId uint, req *MintBatchDto) (*model
 	}
 	if req.SourceType != enums.SOURCE_TYPE_ADDRESS {
 		reqJ, _ := json.Marshal(req)
-		filePath := path.Join(config.GetConfig().Storage.Base, config.GetConfig().Storage.BatchMintRequests, fmt.Sprintf("%d", time.Now().UnixNano()))
+
+		dirPath := path.Join(config.GetConfig().Storage.Base, config.GetConfig().Storage.BatchMintRequests)
+		if err := os.MkdirAll(dirPath, os.FileMode(0777)); err != nil {
+			return nil, err
+		}
+
+		filePath := path.Join(dirPath, fmt.Sprintf("%d", time.Now().UnixNano()))
 		if err := os.WriteFile(filePath, reqJ, fs.ModePerm); err != nil {
 			return nil, errors.WithMessage(err, "failed to save request")
 		}
