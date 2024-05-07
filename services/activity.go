@@ -596,10 +596,11 @@ func crateMetadata(activity *models.Activity, nftConfig *models.NFTConfig, token
 func createMetadataByNftConfig(nftConfig *models.NFTConfig, description string, token string) (string, error) {
 	attributes := make([]openapiclient.ModelsExposedMetadataAttribute, 0)
 	for _, v := range nftConfig.MetadataAttributes {
+		tmp := v
 		attributes = append(attributes, openapiclient.ModelsExposedMetadataAttribute{
-			TraitType:   &v.TraitType,
-			Value:       &v.Value,
-			DisplayType: &v.DisplayType,
+			TraitType:   &tmp.TraitType,
+			Value:       &tmp.Value,
+			DisplayType: &tmp.DisplayType,
 		})
 	}
 

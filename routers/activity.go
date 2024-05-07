@@ -215,7 +215,7 @@ func updateActivityBase(c *gin.Context) {
 //	@ID				UpdateActivityNftConfig
 //	@Summary		Update Activity NFT Config
 //	@Description	Update Activity NFT Config
-//	@security		ApiKeyAuth
+//	@security		ApiKeyAuthgo
 //	@Produce		json
 //	@Param			Authorization				header		string						true	"Bearer JWT"
 //	@Param			nft_config_id				path		uint						true	"nft_config_id"
@@ -223,7 +223,7 @@ func updateActivityBase(c *gin.Context) {
 //	@Success		200							{object}	models.NFTConfig
 //	@Failure		400							{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500							{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
-//	@Router			/post/activity/nftconfig/{nft_config_id} [put]
+//	@Router			/poap/activity/nftconfig/{nft_config_id} [put]
 func updateActivityNftConfig(c *gin.Context) {
 	req := struct {
 		models.NftConfigUpdatePart
