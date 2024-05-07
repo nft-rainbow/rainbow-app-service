@@ -215,7 +215,7 @@ func updateActivityBase(c *gin.Context) {
 //	@ID				UpdateActivityNftConfig
 //	@Summary		Update Activity NFT Config
 //	@Description	Update Activity NFT Config
-//	@security		ApiKeyAuthgo
+//	@security		ApiKeyAuth
 //	@Produce		json
 //	@Param			Authorization				header		string						true	"Bearer JWT"
 //	@Param			nft_config_id				path		uint						true	"nft_config_id"
