@@ -223,7 +223,7 @@ func updateActivityBase(c *gin.Context) {
 //	@Success		200							{object}	models.NFTConfig
 //	@Failure		400							{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Invalid request"
 //	@Failure		500							{object}	appService_errors.RainbowAppServiceErrorDetailInfo	"Internal Server error"
-//	@Router			/post/activity/nftconfig/{nft_config_id} [put]
+//	@Router			/poap/activity/nftconfig/{nft_config_id} [put]
 func updateActivityNftConfig(c *gin.Context) {
 	req := struct {
 		models.NftConfigUpdatePart

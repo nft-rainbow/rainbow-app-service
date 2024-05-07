@@ -113,9 +113,9 @@ func initDiscordBot() {
 //	@license.name	Apache 2.0
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-//	@host		console.nftrainbow.cn
-//	@BasePath	/apps
-//	@schemes	http https
+// @host		console.nftrainbow.cn
+// @BasePath	/apps
+// @schemes	http https
 func main() {
 
 	certificate.Init()

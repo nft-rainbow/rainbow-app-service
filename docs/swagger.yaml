@@ -783,6 +783,8 @@ definitions:
     type: object
   services.InsertCertificateStrategyReq-certificate_AddressCertificateInsertPart:
     properties:
+      description:
+        type: string
       items:
         items:
           $ref: '#/definitions/certificate.AddressCertificateInsertPart'
@@ -792,6 +794,8 @@ definitions:
     type: object
   services.InsertCertificateStrategyReq-certificate_ContractCertificateInsertPart:
     properties:
+      description:
+        type: string
       items:
         items:
           $ref: '#/definitions/certificate.ContractCertificateInsertPart'
@@ -801,6 +805,8 @@ definitions:
     type: object
   services.InsertCertificateStrategyReq-certificate_DodoCertificateInsertPart:
     properties:
+      description:
+        type: string
       items:
         items:
           $ref: '#/definitions/certificate.DodoCertificateInsertPart'
@@ -810,6 +816,8 @@ definitions:
     type: object
   services.InsertCertificateStrategyReq-certificate_GaslessCertificateInsertPart:
     properties:
+      description:
+        type: string
       items:
         items:
           $ref: '#/definitions/certificate.GaslessCertificateInsertPart'
@@ -819,6 +827,8 @@ definitions:
     type: object
   services.InsertCertificateStrategyReq-certificate_PhoneCertificateInsertPart:
     properties:
+      description:
+        type: string
       items:
         items:
           $ref: '#/definitions/certificate.PhoneCertificateInsertPart'
@@ -2039,6 +2049,47 @@ paths:
       summary: Set H5 Config
       tags:
       - POAP
+  /poap/activity/nftconfig/{nft_config_id}:
+    put:
+      description: Update Activity NFT Config
+      operationId: UpdateActivityNftConfig
+      parameters:
+      - description: Bearer JWT
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: nft_config_id
+        in: path
+        name: nft_config_id
+        required: true
+        type: integer
+      - description: update Nft config request
+        in: body
+        name: update_nft_config_request
+        required: true
+        schema:
+          $ref: '#/definitions/models.NftConfigUpdatePart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.NFTConfig'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+        "500":
+          description: Internal Server error
+          schema:
+            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Update Activity NFT Config
+      tags:
+      - POAP
   /poap/activity/result/{activity_code}:
     get:
       description: Get Mint Result list
@@ -2321,46 +2372,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Delete Activity NFT Config
-      tags:
-      - POAP
-    put:
-      description: Update Activity NFT Config
-      operationId: UpdateActivityNftConfig
-      parameters:
-      - description: Bearer JWT
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: nft_config_id
-        in: path
-        name: nft_config_id
-        required: true
-        type: integer
-      - description: update Nft config request
-        in: body
-        name: update_nft_config_request
-        required: true
-        schema:
-          $ref: '#/definitions/models.NftConfigUpdatePart'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.NFTConfig'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-        "500":
-          description: Internal Server error
-          schema:
-            $ref: '#/definitions/appService_errors.RainbowAppServiceErrorDetailInfo'
-      security:
-      - ApiKeyAuth: []
-      summary: Update Activity NFT Config
       tags:
       - POAP
 schemes:
