@@ -15,7 +15,7 @@ import (
 
 func SendBatchBurnNFTRequest(token string, dto openapiclient.ServicesBurnBatchDto) ([]openapiclient.ModelsBurnTask, error) {
 	logrus.Info("Start to Batch burn")
-	resp, _, err := newClient().BurnsApi.BurnBatch(context.Background()).Authorization(token).BurnBatchDto(dto).Execute()
+	resp, _, err := newClient().BurnsAPI.BurnBatch(context.Background()).Authorization(token).BurnBatchDto(dto).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -25,17 +25,17 @@ func SendBatchBurnNFTRequest(token string, dto openapiclient.ServicesBurnBatchDt
 
 func SendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto) (*openapiclient.ModelsMintTask, error) {
 	logrus.Info("Start to mint")
-	resp, _, err := newClient().MintsApi.CustomMint(context.Background()).Authorization(token).CustomMintDto(dto).Execute()
+	resp, _, err := newClient().MintsAPI.CustomMint(context.Background()).Authorization(token).CustomMintDto(dto).Execute()
 	if err != nil {
 		return nil, err
 	}
-	logrus.Info("Mint resp", resp)
+	logrus.WithField("resp", resp).Info("Call mint api done")
 
 	return resp, nil
 }
 
 func SendCreateMetadataRequest(token string, dto openapiclient.ServicesMetadataDto) (*openapiclient.ModelsExposedMetadata, error) {
-	resp, _, err := newClient().MetadataApi.CreateMetadata(context.Background()).Authorization(token).MetadataInfo(dto).Execute()
+	resp, _, err := newClient().MetadataAPI.CreateMetadata(context.Background()).Authorization(token).MetadataInfo(dto).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +43,13 @@ func SendCreateMetadataRequest(token string, dto openapiclient.ServicesMetadataD
 }
 
 func GetTokenInfo(id int32, token string) (string, string, int32, error) {
-	resp, _, err := newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
+	resp, _, err := newClient().MintsAPI.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
 		return "", "", 0, err
 	}
 
 	for *resp.Status == 0 {
-		resp, _, err = newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
+		resp, _, err = newClient().MintsAPI.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 		if err != nil {
 			return "", "", 0, err
 		}
@@ -59,7 +59,7 @@ func GetTokenInfo(id int32, token string) (string, string, int32, error) {
 }
 
 func GetMintDetail(id int32, token string) (string, string, int32, error) {
-	resp, _, err := newClient().MintsApi.GetMintDetail(context.Background(), id).Authorization(token).Execute()
+	resp, _, err := newClient().MintsAPI.GetMintDetail(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
 		return "", "", 0, err
 	}
@@ -68,12 +68,12 @@ func GetMintDetail(id int32, token string) (string, string, int32, error) {
 }
 
 func GetBurnInfo(id int32, token string) (int32, string, error) {
-	resp, _, err := newClient().BurnsApi.GetBurnDetail(context.Background(), id).Authorization(token).Execute()
+	resp, _, err := newClient().BurnsAPI.GetBurnDetail(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
 		return 0, "", err
 	}
 	for *resp.Status == 0 && *resp.Hash == "" {
-		resp, _, err = newClient().BurnsApi.GetBurnDetail(context.Background(), id).Authorization(token).Execute()
+		resp, _, err = newClient().BurnsAPI.GetBurnDetail(context.Background(), id).Authorization(token).Execute()
 		if err != nil {
 			return 0, "", err
 		}
@@ -84,7 +84,7 @@ func GetBurnInfo(id int32, token string) (int32, string, error) {
 
 func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, error) {
 	// logrus.Info("Start to get contract information")
-	resp, _, err := newClient().ContractApi.GetContractInfo(context.Background(), id).Authorization(token).Execute()
+	resp, _, err := newClient().ContractAPI.GetContractInfo(context.Background(), id).Authorization(token).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func GetContractInfo(id int32, token string) (*openapiclient.ModelsContract, err
 func GetContractProfile(address string, ignoreTokenIds [][2]uint, token string) (*openapiclient.ModelsContractRuntimeProfile, error) {
 	// logrus.Info("Start to get contract profile")
 	ignoreTokenIdsJson, _ := json.Marshal(ignoreTokenIds)
-	resp, _, err := newClient().ContractApi.GetContractProfile(context.Background(), address).IgnoreTokenIds(string(ignoreTokenIdsJson)).Authorization(token).Execute()
+	resp, _, err := newClient().ContractAPI.GetContractProfile(context.Background(), address).IgnoreTokenIds(string(ignoreTokenIdsJson)).Authorization(token).Execute()
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to get contract profile")
 	}
