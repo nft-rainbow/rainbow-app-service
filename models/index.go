@@ -43,6 +43,8 @@ func connectDB() {
 
 	// Migrate the schema
 	if err = db.AutoMigrate(
+		&Activity{},
+
 		&BotServer{},
 		&SocialUserConfig{},
 		&CustomMintCount{},
@@ -51,7 +53,6 @@ func connectDB() {
 		&H5Config{},
 		&NFTConfig{},
 
-		&Activity{},
 		&Contract{},
 		&Statistic{},
 		&MetadataAttribute{},
