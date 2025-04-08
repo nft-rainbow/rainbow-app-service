@@ -29,6 +29,7 @@ func SendCustomMintRequest(token string, dto openapiclient.ServicesCustomMintDto
 	if err != nil {
 		return nil, err
 	}
+	logrus.Info("Mint resp", resp)
 
 	return resp, nil
 }

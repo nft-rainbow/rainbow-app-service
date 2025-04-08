@@ -724,6 +724,7 @@ func sortIgnoreTokenIds(ignoreTokenIds [][2]uint) {
 }
 
 func saveMintResult(activity *models.Activity, nftConfig *models.NFTConfig, resp *openapiclient.ModelsMintTask) (*models.POAPResult, error) {
+	logrus.WithField("resp", resp).WithField("activity", activity).WithField("nftConfig", nftConfig).Info("save mint result")
 	item := &models.POAPResult{
 		ConfigID:      int32(activity.ID),
 		Address:       *resp.MintTo,
