@@ -60,6 +60,7 @@ type Config struct {
 		Db       string `yaml:"db"`
 	} `yaml:"mysql"`
 	DiscordBotToken string `yaml:"discordBotToken"`
+	BotEnable       bool   `yaml:"botEnable"`
 	DodoBot         struct {
 		ClientID  int    `yaml:"clientId"`
 		TokenID   string `yaml:"tokenId"`
