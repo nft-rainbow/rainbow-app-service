@@ -41,15 +41,16 @@ type BotServerService struct {
 }
 
 func NewBotServerService() (*BotServerService, error) {
+	bss := &BotServerService{
+		bots: make(map[enums.SocialToolType]Bot),
+	}
+
 	dodo, err := getSocialToolBot(enums.SOCIAL_TOOL_DODO)
 	if err != nil {
 		return nil, err
 	}
-	return &BotServerService{
-		bots: map[enums.SocialToolType]Bot{
-			enums.SOCIAL_TOOL_DODO: dodo,
-		},
-	}, nil
+	bss.bots[enums.SOCIAL_TOOL_DODO] = dodo
+	return bss, nil
 }
 
 func (d *BotServerService) getBot(socialTool enums.SocialToolType) (Bot, error) {

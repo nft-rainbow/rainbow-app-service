@@ -7,6 +7,7 @@ import (
 	gs "github.com/swaggo/gin-swagger"
 
 	"github.com/gin-gonic/gin"
+	"github.com/nft-rainbow/rainbow-app-service/config"
 	_ "github.com/nft-rainbow/rainbow-app-service/docs"
 	"github.com/nft-rainbow/rainbow-app-service/middlewares"
 	"github.com/nft-rainbow/rainbow-app-service/services"
@@ -21,9 +22,11 @@ var (
 
 func Init() {
 	var err error
-	botServerController, err = NewBotServerController()
-	if err != nil {
-		panic(err)
+	if config.GetConfig().BotEnable {
+		botServerController, err = NewBotServerController()
+		if err != nil {
+			panic(err)
+		}
 	}
 	walletService = services.NewWalletService()
 	activityService = services.GetActivityService()
@@ -35,25 +38,27 @@ func SetupRoutes(router *gin.Engine) {
 	apps := router.Group("/apps")
 	apps.GET("/swagger/*any", gs.WrapHandler(swaggerFiles.Handler))
 
-	bot := apps.Group("/bot")
-	bot.GET("/invite_url", botServerController.GetInviteUrl)
+	if config.GetConfig().BotEnable {
+		bot := apps.Group("/bot")
+		bot.GET("/invite_url", botServerController.GetInviteUrl)
 
-	botServer := bot.Group("/server")
-	botServer.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
-	{
-		botServer.GET("/channels", botServerController.GetChannels)
-		botServer.GET("/roles", botServerController.GetRoles)
+		botServer := bot.Group("/server")
+		botServer.Use(middlewares.JwtAuthMiddleware.MiddlewareFunc())
+		{
+			botServer.GET("/channels", botServerController.GetChannels)
+			botServer.GET("/roles", botServerController.GetRoles)
 
-		botServer.GET("/authcode", botServerController.getAuthCode)
-		botServer.POST("", botServerController.insertBotServer)
-		botServer.GET("", botServerController.GetBotServers)
-		botServer.GET("/:id", botServerController.GetBotServer)
+			botServer.GET("/authcode", botServerController.getAuthCode)
+			botServer.POST("", botServerController.insertBotServer)
+			botServer.GET("", botServerController.GetBotServers)
+			botServer.GET("/:id", botServerController.GetBotServer)
 
-		botServer.POST("/:id/pushinfo", botServerController.AddPushInfo)
-		botServer.PUT("/pushinfo/:id", botServerController.UpdatePushInfo)
-		botServer.POST("/push/:id", botServerController.Push)
+			botServer.POST("/:id/pushinfo", botServerController.AddPushInfo)
+			botServer.PUT("/pushinfo/:id", botServerController.UpdatePushInfo)
+			botServer.POST("/push/:id", botServerController.Push)
 
-		botServer.GET("/activities", botServerController.GetActivitiesOfUserBotServers)
+			botServer.GET("/activities", botServerController.GetActivitiesOfUserBotServers)
+		}
 	}
 
 	// botActivity := bot.Group("/activity")
