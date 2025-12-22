@@ -18,7 +18,7 @@ require (
 	github.com/imroc/req/v3 v3.50.0
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/nft-rainbow/rainbow-sdk-go v0.1.14-0.20250408065041-afabe6d830c9
+	github.com/nft-rainbow/rainbow-sdk-go v0.1.14-0.20251222092144-b1aa29bfd6eb
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
