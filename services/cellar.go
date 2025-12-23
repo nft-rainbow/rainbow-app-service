@@ -20,10 +20,13 @@ func (c *Cellar) GetOrCreateAccount(chain enums.Chain, phone string) (*models.Wa
 	}
 
 	if gormutils.IsRecordNotFoundError(err) {
-		client := cellar.NewCellarClient(chain)
+		client, err := cellar.NewCellarClient(chain)
+		if err != nil {
+			return nil, errors.WithMessage(err, "new cellar client failed")
+		}
 		resp, err := client.GetOrCreateAccount(phone)
 		if err != nil {
-			return nil, err
+			return nil, errors.WithMessage(err, "get or create account failed")
 		}
 
 		u = &models.WalletUser{
@@ -47,10 +50,13 @@ func (c *Cellar) InsertUser(userReq AddWalletUserReq) error {
 		return errors.New("not cellar wallet")
 	}
 
-	client := cellar.NewCellarClient(userReq.Chain)
+	client, err := cellar.NewCellarClient(userReq.Chain)
+	if err != nil {
+		return errors.WithMessage(err, "new cellar client failed")
+	}
 	cu, err := client.GetAccount(userReq.Code)
 	if err != nil {
-		return err
+		return errors.WithMessage(err, "get account failed")
 	}
 
 	if userReq.Address != "" && userReq.Address != cu.Wallet {

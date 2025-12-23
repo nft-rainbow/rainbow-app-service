@@ -9,20 +9,23 @@ import (
 	"github.com/nft-rainbow/rainbow-app-service/models/enums"
 	"github.com/nft-rainbow/rainbow-app-service/utils"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 type Cellar struct {
-	httpClient *http.Client
-	chain      enums.Chain
+	chain enums.Chain
 	config.Cellar
 }
 
-func NewCellarClient(chain enums.Chain) *Cellar {
-	return &Cellar{
-		httpClient: &http.Client{},
-		chain:      chain,
-		Cellar:     config.GetCellarByChain(chain),
+func NewCellarClient(chain enums.Chain) (*Cellar, error) {
+	cellar, err := config.GetCellarByChain(chain)
+	if err != nil {
+		return nil, err
 	}
+	return &Cellar{
+		chain:  chain,
+		Cellar: *cellar,
+	}, nil
 }
 
 type cellarResp[T any] struct {
@@ -67,6 +70,9 @@ func (a *Cellar) GetOrCreateAccount(phone string) (*GetOrCreateCellarUserResp, e
 }
 
 func requestCellar[TPayload any, TResp any](method string, url string, payload TPayload, headers map[string]string) (*TResp, error) {
+	if config.GetConfig().Env == "dev" {
+		logrus.WithField("url", url).WithField("payload", payload).WithField("headers", headers).Info("request cellar")
+	}
 
 	cr, err := utils.SendHttp[any, cellarResp[TResp]](method, url, payload, headers)
 	if err != nil {

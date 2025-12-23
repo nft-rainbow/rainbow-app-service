@@ -148,11 +148,13 @@ func GetGaslessContractIdByChain(chain enums.Chain) uint {
 	return contractRawId
 }
 
-func GetCellarByChain(chain enums.Chain) Cellar {
-	cellar := _config.Wallet.Cellar.Testnet
-	if chain == enums.CHAIN_CONFLUX {
-		cellar = _config.Wallet.Cellar.Mainnet
+func GetCellarByChain(chain enums.Chain) (*Cellar, error) {
+	switch chain {
+	case enums.CHAIN_CONFLUX:
+		return &_config.Wallet.Cellar.Mainnet, nil
+	case enums.CHAIN_CONFLUX_TEST:
+		return &_config.Wallet.Cellar.Testnet, nil
+	default:
+		return nil, fmt.Errorf("unknown chain: %v", chain)
 	}
-	return cellar
-
 }
